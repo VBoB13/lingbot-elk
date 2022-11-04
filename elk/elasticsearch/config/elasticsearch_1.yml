@@ -1,0 +1,15 @@
+---
+## Default Elasticsearch configuration from Elasticsearch base image.
+## https://github.com/elastic/elasticsearch/blob/master/distribution/docker/src/docker/config/elasticsearch.yml
+#
+cluster.name: elk_service
+network.host: 0.0.0.0
+node.name: elk_node
+discovery.type: single-node
+# cluster.initial_master_nodes: ["crud_node", "elk"]
+## X-Pack settings
+## see https://www.elastic.co/guide/en/elasticsearch/reference/current/security-settings.html
+#
+xpack.license.self_generated.type: basic
+xpack.security.enabled: false
+xpack.security.authc.api_key.enabled: false
