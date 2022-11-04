@@ -3,8 +3,8 @@
 from . import ELASTIC_HOST
 from datetime import datetime
 from elasticsearch import Elasticsearch
-from ..params.definitions import SaveDoc
-from ..errors.elastic_err import ElasticError
+from params.definitions import SaveDoc
+from errors.elastic_err import ElasticError
 
 
 class LingtelliElastic(Elasticsearch):
