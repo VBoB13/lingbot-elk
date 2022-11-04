@@ -1,6 +1,6 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
-import os
+from . import ELASTIC_HOST
 from datetime import datetime
 from elasticsearch import Elasticsearch
 from ..params.definitions import SaveDoc
@@ -9,9 +9,7 @@ from ..errors.elastic_err import ElasticError
 
 class LingtelliElastic(Elasticsearch):
     def __init__(self, *args):
-        elastic_host = "{}:{}".format(
-            os.environ["ELASTIC_HOST"], os.environ["ELASTIC_PORT"])
-        super().__init__(elastic_host, args) if args else super().__init__(elastic_host)
+        super().__init__(ELASTIC_HOST, args) if args else super().__init__(ELASTIC_HOST)
 
     def save(self, doc: SaveDoc):
         """

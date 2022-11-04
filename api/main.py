@@ -1,8 +1,8 @@
 import os
 from fastapi import FastAPI, Response
 from fastapi import status
-from params.definitions import SaveDoc, ErrorModel, BasicResponse
-from es.elastic import LingtelliElastic
+from .params.definitions import SaveDoc, ErrorModel, BasicResponse
+from .es.elastic import LingtelliElastic
 
 app = FastAPI()
 
