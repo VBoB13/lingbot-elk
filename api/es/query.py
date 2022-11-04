@@ -1,0 +1,1 @@
+# This file contains code related to query making for Elasticsearch.
