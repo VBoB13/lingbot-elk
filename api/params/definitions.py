@@ -21,3 +21,7 @@ class Document(BaseModel):
 class Doc(BaseModel):
     vendor_id: str
     document: Document
+
+
+class SearchDoc(Doc):
+    query: str = {"match_all": {}}

@@ -3,7 +3,7 @@
 from . import ELASTIC_HOST
 from datetime import datetime
 from elasticsearch import Elasticsearch
-from params.definitions import SaveDoc
+from params.definitions import Doc, SearchDoc
 from errors.elastic_err import ElasticError
 
 
@@ -11,7 +11,7 @@ class LingtelliElastic(Elasticsearch):
     def __init__(self, *args):
         super().__init__(ELASTIC_HOST, args) if args else super().__init__(ELASTIC_HOST)
 
-    def save(self, doc: SaveDoc):
+    def save(self, doc: Doc):
         """
         This method attempts to safely save document into Elasticsearch.
         """
@@ -24,6 +24,17 @@ class LingtelliElastic(Elasticsearch):
             raise ElasticError("Could not save document!") from err
         return resp['result']
 
+    def search(self, doc: SearchDoc, *args, **kwargs):
+        """
+        This method attempts to search for documents saved into the index of
+        'doc.vendor_id'.
+        """
+        self.doc = doc
+        try:
+            resp = super().search(index=self.doc.vendor_id, query=self.doc.query)
+        except Exception as err:
+            raise ElasticError("Error while searching for documents!") from err
+        return resp
 
 # es = Elasticsearch("http://localhost:9200")
 #
