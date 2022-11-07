@@ -14,14 +14,17 @@ class BasicResponse(BaseModel):
     data: dict[str, Any]
 
 
-class Document(BaseModel):
-    fields: dict[str, Any] = {"field_name": "field_val"}
-
-
-class Doc(BaseModel):
+class Vendor(BaseModel):
     vendor_id: str
-    document: Document
 
 
-class SearchDoc(Doc):
+class Vendors(BaseModel):
+    vendor_ids: list[str]
+
+
+class Doc(Vendor):
+    document: dict[str, Any] = {"column": "value"}
+
+
+class SearchDoc(Vendor):
     query: str = {"match_all": {}}

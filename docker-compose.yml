@@ -6,8 +6,12 @@ services:
       context: ./elk/
     ports:
       - "5601:5601"
-      - "9200:9200"
       - "5044:5044"
+      - "9200:9200"
+      - "9300:9300"
+      - "9600:9600"
+    networks:
+      - es_net
 
   api:
     container_name: elk_api
@@ -15,3 +19,10 @@ services:
       context: ./api/
     ports:
       - "8888:8000"
+    networks:
+      - es_net
+
+networks:
+  es_net:
+    name: es_net
+    driver: bridge

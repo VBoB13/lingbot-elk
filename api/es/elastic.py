@@ -1,15 +1,16 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
-from . import ELASTIC_HOST
+from typing import overload
 from datetime import datetime
 from elasticsearch import Elasticsearch
-from params.definitions import Doc, SearchDoc
+from params.definitions import Doc, SearchDoc, Vendor, Vendors
 from errors.elastic_err import ElasticError
+from . import ELASTIC_HOST
 
 
 class LingtelliElastic(Elasticsearch):
-    def __init__(self, *args):
-        super().__init__(ELASTIC_HOST, args) if args else super().__init__(ELASTIC_HOST)
+    def __init__(self):
+        super(Elasticsearch, self).__init__(ELASTIC_HOST)
 
     def save(self, doc: Doc):
         """
@@ -17,9 +18,9 @@ class LingtelliElastic(Elasticsearch):
         """
         self.doc = doc
         try:
-            self.doc.document.fields.update({"timestamp": datetime.now()})
+            self.doc.document.update({"timestamp": datetime.now()})
             resp = self.index(index=self.doc.vendor_id,
-                              document=self.doc.document)
+                              document=self.doc.document, refresh=True)
         except Exception as err:
             raise ElasticError("Could not save document!") from err
         return resp['result']
@@ -35,6 +36,22 @@ class LingtelliElastic(Elasticsearch):
         except Exception as err:
             raise ElasticError("Error while searching for documents!") from err
         return resp
+
+    @overload
+    def update_index(self, vendors: Vendors):
+        indices = list(vendors.vendor_ids)
+        self.update_indices(indices)
+
+    @overload
+    def update_index(self, vendor: Vendor):
+        indices = list(vendor.vendor_id)
+        self.update_indices(indices)
+
+    def update_indices(self, index_list: list = []):
+        if len(index_list) >= 0:
+            self.indices.refresh(index=index_list)
+        else:
+            self.indices.refresh(index="_all")
 
 # es = Elasticsearch("http://localhost:9200")
 #

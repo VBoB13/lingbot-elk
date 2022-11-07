@@ -6,6 +6,7 @@ cluster.name: elk_service
 network.host: 0.0.0.0
 node.name: elk_node
 discovery.type: single-node
+action.auto_create_index: .monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*
 # cluster.initial_master_nodes: ["crud_node", "elk"]
 ## X-Pack settings
 ## see https://www.elastic.co/guide/en/elasticsearch/reference/current/security-settings.html
