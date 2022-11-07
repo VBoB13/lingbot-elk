@@ -1,4 +1,5 @@
 import os
+import uvicorn
 from fastapi import FastAPI, Response
 from fastapi import status
 from params.definitions import SaveDoc, ErrorModel, BasicResponse
@@ -22,3 +23,6 @@ async def save_doc(doc: SaveDoc) -> BasicResponse | ErrorModel:
     except Exception as err:
         return Response({"error": "{}".format(err)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     return Response({"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)

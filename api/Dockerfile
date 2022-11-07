@@ -1,9 +1,8 @@
 FROM python:3.10-alpine
 RUN mkdir -p /opt/api
 WORKDIR /opt/api
-ADD ./requirements.txt /opt/api/requirements.txt
-ADD ./main.py /opt/api/main.py
-ADD ./es /opt/api/es
+ADD ./ .
 RUN python3 -m pip install -U pip
 RUN python3 -m pip install -r requirements.txt
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENV ELASTIC_SERVER="0.0.0.0" ELASTIC_PORT="8000"
+CMD ["python3", "main.py"]
