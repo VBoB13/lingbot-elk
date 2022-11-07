@@ -17,7 +17,7 @@ class LingtelliElastic(Elasticsearch):
         """
         self.doc = doc
         try:
-            self.doc.document.field_vals.update({"timestamp": datetime.now()})
+            self.doc.document.fields.update({"timestamp": datetime.now()})
             resp = self.index(index=self.doc.vendor_id,
                               document=self.doc.document)
         except Exception as err:

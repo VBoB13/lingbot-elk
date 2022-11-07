@@ -15,9 +15,9 @@ class BasicResponse(BaseModel):
 
 
 class Document(BaseModel):
-    field_vals: dict[str, Any]
+    fields: dict[str, Any] = {"field_name": "field_val"}
 
 
-class SaveDoc(BaseModel):
+class Doc(BaseModel):
     vendor_id: str
     document: Document

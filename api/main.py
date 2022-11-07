@@ -2,7 +2,7 @@ import os
 import uvicorn
 from fastapi import FastAPI, Response
 from fastapi import status
-from params.definitions import SaveDoc, ErrorModel, BasicResponse
+from params.definitions import Doc, ErrorModel, BasicResponse
 from es.elastic import LingtelliElastic
 
 app = FastAPI()
@@ -14,7 +14,7 @@ async def root():
 
 
 @app.post("/save")
-async def save_doc(doc: SaveDoc) -> BasicResponse | ErrorModel:
+async def save_doc(doc: Doc) -> BasicResponse | ErrorModel:
     elastic_host = "{}:{}".format(
         os.environ["ELASTIC_HOST"], os.environ["ELASTIC_PORT"])
     try:
