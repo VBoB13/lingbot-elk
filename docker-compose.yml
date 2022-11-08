@@ -28,5 +28,3 @@ services:
 
 networks:
   es_net:
-    name: es_net
-    driver: default
