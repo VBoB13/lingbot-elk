@@ -1,9 +1,9 @@
-import os
 import uvicorn
 from fastapi import FastAPI, Response
 from fastapi import status
 from params.definitions import Doc, SearchDoc, ErrorModel, BasicResponse
 from es.elastic import LingtelliElastic
+from . import API_HOST, API_PORT
 
 app = FastAPI()
 
@@ -33,4 +33,4 @@ async def search_doc(doc: SearchDoc) -> BasicResponse | ErrorModel:
     return Response({"msg": "Document(s) found!", "data": result})
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host=API_HOST, port=API_PORT)
