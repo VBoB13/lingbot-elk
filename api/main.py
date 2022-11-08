@@ -4,7 +4,6 @@ from fastapi import FastAPI, Response
 from fastapi import status
 from params.definitions import Doc, SearchDoc, ErrorModel, BasicResponse
 from es.elastic import LingtelliElastic
-from ..api import API_HOST, API_PORT
 
 app = FastAPI()
 
