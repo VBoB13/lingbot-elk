@@ -1,4 +1,4 @@
-FROM python:3.10-alpine
+FROM python:3.10.8-bullseye
 RUN mkdir -p /opt/api
 WORKDIR /opt/api
 ADD ./ .
