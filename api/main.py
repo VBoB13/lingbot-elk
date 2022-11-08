@@ -33,7 +33,6 @@ async def search_doc(doc: SearchDoc) -> BasicResponse | ErrorModel:
     return Response({"msg": "Document(s) found!", "data": result})
 
 if __name__ == "__main__":
-    API_HOST = "{}".format(os.environ.get(
-        ["API_SERVER"], "127.0.0.1"))
+    API_HOST = os.environ.get(["API_SERVER"], "127.0.0.1")
     API_PORT = int(os.environget(["API_PORT"], "420"))
     uvicorn.run("main:app", host=API_HOST, port=API_PORT)
