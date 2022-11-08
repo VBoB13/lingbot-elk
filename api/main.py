@@ -1,3 +1,4 @@
+import os
 import uvicorn
 from fastapi import FastAPI, Response
 from fastapi import status
@@ -33,4 +34,6 @@ async def search_doc(doc: SearchDoc) -> BasicResponse | ErrorModel:
     return Response({"msg": "Document(s) found!", "data": result})
 
 if __name__ == "__main__":
+    API_HOST = "{}".format(os.environ["API_SERVER"])
+    API_PORT = int(os.environ["API_PORT"])
     uvicorn.run("main:app", host=API_HOST, port=API_PORT)
