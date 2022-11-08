@@ -18,11 +18,11 @@ services:
     build:
       context: ./api/
     ports:
-      - "8888:8000"
+      - "420:420"
     networks:
       - es_net
 
 networks:
   es_net:
     name: es_net
-    driver: bridge
+    driver: default
