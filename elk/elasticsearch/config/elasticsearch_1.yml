@@ -3,7 +3,7 @@
 ## https://github.com/elastic/elasticsearch/blob/master/distribution/docker/src/docker/config/elasticsearch.yml
 #
 cluster.name: elk_service
-network.host: ${ELASTIC_HOST}
+network.host: ${ELASTIC_SERVER}
 node.name: elk_node
 discovery.type: single-node
 # action.auto_create_index: .monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*
