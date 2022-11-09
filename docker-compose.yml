@@ -23,6 +23,7 @@ services:
       - .env
     ports:
       - "420:420"
+      - "9200:920"
     networks:
       - es_net
 
