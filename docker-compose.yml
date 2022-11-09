@@ -7,11 +7,11 @@ services:
     env_file: 
       - .env
     ports:
-      - "5601:5601"
-      - "5044:5044"
-      - "9200:9200"
-      - "9300:9300"
-      - "9600:9600"
+      - 5601:5601
+      - 5044:5044
+      - 9200:9200
+      - 9300:9300
+      - 9600:9600
     networks:
       - es_net
 
@@ -24,9 +24,12 @@ services:
     env_file: 
       - .env
     ports:
-      - "420:420"
+      - 420:420
+    expose:
+      - 5000
     networks:
       - es_net
 
 networks:
   es_net:
+    driver: bridge
