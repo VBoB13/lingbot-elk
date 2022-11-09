@@ -17,7 +17,7 @@ class LingtelliElastic(Elasticsearch):
         self.logger = Logger(f"{__file__}: {__class__.__name__}")
         self.logger.log(
             1, "Initializing Elasticsearch client at: {}:{}".format(ELASTIC_IP, ELASTIC_PORT))
-        super().__init__(hosts=[{"host": ELASTIC_IP, "port": ELASTIC_PORT}],
+        super().__init__([{"scheme": "http://", "host": ELASTIC_IP, "port": ELASTIC_PORT}],
                          max_retries=30, retry_on_timeout=True, request_timeout=30)
 
     def save(self, doc: Doc):
