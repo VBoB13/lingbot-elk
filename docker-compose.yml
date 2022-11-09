@@ -17,6 +17,8 @@ services:
 
   api:
     container_name: elk_api
+    depends_on:
+      - elk
     build:
       context: ./api/
     env_file: 
