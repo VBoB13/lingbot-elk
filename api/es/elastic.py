@@ -1,8 +1,11 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
-from typing import overload
 from datetime import datetime
+from traceback import print_tb
+from typing import overload
+
 from elasticsearch import Elasticsearch
+
 from params.definitions import Doc, SearchDoc, Vendor, Vendors
 from errors.elastic_err import ElasticError
 from . import ELASTIC_HOST
@@ -22,6 +25,7 @@ class LingtelliElastic(Elasticsearch):
             resp = self.index(index=self.doc.vendor_id,
                               document=self.doc.document, refresh=True)
         except Exception as err:
+            print_tb(err.__traceback__)
             raise ElasticError("Could not save document!") from err
         return resp['result']
 
@@ -34,6 +38,7 @@ class LingtelliElastic(Elasticsearch):
         try:
             resp = super().search(index=self.doc.vendor_id, query=self.doc.query)
         except Exception as err:
+            print_tb(err.__traceback__)
             raise ElasticError("Error while searching for documents!") from err
         return resp
 
