@@ -14,7 +14,7 @@ from . import ELASTIC_HOST
 
 class LingtelliElastic(Elasticsearch):
     def __init__(self):
-        self.logger = Logger(f"{__file__.__name__}: {__class__.__name__}")
+        self.logger = Logger(f"{__file__}: {__class__.__name__}")
         self.logger.log(
             1, "Initializing Elasticsearch client at: {}".format(ELASTIC_HOST))
         super().__init__(ELASTIC_HOST)
