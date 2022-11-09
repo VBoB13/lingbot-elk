@@ -8,12 +8,12 @@ from elasticsearch import Elasticsearch
 
 from params.definitions import Doc, SearchDoc, Vendor, Vendors
 from errors.elastic_err import ElasticError
-from . import ELASTIC_HOST, ELASTIC_IP
+from . import ELASTIC_HOST
 
 
 class LingtelliElastic(Elasticsearch):
     def __init__(self):
-        super().__init__(ELASTIC_IP)
+        super().__init__(ELASTIC_HOST)
 
     def save(self, doc: Doc):
         """
