@@ -9,15 +9,16 @@ from elasticsearch import Elasticsearch
 
 from params.definitions import Doc, SearchDoc, Vendor, Vendors
 from errors.elastic_err import ElasticError
-from . import ELASTIC_HOST
+from . import ELASTIC_IP, ELASTIC_PORT
 
 
 class LingtelliElastic(Elasticsearch):
     def __init__(self):
         self.logger = Logger(f"{__file__}: {__class__.__name__}")
         self.logger.log(
-            1, "Initializing Elasticsearch client at: {}".format(ELASTIC_HOST))
-        super().__init__(ELASTIC_HOST)
+            1, "Initializing Elasticsearch client at: {}:{}".format(ELASTIC_IP, ELASTIC_PORT))
+        super().__init__(hosts=[{"host": ELASTIC_IP, "port": ELASTIC_PORT}],
+                         max_retries=30, retry_on_timeout=True, request_timeout=30)
 
     def save(self, doc: Doc):
         """
