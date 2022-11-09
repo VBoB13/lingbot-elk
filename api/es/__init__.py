@@ -1,4 +1,6 @@
 import os
 
+ELASTIC_IP = str(os.environ["ELASTIC_SERVER"])
+
 ELASTIC_HOST = "{}:{}".format(
-    os.environ["ELASTIC_SERVER"], os.environ["ELASTIC_PORT"])
+    ELASTIC_IP, os.environ["ELASTIC_PORT"])
