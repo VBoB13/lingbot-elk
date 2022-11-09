@@ -28,3 +28,4 @@ services:
 
 networks:
   es_net:
+    driver: bridge
