@@ -22,7 +22,7 @@ class LingtelliElastic(Elasticsearch):
         self.doc = doc
         try:
             self.doc.document.update({"timestamp": datetime.now()})
-            resp = self.index(index=self.doc.vendor_id,
+            resp = self.index(None, index=self.doc.vendor_id,
                               document=self.doc.document, refresh=True)
         except Exception as err:
             print_tb(err.__traceback__)
