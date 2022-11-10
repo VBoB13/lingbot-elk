@@ -25,17 +25,12 @@ class Vendors(BaseModel):
 class Field(BaseModel):
     name: str
     value: Any
-    type: Optional[str] = "string"
+    type: Optional[str]
 
 
-class Doc(Vendor):
-    vendor: Vendor
-    doc_id: Optional[str] = None
-    document: dict[str, Any | Field] = {
-        "name": "first_name",
-        "value": "Dick",
-        "type": "string"
-    }
+class ElasticDoc(BaseModel):
+    doc_id: Optional[str]
+    fields: list[Field]
 
 
 class SearchDoc(Vendor):
