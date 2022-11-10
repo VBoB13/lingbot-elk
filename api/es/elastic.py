@@ -7,7 +7,7 @@ from pprint import pprint
 
 from elasticsearch import Elasticsearch
 
-from params.definitions import Doc, SearchDoc, Vendor, Vendors
+from params.definitions import ElasticDoc, SearchDoc, Vendor, Vendors
 from errors.elastic_err import ElasticError
 from . import ELASTIC_IP, ELASTIC_PORT
 
@@ -33,7 +33,7 @@ class LingtelliElastic(Elasticsearch):
             index=self.doc.vendor.vendor_id, id=self.doc.doc_id)
         pprint(source_doc)
 
-    def save(self, doc: Doc):
+    def save(self, doc: ElasticDoc):
         """
         This method attempts to safely save document into Elasticsearch.
         """
