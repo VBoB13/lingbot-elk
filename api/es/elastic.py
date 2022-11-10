@@ -58,6 +58,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(
                 "Does the mapping match the index's set mapping?")
             print_tb(err.__traceback__)
+            print(err)
             raise self.logger from err
         return resp['result']
 
