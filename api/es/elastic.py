@@ -34,10 +34,10 @@ class LingtelliElastic(Elasticsearch):
         """
         document = {}
         for obj in self.doc.fields:
-            if obj["type"] == "integer":
-                document.update({obj["name"]: int(obj["value"])})
+            if obj.type == "integer":
+                document.update({obj.name: int(obj.value)})
             else:
-                document.update({obj["name"]: str(obj["value"])})
+                document.update({obj.name: str(obj.value)})
         if self.doc.doc_id:
             document.update({"id": self.doc.doc_id})
 
