@@ -19,8 +19,8 @@ async def save_doc(doc: Doc) -> BasicResponse | ErrorModel:
         es = LingtelliElastic()
         result = es.save(doc)
     except Exception as err:
-        return Response({"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return Response({"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
+        return Response(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
 
 
 @app.get("/search")
@@ -29,10 +29,10 @@ async def search_doc(doc: SearchDoc) -> BasicResponse | ErrorModel:
         es = LingtelliElastic()
         result = es.search(index=doc.vendor_id, query=doc.query)
     except Exception as err:
-        return Response({"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return Response({"msg": "Document(s) found!", "data": result})
+        return Response(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response(content={"msg": "Document(s) found!", "data": result})
 
 if __name__ == "__main__":
-    API_HOST = os.environ.get("API_SERVER", "127.0.0.1")
+    API_HOST = os.environ.get("API_SERVER", "0.0.0.0")
     API_PORT = int(os.environ.get("API_PORT", "420"))
     uvicorn.run("main:app", host=API_HOST, port=API_PORT)
