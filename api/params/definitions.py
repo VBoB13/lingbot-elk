@@ -22,14 +22,17 @@ class Vendors(BaseModel):
     vendor_ids: list[str]
 
 
+class DocID(BaseModel):
+    doc_id: Optional[str] = None
+
+
 class Field(BaseModel):
     name: str
     value: str | int
     type: Optional[str] = None
 
 
-class ElasticDoc(BaseModel):
-    doc_id: Optional[str] = None
+class ElasticDoc(Vendor, DocID):
     fields: list[Field]
 
 
