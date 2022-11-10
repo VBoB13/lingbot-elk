@@ -3,6 +3,7 @@
 from datetime import datetime
 from traceback import print_tb
 from typing import overload
+from pprint import pprint
 
 from elasticsearch import Elasticsearch
 
@@ -15,9 +16,22 @@ class LingtelliElastic(Elasticsearch):
     def __init__(self):
         self.logger = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
             ELASTIC_IP, ELASTIC_PORT))
-        self.logger.info()
-        super().__init__([{"scheme": "http://", "host": ELASTIC_IP, "port": ELASTIC_PORT}],
-                         max_retries=30, retry_on_timeout=True, request_timeout=30)
+        try:
+            super().__init__([{"scheme": "http://", "host": ELASTIC_IP, "port": ELASTIC_PORT}],
+                             max_retries=30, retry_on_timeout=True, request_timeout=30)
+        except Exception as err:
+            self.logger.msg = "Initialization of Elasticsearch client FAILED!"
+            self.logger.error(extra_msg=str(err))
+            print_tb(err.__traceback__)
+            raise err
+
+        self.logger.info("Success!")
+
+    def _check_doc_mapping(self):
+        mapping_obj = {}
+        source_doc = self.get_source(
+            index=self.doc.vendor.vendor_id, id=self.doc.doc_id)
+        pprint(source_doc)
 
     def save(self, doc: Doc):
         """
@@ -25,9 +39,10 @@ class LingtelliElastic(Elasticsearch):
         """
         self.doc = doc
         try:
+            self._check_doc_mapping()
             self.doc.document.update({"timestamp": datetime.now()})
             resp = self.index(index=self.doc.vendor_id,
-                              document=self.doc.document, refresh=True)
+                              document=self.doc.document, refresh=False)
         except Exception as err:
             self.logger.msg = "Could not save document!"
             self.logger.error(

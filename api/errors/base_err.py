@@ -31,7 +31,7 @@ class BaseError(Exception):
         return full_msg + f"\nDetails:\n{extra_msg}"
 
     @property
-    def msg(self):
+    def msg(self) -> str:
         return self._msg
 
     @msg.setter
@@ -45,13 +45,22 @@ class BaseError(Exception):
         self._msg = ""
 
     def info(self, extra_msg: str = ""):
+        """
+        Log a message (.msg attribute) to console preceded with a |INFO| tag.
+        """
         full_msg = self._get_full_msg('INFO', extra_msg)
         self.logger.info(full_msg)
 
     def warn(self, extra_msg: str = ""):
+        """
+        Log a message (.msg attribute) to console preceded with a |WARN| tag.
+        """
         full_msg = self._get_full_msg('WARN', extra_msg)
         self.logger.warn(full_msg)
 
-    def error(self, extra_msg: str = ""):
+    def error(self, extra_msg=str("")):
+        """
+        Log a message (.msg attribute) to console preceded with a |ERROR| tag.
+        """
         full_msg = self._get_full_msg('ERROR', extra_msg)
         self.logger.error(full_msg)

@@ -1,1 +1,5 @@
-# This file contains code related to query making for Elasticsearch.
+# This file contains code related to [search]query making for Elasticsearch.
+
+class QueryMaker(object):
+    def __init__(self):
+        pass
