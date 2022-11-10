@@ -40,6 +40,7 @@ class LingtelliElastic(Elasticsearch):
                 document.update({obj.name: str(obj.value)})
         if doc.doc_id:
             document.update({"id": doc.doc_id})
+        document.update({"timestamp": datetime.now()})
 
         return document
 
@@ -49,9 +50,8 @@ class LingtelliElastic(Elasticsearch):
         """
         try:
             self.doc = self._level_docs(doc)
-            self.doc.update({"timestamp": datetime.now()})
-            resp = self.index(index=self.doc.vendor_id,
-                              document=self.doc.document, refresh=False)
+            resp = self.index(index=doc.vendor_id,
+                              document=self.doc, refresh=False)
         except Exception as err:
             self.logger.msg = "Could not save document!"
             self.logger.error(
