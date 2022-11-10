@@ -29,7 +29,7 @@ class Field(BaseModel):
 
 
 class ElasticDoc(BaseModel):
-    doc_id: Optional[str]
+    doc_id: Optional[str] = None
     fields: list[Field]
 
 
