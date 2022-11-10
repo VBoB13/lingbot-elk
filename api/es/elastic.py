@@ -3,7 +3,6 @@
 from datetime import datetime
 from traceback import print_tb
 from typing import overload
-from logging import Logger
 
 from elasticsearch import Elasticsearch
 
@@ -14,9 +13,9 @@ from . import ELASTIC_IP, ELASTIC_PORT
 
 class LingtelliElastic(Elasticsearch):
     def __init__(self):
-        self.logger = Logger(f"{__file__}: {__class__.__name__}")
-        self.logger.log(
-            1, "Initializing Elasticsearch client at: {}:{}".format(ELASTIC_IP, ELASTIC_PORT))
+        self.logger = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
+            ELASTIC_IP, ELASTIC_PORT))
+        self.logger.info()
         super().__init__([{"scheme": "http://", "host": ELASTIC_IP, "port": ELASTIC_PORT}],
                          max_retries=30, retry_on_timeout=True, request_timeout=30)
 
@@ -30,8 +29,11 @@ class LingtelliElastic(Elasticsearch):
             resp = self.index(index=self.doc.vendor_id,
                               document=self.doc.document, refresh=True)
         except Exception as err:
+            self.logger.msg = "Could not save document!"
+            self.logger.error(
+                "Does the mapping match the index's set mapping?")
             print_tb(err.__traceback__)
-            raise ElasticError("Could not save document!") from err
+            raise self.logger from err
         return resp['result']
 
     def search(self, doc: SearchDoc, *args, **kwargs):

@@ -1,9 +1,11 @@
 import os
 import uvicorn
-from fastapi import FastAPI, Response
-from fastapi import status
+
+from fastapi import FastAPI, Response, status
+
 from params.definitions import Doc, SearchDoc, ErrorModel, BasicResponse
 from es.elastic import LingtelliElastic
+from helpers.reqres import ElkServiceResponse
 
 app = FastAPI()
 
@@ -19,8 +21,8 @@ async def save_doc(doc: Doc) -> BasicResponse | ErrorModel:
         es = LingtelliElastic()
         result = es.save(doc)
     except Exception as err:
-        return Response(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return Response(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
+        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
 
 
 @app.get("/search")
