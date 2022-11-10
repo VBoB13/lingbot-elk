@@ -37,4 +37,4 @@ class ElasticDoc(Vendor, DocID):
 
 
 class SearchDoc(Vendor):
-    query: str = {"match_all": {}}
+    query: dict = {"match_all": {}}

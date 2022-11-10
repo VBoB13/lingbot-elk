@@ -27,11 +27,21 @@ class LingtelliElastic(Elasticsearch):
 
         self.logger.info("Success!")
 
-    def _check_doc_mapping(self):
-        mapping_obj = {}
-        source_doc = self.get_source(
-            index=self.doc.vendor.vendor_id, id=self.doc.doc_id)
-        pprint(source_doc)
+    def _level_docs(self):
+        """
+        Method that aims to make the document data passed through API endpoint
+        into a single-layered object that can be passed to Elasticsearch.index()
+        """
+        document = {}
+        for obj in self.doc.fields:
+            if obj["type"] == "integer":
+                document.update({obj["name"]: int(obj["value"])})
+            else:
+                document.update({obj["name"]: str(obj["value"])})
+        if self.doc.doc_id:
+            document.update({"id": self.doc.doc_id})
+
+        self.doc = document
 
     def save(self, doc: ElasticDoc):
         """
@@ -39,7 +49,7 @@ class LingtelliElastic(Elasticsearch):
         """
         self.doc = doc
         try:
-            self._check_doc_mapping()
+            self._level_docs()
             self.doc.document.update({"timestamp": datetime.now()})
             resp = self.index(index=self.doc.vendor_id,
                               document=self.doc.document, refresh=False)
