@@ -27,7 +27,7 @@ class LingtelliElastic(Elasticsearch):
 
         self.logger.info("Success!")
 
-    def _level_docs(self):
+    def _level_docs(self, doc: ElasticDoc):
         """
         Method that aims to make the document data passed through API endpoint
         into a single-layered object that can be passed to Elasticsearch.index()
@@ -41,16 +41,15 @@ class LingtelliElastic(Elasticsearch):
         if self.doc.doc_id:
             document.update({"id": self.doc.doc_id})
 
-        self.doc = document
+        return document
 
     def save(self, doc: ElasticDoc):
         """
         This method attempts to safely save document into Elasticsearch.
         """
-        self.doc = doc
         try:
-            self._level_docs()
-            self.doc.document.update({"timestamp": datetime.now()})
+            self.doc = self._level_docs(doc)
+            self.doc.update({"timestamp": datetime.now()})
             resp = self.index(index=self.doc.vendor_id,
                               document=self.doc.document, refresh=False)
         except Exception as err:
