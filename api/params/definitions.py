@@ -24,8 +24,8 @@ class Vendors(BaseModel):
 
 class Field(BaseModel):
     name: str
-    value: Any
-    type: Optional[str]
+    value: str | int
+    type: Optional[str] = None
 
 
 class ElasticDoc(BaseModel):
