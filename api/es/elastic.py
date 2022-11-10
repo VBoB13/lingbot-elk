@@ -33,13 +33,13 @@ class LingtelliElastic(Elasticsearch):
         into a single-layered object that can be passed to Elasticsearch.index()
         """
         document = {}
-        for obj in self.doc.fields:
+        for obj in doc.fields:
             if obj.type == "integer":
                 document.update({obj.name: int(obj.value)})
             else:
                 document.update({obj.name: str(obj.value)})
-        if self.doc.doc_id:
-            document.update({"id": self.doc.doc_id})
+        if doc.doc_id:
+            document.update({"id": doc.doc_id})
 
         return document
 
