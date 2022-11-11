@@ -29,7 +29,7 @@ async def save_doc(doc: ElasticDoc) -> BasicResponse | ErrorModel:
 async def search_doc(doc: SearchDocTimeRange) -> BasicResponse | ErrorModel:
     try:
         es = LingtelliElastic()
-        result = es.search(index=doc.vendor_id, query=doc.query)
+        result = es.search(doc)
     except Exception as err:
         return Response(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     return Response(content={"msg": "Document(s) found!", "data": result})
