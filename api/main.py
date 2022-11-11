@@ -3,7 +3,7 @@ import uvicorn
 
 from fastapi import FastAPI, Response, status
 
-from params.definitions import ElasticDoc, SearchDoc, ErrorModel, BasicResponse
+from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, BasicResponse
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 
@@ -26,7 +26,7 @@ async def save_doc(doc: ElasticDoc) -> BasicResponse | ErrorModel:
 
 
 @app.get("/search")
-async def search_doc(doc: SearchDoc) -> BasicResponse | ErrorModel:
+async def search_doc(doc: SearchDocTimeRange) -> BasicResponse | ErrorModel:
     try:
         es = LingtelliElastic()
         result = es.search(index=doc.vendor_id, query=doc.query)
