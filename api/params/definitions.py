@@ -12,7 +12,7 @@ class ErrorModel(BaseModel):
 
 class BasicResponse(BaseModel):
     msg: str
-    data: dict
+    data: dict[str, Any]
 
 
 class Vendor(BaseModel):
