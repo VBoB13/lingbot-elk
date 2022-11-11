@@ -91,7 +91,7 @@ class LingtelliElastic(Elasticsearch):
         except Exception as err:
             self.logger.msg = "Could not save document!"
             self.logger.error(
-                "Does the mapping match the index's set mapping?", err)
+                str(err), err)
             raise self.logger from err
         return resp['result']
 
