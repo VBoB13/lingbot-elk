@@ -88,7 +88,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.msg = "Could not search for documents!"
             self.logger.error(str(err))
             raise self.logger from err
-        return resp['result']
+        return dict(resp)
 
     @overload
     def update_index(self, vendors: Vendors):
