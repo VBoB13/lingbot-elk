@@ -4,11 +4,11 @@ from traceback import print_tb
 
 from fastapi import FastAPI, status
 
+from params import DESCRIPTIONS
 from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, BasicResponse
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 
-from api import DESCRIPTIONS
 
 app = FastAPI()
 
