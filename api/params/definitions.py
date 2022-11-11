@@ -10,6 +10,11 @@ class ErrorModel(BaseModel):
     error: str
 
 
+class SearchResultDocTotal(BaseModel):
+    value: int
+    relation: str
+
+
 class SearchResultDoc(BaseModel):
     _index: str
     _id: str
@@ -18,7 +23,7 @@ class SearchResultDoc(BaseModel):
 
 
 class SearchResponseDoc(BaseModel):
-    total: dict[str, Any]
+    total: SearchResultDocTotal
     max_score: int
     hits: list[SearchResultDoc]
 
