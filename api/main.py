@@ -1,7 +1,7 @@
 import os
 import uvicorn
 
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, status
 
 from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, BasicResponse
 from es.elastic import LingtelliElastic
@@ -31,8 +31,8 @@ async def search_doc(doc: SearchDocTimeRange) -> BasicResponse | ErrorModel:
         es = LingtelliElastic()
         result = es.search(doc)
     except Exception as err:
-        return Response(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return Response(content={"msg": "Document(s) found!", "data": result})
+        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result})
 
 if __name__ == "__main__":
     API_HOST = os.environ.get("API_SERVER", "0.0.0.0")

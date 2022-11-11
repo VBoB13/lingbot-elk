@@ -58,7 +58,7 @@ class LingtelliElastic(Elasticsearch):
         if isinstance(doc, SearchDocTimeRange):
             queryObj.create_query_from_timestamps(doc.start, doc.end)
         # TODO: Add more situations / contexts here.
-        return dict(queryObj)
+        return queryObj.__dict__()
 
     def save(self, doc: ElasticDoc):
         """
