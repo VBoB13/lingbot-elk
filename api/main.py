@@ -1,5 +1,6 @@
 import os
 import uvicorn
+from traceback import print_tb
 
 from fastapi import FastAPI, status
 
@@ -20,9 +21,10 @@ async def save_doc(doc: ElasticDoc) -> BasicResponse | ErrorModel:
     try:
         es = LingtelliElastic()
         result = es.save(doc)
+        return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
     except Exception as err:
+        print_tb(err.__traceback__)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
 
 
 @app.post("/search")
@@ -30,9 +32,11 @@ async def search_doc(doc: SearchDocTimeRange) -> BasicResponse | ErrorModel:
     try:
         es = LingtelliElastic()
         result = es.search(doc)
+        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
+        print_tb(err.__traceback__)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result})
+
 
 if __name__ == "__main__":
     API_HOST = os.environ.get("API_SERVER", "0.0.0.0")
