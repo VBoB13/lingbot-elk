@@ -3,6 +3,7 @@
 
 from pydantic import BaseModel
 from pydantic.typing import Any, Optional
+from datetime import datetime, timedelta
 
 
 class ErrorModel(BaseModel):
@@ -36,5 +37,7 @@ class ElasticDoc(Vendor, DocID):
     fields: list[Field]
 
 
-class SearchDoc(Vendors):
-    query: dict = {"match_all": {}}
+class SearchDocTimeRange(Vendor):
+    start: str = (datetime.now() - timedelta(hours=1)
+                  ).strftime("%Y-%m-%dT%H:%M:%S")
+    end: str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")

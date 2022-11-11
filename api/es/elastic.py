@@ -7,9 +7,10 @@ from pprint import pprint
 
 from elasticsearch import Elasticsearch
 
-from params.definitions import ElasticDoc, SearchDoc, Vendor, Vendors
+from params.definitions import ElasticDoc, SearchDocTimeRange, Vendor, Vendors
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
+from es.query import QueryMaker
 from . import ELASTIC_IP, ELASTIC_PORT
 
 
@@ -52,6 +53,13 @@ class LingtelliElastic(Elasticsearch):
 
         return document
 
+    def _get_query(self, doc):
+        queryObj = QueryMaker()
+        if isinstance(doc, SearchDocTimeRange):
+            queryObj.create_query_from_timestamps(doc.start, doc.end)
+        # TODO: Add more situations / contexts here.
+        return dict(queryObj)
+
     def save(self, doc: ElasticDoc):
         """
         This method attempts to safely save document into Elasticsearch.
@@ -69,14 +77,15 @@ class LingtelliElastic(Elasticsearch):
             raise self.logger from err
         return resp['result']
 
-    def search(self, doc: SearchDoc, *args, **kwargs):
+    def search(self, doc: SearchDocTimeRange, *args, **kwargs):
         """
         This method attempts to search for documents saved into the index of
         'doc.vendor_id'.
         """
         self.doc = doc
         try:
-            resp = super().search(index=self.doc.vendor_id, query=self.doc.query)
+            self.query = self._get_query(doc)
+            resp = super().search(index=self.doc.vendor_id, query=self.query)
         except Exception as err:
             print_tb(err.__traceback__)
             raise ElasticError("Error while searching for documents!") from err
