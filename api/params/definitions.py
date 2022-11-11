@@ -56,7 +56,7 @@ class Field(BaseModel):
     type: Optional[str] = None
 
 
-class ElasticDoc(Vendor, DocID):
+class ElasticDoc(Vendor):
     fields: list[Field]
 
 
