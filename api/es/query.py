@@ -8,9 +8,6 @@ class QueryMaker(object):
     def __init__(self):
         self.query = dict()
 
-    def __dict__(self):
-        return {"query": self.query}
-
     def create_query_from_timestamps(self, start: str, end: str) -> None:
         """
         Method that sets the 'query' attribute to the format of:
