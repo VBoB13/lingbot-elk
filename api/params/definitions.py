@@ -10,9 +10,27 @@ class ErrorModel(BaseModel):
     error: str
 
 
+class SearchResultDoc(BaseModel):
+    _index: str
+    _id: str
+    _score: int
+    _source: dict[str, Any]
+
+
+class SearchResponseDoc(BaseModel):
+    total: dict[str, Any]
+    max_score: int
+    hits: list[SearchResultDoc]
+
+
 class BasicResponse(BaseModel):
     msg: str
-    data: dict[str, Any]
+    data: dict
+
+
+class SearchResponse(BaseModel):
+    msg: str
+    data: SearchResponseDoc
 
 
 class Vendor(BaseModel):

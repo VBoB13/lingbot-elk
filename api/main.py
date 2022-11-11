@@ -5,7 +5,7 @@ from traceback import print_tb
 from fastapi import FastAPI, status
 
 from params import DESCRIPTIONS
-from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, BasicResponse
+from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, BasicResponse, SearchResponse
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 
@@ -29,7 +29,7 @@ async def save_doc(doc: ElasticDoc):
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@app.post("/search", response_model=BasicResponse, description=DESCRIPTIONS["/search"])
+@app.post("/search", response_model=SearchResponse, description=DESCRIPTIONS["/search"])
 async def search_doc(doc: SearchDocTimeRange):
     try:
         es = LingtelliElastic()
