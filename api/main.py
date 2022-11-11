@@ -8,7 +8,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, Basic
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 
-from . import DESCRIPTIONS
+from api import DESCRIPTIONS
 
 app = FastAPI()
 
