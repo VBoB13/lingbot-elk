@@ -16,10 +16,10 @@ class SearchResultDocTotal(BaseModel):
 
 
 class SearchResultDoc(BaseModel):
-    _index: str
-    _id: str
-    _score: int
-    _source: dict[str, Any]
+    index: str
+    id: str
+    score: int
+    source: dict[str, Any]
 
 
 class SearchResponseDoc(BaseModel):
