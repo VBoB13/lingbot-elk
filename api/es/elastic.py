@@ -60,6 +60,25 @@ class LingtelliElastic(Elasticsearch):
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
 
+    def _remove_underlines(self, hits: list) -> list:
+        new_hits = []
+        if not isinstance(hits, list):
+            self.logger.msg = "'hits' argument should be a list; not {}".format(
+                type(hits).__name__)
+            self.logger.error()
+            raise self.logger
+
+        for hit in hits:
+            new_hit = {}
+            for key in hit:
+                if key[0] == "_":
+                    new_key_str = key[1:]
+                    new_hit[new_key_str] = hit[key]
+                else:
+                    new_hit[key] = hit[key]
+            new_hits.append(new_hit)
+        return new_hits
+
     def save(self, doc: ElasticDoc):
         """
         This method attempts to safely save document into Elasticsearch.
@@ -88,6 +107,9 @@ class LingtelliElastic(Elasticsearch):
             self.logger.msg = "Could not search for documents!"
             self.logger.error(str(err))
             raise self.logger from err
+
+        resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
+
         return dict(resp["hits"])
 
     @overload
