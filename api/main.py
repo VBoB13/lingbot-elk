@@ -8,6 +8,8 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, Basic
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 
+from . import DESCRIPTIONS
+
 app = FastAPI()
 
 
@@ -16,8 +18,8 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.post("/save")
-async def save_doc(doc: ElasticDoc) -> BasicResponse:
+@app.post("/save", response_model=BasicResponse, description=DESCRIPTIONS["/save"])
+async def save_doc(doc: ElasticDoc):
     try:
         es = LingtelliElastic()
         result = es.save(doc)
@@ -27,8 +29,8 @@ async def save_doc(doc: ElasticDoc) -> BasicResponse:
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@app.post("/search")
-async def search_doc(doc: SearchDocTimeRange) -> BasicResponse:
+@app.post("/search", response_model=BasicResponse, description=DESCRIPTIONS["/search"])
+async def search_doc(doc: SearchDocTimeRange):
     try:
         es = LingtelliElastic()
         result = es.search(doc)
