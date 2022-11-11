@@ -58,7 +58,7 @@ class LingtelliElastic(Elasticsearch):
         if isinstance(doc, SearchDocTimeRange):
             queryObj.create_query_from_timestamps(doc.start, doc.end)
         # TODO: Add more situations / contexts here.
-        return queryObj.__dict__()
+        return dict(queryObj)
 
     def save(self, doc: ElasticDoc):
         """
@@ -82,8 +82,8 @@ class LingtelliElastic(Elasticsearch):
         """
         self.doc = doc
         try:
-            self.query = self._get_query(doc)
-            resp = super().search(index=self.doc.vendor_id, query=self.query)
+            query = self._get_query(doc)
+            resp = super().search(index=self.doc.vendor_id, query=query)
         except Exception as err:
             self.logger.msg = "Could not search for documents!"
             self.logger.error(str(err))

@@ -6,7 +6,16 @@ from helpers.times import check_timestamp
 
 class QueryMaker(object):
     def __init__(self):
-        self.query = dict()
+        self.query = dict({})
+
+    def __iter__(self):
+        if len(self.query.keys()) == 0:
+            errObj = ElasticError(
+                __file__, self.__class__.__name__, "Query isn't built yet!")
+            errObj.error()
+            raise errObj
+        for key, value in self.query.items():
+            yield f"{key}", value
 
     def create_query_from_timestamps(self, start: str, end: str) -> None:
         """
