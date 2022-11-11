@@ -40,8 +40,9 @@ class LingtelliElastic(Elasticsearch):
                 document.update({obj.name: int(obj.value)})
             else:
                 document.update({obj.name: str(obj.value)})
-        if doc.doc_id:
-            document.update({"id": doc.doc_id})
+        # In the future, this is still going to be added.
+        # if doc.doc_id:
+        #     document.update({"id": doc.doc_id})
         today = datetime.now(tz=get_tz())
         today_str = date_to_str(today)
         if not check_timestamp(today_str):
