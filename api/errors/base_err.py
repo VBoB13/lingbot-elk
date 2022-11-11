@@ -60,10 +60,12 @@ class BaseError(Exception):
         full_msg = self._get_full_msg('WARN', extra_msg)
         self.logger.warn(full_msg)
 
-    def error(self, extra_msg=str("")) -> None:
+    def error(self, extra_msg=str(""), orgErr: Exception = None) -> None:
         """
         Log a message (.msg attribute) to console preceded with a |ERROR| tag.
         """
         full_msg = self._get_full_msg('ERROR', extra_msg)
         self.logger.error(full_msg)
         print_tb(self.__traceback__)
+        if orgErr:
+            print_tb(orgErr.__traceback__)
