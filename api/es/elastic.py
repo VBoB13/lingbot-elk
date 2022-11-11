@@ -72,7 +72,6 @@ class LingtelliElastic(Elasticsearch):
             self.logger.msg = "Could not save document!"
             self.logger.error(
                 "Does the mapping match the index's set mapping?")
-            print(err)
             raise self.logger from err
         return resp['result']
 
@@ -87,7 +86,7 @@ class LingtelliElastic(Elasticsearch):
             resp = super().search(index=self.doc.vendor_id, query=self.query)
         except Exception as err:
             self.logger.msg = "Could not search for documents!"
-            self.logger.error()
+            self.logger.error(str(err))
             raise self.logger from err
         return resp
 

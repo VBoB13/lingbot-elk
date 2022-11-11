@@ -26,7 +26,8 @@ class BaseError(Exception):
             color = Fore.RED
             level = 'ERROR'
         full_msg = color + \
-            f"|{level}|{self.__class__.__name__}" + Fore.RESET + self.msg
+            f"|{level}| {self.__class__.__name__}" + \
+            Fore.RESET + "\n" + self.msg
         if not extra_msg or not isinstance(extra_msg, str):
             return full_msg
         return full_msg + f"\nDetails:\n{extra_msg}"
