@@ -25,7 +25,7 @@ async def save_doc(doc: ElasticDoc) -> BasicResponse | ErrorModel:
     return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
 
 
-@app.get("/search")
+@app.post("/search")
 async def search_doc(doc: SearchDocTimeRange) -> BasicResponse | ErrorModel:
     try:
         es = LingtelliElastic()
