@@ -1,4 +1,5 @@
 from logging import Logger
+from traceback import print_tb
 from colorama import Fore
 
 
@@ -10,10 +11,10 @@ class BaseError(Exception):
         self._msg = msg
         self.logger = self._get_logger()
 
-    def _get_logger(self):
+    def _get_logger(self) -> Logger:
         return Logger(f"{self.file}: {self.cls}")
 
-    def _get_full_msg(self, level: str | int, extra_msg: str = ""):
+    def _get_full_msg(self, level: str | int, extra_msg: str = "") -> str:
         color = None
         if level in ('INFO', 1):
             color = Fore.CYAN
@@ -44,23 +45,24 @@ class BaseError(Exception):
     def msg(self):
         self._msg = ""
 
-    def info(self, extra_msg: str = ""):
+    def info(self, extra_msg: str = "") -> None:
         """
         Log a message (.msg attribute) to console preceded with a |INFO| tag.
         """
         full_msg = self._get_full_msg('INFO', extra_msg)
         self.logger.info(full_msg)
 
-    def warn(self, extra_msg: str = ""):
+    def warn(self, extra_msg: str = "") -> None:
         """
         Log a message (.msg attribute) to console preceded with a |WARN| tag.
         """
         full_msg = self._get_full_msg('WARN', extra_msg)
         self.logger.warn(full_msg)
 
-    def error(self, extra_msg=str("")):
+    def error(self, extra_msg=str("")) -> None:
         """
         Log a message (.msg attribute) to console preceded with a |ERROR| tag.
         """
         full_msg = self._get_full_msg('ERROR', extra_msg)
         self.logger.error(full_msg)
+        print_tb(self.__traceback__)

@@ -36,5 +36,5 @@ class ElasticDoc(Vendor, DocID):
     fields: list[Field]
 
 
-class SearchDoc(Vendor):
+class SearchDoc(Vendors):
     query: dict = {"match_all": {}}

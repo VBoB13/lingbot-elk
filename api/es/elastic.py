@@ -1,6 +1,6 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from traceback import print_tb
 from typing import overload
 from pprint import pprint
@@ -9,6 +9,7 @@ from elasticsearch import Elasticsearch
 
 from params.definitions import ElasticDoc, SearchDoc, Vendor, Vendors
 from errors.elastic_err import ElasticError
+from helpers.times import check_timestamp, get_tz, date_to_str
 from . import ELASTIC_IP, ELASTIC_PORT
 
 
@@ -40,7 +41,14 @@ class LingtelliElastic(Elasticsearch):
                 document.update({obj.name: str(obj.value)})
         if doc.doc_id:
             document.update({"id": doc.doc_id})
-        document.update({"timestamp": datetime.now()})
+        today = datetime.now(tz=get_tz())
+        today_str = date_to_str(today)
+        if not check_timestamp(today_str):
+            errObj = ElasticError(
+                __file__, self.__class__.__name__, "Timestamp is not in the correct format!")
+            errObj.error()
+            raise errObj
+        document.update({"timestamp": today_str})
 
         return document
 
