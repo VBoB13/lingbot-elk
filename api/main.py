@@ -17,7 +17,7 @@ async def root():
 
 
 @app.post("/save")
-async def save_doc(doc: ElasticDoc) -> BasicResponse | ErrorModel:
+async def save_doc(doc: ElasticDoc) -> BasicResponse:
     try:
         es = LingtelliElastic()
         result = es.save(doc)
@@ -28,7 +28,7 @@ async def save_doc(doc: ElasticDoc) -> BasicResponse | ErrorModel:
 
 
 @app.post("/search")
-async def search_doc(doc: SearchDocTimeRange) -> BasicResponse | ErrorModel:
+async def search_doc(doc: SearchDocTimeRange) -> BasicResponse:
     try:
         es = LingtelliElastic()
         result = es.search(doc)
