@@ -110,7 +110,10 @@ class TIIPImporter(PDFImporter):
         try:
             q_pos = self.text.index(Q_SEP)
             while q_pos:
-                q_pos = self.text.index(Q_SEP)
+                try:
+                    q_pos = self.text.index(Q_SEP)
+                except Exception:
+                    break
                 a_pos = self.text.index(A_SEP)
                 question = self.text[q_pos +
                                      3: a_pos].replace("\n", "").replace(" ", "")
@@ -122,30 +125,33 @@ class TIIPImporter(PDFImporter):
                     q_pos_2 = self.text.index(Q_SEP)
                 except ValueError as err:
                     answer = self.text[a_pos_2 + 2:]
+                    self.text = self.text.replace(
+                        self.text[a_pos_2:], "")
                 else:
                     answer = self.text[a_pos_2 + 2: q_pos_2]
+                    self.text = self.text.replace(
+                        self.text[a_pos_2: q_pos_2], "")
 
                 print(answer)
-                self.text = self.text.replace(self.text[a_pos_2: q_pos_2], "")
 
         except Exception as err:
             self.logger.msg = "No more questions in document!"
-            self.logger.info(extra_msg=str(err))
+            self.logger.error(extra_msg=str(err), orgErr=err)
 
 
 if __name__ == "__main__":
-    print(Fore.CYAN + "|INFO|" + Fore.RESET + " Current dir.:",
-          Fore.LIGHTCYAN_EX + BASE_DIR + Fore.RESET)
     try:
-        file_dir = TIIP_PDF_DIR + "/會計作業QA(110.9.24更新).pdf"
+        file_dir = TIIP_PDF_DIR + "/TIIP_QA_110-9-24.pdf"
         pdf_reader = TIIPImporter(file_dir)
+
+        pdf_reader.logger.msg = f"Data imported {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
+        pdf_reader.logger.info()
+        pdf_reader.to_elasticsearch()
+
     except Exception as err:
         errObj = DataError(__file__, "importer:main",
                            "Unable to extract text from {}!".format(file_dir))
         errObj.error(extra_msg=str(err), orgErr=err)
         raise errObj from err
-    else:
-        pdf_reader.logger.msg = f"Data imported {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
-        pdf_reader.logger.info()
-        pdf_reader.to_elasticsearch()
-        # pprint(pdf_reader.text)
+
+    # pprint(pdf_reader.text)

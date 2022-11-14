@@ -1,12 +1,15 @@
+from datetime import datetime
 from logging import Logger
 from traceback import print_tb
 from colorama import Fore
+
+from settings.settings import BASE_DIR
 
 
 class BaseError(Exception):
     def __init__(self, file: str, cls: str, msg: str = "", *args):
         super().__init__(*args)
-        self.file = file
+        self.file = file.replace(BASE_DIR, "")
         self.cls = cls
         self._msg = msg
         self.logger = self._get_logger()
@@ -26,7 +29,8 @@ class BaseError(Exception):
             color = Fore.RED
             level = 'ERROR'
         full_msg = color + \
-            f"|{level}| {self.__class__.__name__}" + \
+            f"|{level}| " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + \
+            f" | {self.file} | {self.__class__.__name__}" + \
             Fore.RESET + " " + self.msg
         if not extra_msg or not isinstance(extra_msg, str):
             return full_msg
