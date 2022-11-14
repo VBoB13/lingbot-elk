@@ -27,7 +27,7 @@ class BaseError(Exception):
             level = 'ERROR'
         full_msg = color + \
             f"|{level}| {self.__class__.__name__}" + \
-            Fore.RESET + "\n" + self.msg
+            Fore.RESET + " " + self.msg
         if not extra_msg or not isinstance(extra_msg, str):
             return full_msg
         return full_msg + f"\nDetails:\n{extra_msg}"
@@ -51,6 +51,7 @@ class BaseError(Exception):
         Log a message (.msg attribute) to console preceded with a |INFO| tag.
         """
         full_msg = self._get_full_msg('INFO', extra_msg)
+        print(full_msg)
         self.logger.info(full_msg)
 
     def warn(self, extra_msg: str = "") -> None:
@@ -58,6 +59,7 @@ class BaseError(Exception):
         Log a message (.msg attribute) to console preceded with a |WARN| tag.
         """
         full_msg = self._get_full_msg('WARN', extra_msg)
+        print(full_msg)
         self.logger.warn(full_msg)
 
     def error(self, extra_msg=str(""), orgErr: Exception = None) -> None:
