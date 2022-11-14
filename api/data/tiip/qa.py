@@ -1,38 +1,63 @@
 # File meant to make life easier to handle the specific Question+Answer
 # objects retrieved through parsing PDF files.
-from typing import List
+from typing import List, Iterator
+from colorama import Fore
 
 from errors.data_err import DataError
 
 
 class TIIP_QA_Pair(object):
-    def __init__(self, pair_text: str):
+    def __init__(self, question: str, answer: str):
         super().__init__()
         self.logger = DataError(__file__, self.__class__.__name__)
-        if not (isinstance(pair_text, str) and len(pair_text) > 0):
-            self.logger.msg = "Each QA pair object needs to be of type 'str' and cannot be empty!"
-            self.logger.error()
-            raise self.logger
-        self.source = pair_text
-        self._process_qa_pair()
-        self.question = None
-        self.answer = None
+        self.question = question
+        self.answer = answer
 
     def __str__(self):
-        return "Q: {}\nA:{}".format(self.question, self.answer)
+        return Fore.LIGHTCYAN_EX + "Q:" + Fore.RESET + f"{self.question}\n" \
+            + Fore.LIGHTRED_EX + "A:" + Fore.RESET + \
+            f" {self.answer}"
 
-    def _process_qa_pair(self):
-        """
-        Method actually in charge of making the QA pair by locating the
-        'Q' and 'A' part of the text and then setting them as attributes
-        `.question` and `.answer`.
-        """
-        pass
+    def __iter__(self):
+        return self.question, self.answer
 
 
 class TIIP_QA_PairList(list):
-    def __init__(self, qa_pair_list: List):
+    def __init__(self, qa_pair_list: List = None):
+        """
+        Constructor for TIIP_QA_PairList.
+        If you pass a `list` as an argument, make sure the structure follow
+        the following pattern:
+        `[{"q": "...", "a", "..."}, ...]`
+        """
         super().__init__([])
         self.logger = DataError(__file__, self.__class__.__name__)
-        for pair in qa_pair_list:
-            print(pair)
+        if qa_pair_list is not None and isinstance(qa_pair_list, list):
+            self._load_list_arg(qa_pair_list)
+
+    def __iter__(self) -> Iterator[TIIP_QA_Pair]:
+        for item in super().__iter__():
+            yield item
+
+    def _load_list_arg(self, qa_pair_list: list):
+        for item in qa_pair_list:
+            if isinstance(item, TIIP_QA_Pair):
+                self.append(item)
+            else:
+                converted_item = TIIP_QA_Pair(item["q"], item["a"])
+                self.append(converted_item)
+
+    def append(self, obj) -> None:
+        if not isinstance(obj, TIIP_QA_Pair):
+            self.logger.msg = "Items in this list needs to be of type {}!".format(
+                TIIP_QA_Pair.__name__)
+            self.logger.error(
+                extra_msg="Got type: {}".format(obj.__class__.__name__))
+            raise self.logger
+        super().append(obj)
+
+    def to_json(self) -> dict:
+        final_dict = {}
+        for qa_pair in self:
+            final_dict.update({"q": qa_pair.question, "a": qa_pair.answer})
+        return final_dict

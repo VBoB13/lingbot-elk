@@ -14,6 +14,7 @@ from PyPDF2 import PdfReader
 from errors.data_err import DataError
 from settings.settings import BASE_DIR, TIIP_PDF_DIR
 from data import Q_SEP, A_SEP
+from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 
 import re
 from pprint import pprint
@@ -101,12 +102,15 @@ class TIIPImporter(PDFImporter):
         If no content is retrieved, a `DataError(Exception)` is raised.
         """
         super().__init__(stream, strict, password)
+        self.to_elasticsearch()
 
-    def to_elasticsearch(self):
+    def to_elasticsearch(self) -> dict:
         """
         Method for taking object's `.text` attribute and convert it into a suitable JSON
         structure that can then be saved into Elasticsearch 'as is'.
+        This structure is saved into the object's `.qa_list` attribute.
         """
+        self.qa_list = TIIP_QA_PairList()
         try:
             q_pos = self.text.index(Q_SEP)
             while q_pos:
@@ -117,7 +121,6 @@ class TIIPImporter(PDFImporter):
                 a_pos = self.text.index(A_SEP)
                 question = self.text[q_pos +
                                      3: a_pos].replace("\n", "").replace(" ", "")
-                print(question)
                 self.text = self.text.replace(self.text[q_pos: a_pos], "")
 
                 a_pos_2 = self.text.index(A_SEP)
@@ -129,14 +132,28 @@ class TIIPImporter(PDFImporter):
                         self.text[a_pos_2:], "")
                 else:
                     answer = self.text[a_pos_2 + 2: q_pos_2]
+                    if answer[-1].isdigit():
+                        answer = answer[:-1]
+                        answer = answer.replace("\n", "")
+                        answer = answer.replace(" ", "")
                     self.text = self.text.replace(
                         self.text[a_pos_2: q_pos_2], "")
 
-                print(answer)
+                self.qa_list.append(TIIP_QA_Pair(
+                    question=question, answer=answer))
+
+        except ValueError as err:
+            self.logger.msg = "Import: success!"
+            self.logger.info()
 
         except Exception as err:
             self.logger.msg = "No more questions in document!"
             self.logger.error(extra_msg=str(err), orgErr=err)
+
+        for qa_pair in self.qa_list[:5]:
+            print(qa_pair, end="\n\n")
+
+        return self.qa_list.to_json()
 
 
 if __name__ == "__main__":
