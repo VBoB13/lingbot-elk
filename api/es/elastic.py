@@ -1,10 +1,9 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
+import time
 from colorama import Fore
 from datetime import datetime, timedelta, timezone
 from traceback import print_tb
-from typing import overload
-from pprint import pprint
 
 from elasticsearch import Elasticsearch
 
@@ -108,6 +107,7 @@ class LingtelliElastic(Elasticsearch):
             if i == 0:
                 update_index = doc["vendor_id"]
             self.save(doc)
+        time.sleep(3)
         self.update_index({"vendor_id": update_index})
         self.logger.msg = "Saved {} documents ".format(
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
