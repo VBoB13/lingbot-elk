@@ -60,7 +60,18 @@ class ElasticDoc(Vendor):
     fields: list[Field]
 
 
+class SearchField(BaseModel):
+    name: str
+    search_term: str
+    operator: str = "OR"
+    min_should_match: int = None
+
+
+class SearchDocument(Vendor):
+    fields: list[SearchField]
+
+
 class SearchDocTimeRange(Vendor):
-    start: str = (datetime.now() - timedelta(hours=1)
+    start: str = (datetime.now() - timedelta(days=1)
                   ).strftime("%Y-%m-%dT%H:%M:%S")
     end: str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")

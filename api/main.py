@@ -5,7 +5,7 @@ from traceback import print_tb
 from fastapi import FastAPI, status
 
 from params import DESCRIPTIONS
-from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, BasicResponse, SearchResponse
+from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, BasicResponse, SearchResponse, SearchDocument
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 
@@ -29,14 +29,27 @@ async def save_doc(doc: ElasticDoc):
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@app.post("/search", response_model=SearchResponse, description=DESCRIPTIONS["/search"])
-async def search_doc(doc: SearchDocTimeRange):
+@app.post("/search", description=DESCRIPTIONS["/search"])
+async def search_doc(doc: SearchDocument):
     try:
         es = LingtelliElastic()
         result = es.search(doc)
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
-        print_tb(err.__traceback__)
+        es.logger.msg = "Error!"
+        es.logger.error(extra_msg=str(err), orgErr=err)
+        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/search/timespan", response_model=SearchResponse, description=DESCRIPTIONS["/search/timespan"])
+async def search_doc_timerange(doc: SearchDocTimeRange):
+    try:
+        es = LingtelliElastic()
+        result = es.search_timerange(doc)
+        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
+    except Exception as err:
+        es.logger.msg = "Error!"
+        es.logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

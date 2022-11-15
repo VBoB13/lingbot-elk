@@ -2,5 +2,6 @@
 
 DESCRIPTIONS = {
     "/save": "Endpoint used for saving documents.",
-    "/search": "Endpoint used for searching for documents in Elasticsearch."
+    "/search": "Endpoint used for searching for documents in Elasticsearch.",
+    "/search/timespan": "Endpoint to search for documents according to their timestamp."
 }

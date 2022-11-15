@@ -7,7 +7,7 @@ from traceback import print_tb
 
 from elasticsearch import Elasticsearch
 
-from params.definitions import ElasticDoc, SearchDocTimeRange, Vendor, Vendors
+from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, Vendor, Vendors
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
@@ -54,10 +54,12 @@ class LingtelliElastic(Elasticsearch):
 
         return document
 
-    def _get_query(self, doc):
+    def _get_query(self):
         queryObj = QueryMaker()
-        if isinstance(doc, SearchDocTimeRange):
-            queryObj.create_query_from_timestamps(doc.start, doc.end)
+        if isinstance(self.doc, SearchDocTimeRange):
+            queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
+        if isinstance(self.doc, SearchDocument):
+            queryObj.create_query(self.doc)
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
 
@@ -114,14 +116,31 @@ class LingtelliElastic(Elasticsearch):
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
         self.logger.info()
 
-    def search(self, doc: SearchDocTimeRange, *args, **kwargs):
+    def search(self, doc: SearchDocument):
+        """
+        This method is the standard 'search' method for most searches.
+        """
+        self.doc = doc
+        try:
+            query = self._get_query()
+            resp = super().search(index=self.doc.vendor_id, query=query)
+        except Exception as err:
+            self.logger.msg = "Could not search for documents!"
+            self.logger.error(str(err), orgErr=err)
+            raise self.logger from err
+
+        resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
+
+        return dict(resp["hits"])
+
+    def search_timerange(self, doc: SearchDocTimeRange, *args, **kwargs):
         """
         This method attempts to search for documents saved into the index of
         'doc.vendor_id'.
         """
         self.doc = doc
         try:
-            query = self._get_query(doc)
+            query = self._get_query()
             resp = super().search(index=self.doc.vendor_id, query=query)
         except Exception as err:
             self.logger.msg = "Could not search for documents!"

@@ -1,5 +1,6 @@
 # This file contains code related to [search]query making for Elasticsearch.
 
+from params.definitions import SearchDocument
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp
 
@@ -16,6 +17,30 @@ class QueryMaker(object):
             raise errObj
         for key, value in self.query.items():
             yield f"{key}", value
+
+    def create_query(self, doc: SearchDocument):
+        """
+        Method that sets the 'query' attribute to the format of:
+        {
+            "query": {
+                "match": {
+                    [field_name]: {
+                        "query": [search_term],
+                        "minimum_should_match": [int],
+                        "operator": [operator]
+                    },
+                    [field_name]: {
+                        ...
+                    }
+                }
+            }
+        }
+        """
+        subquery = {}
+        for field in doc.fields:
+            subquery.update({field.name: {"query": field.search_term,
+                            "minimum_should_match": field.min_should_match, "operator": field.operator}})
+        self.query.update({"match": subquery})
 
     def create_query_from_timestamps(self, start: str, end: str) -> None:
         """
