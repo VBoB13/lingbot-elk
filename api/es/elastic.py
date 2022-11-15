@@ -135,17 +135,17 @@ class LingtelliElastic(Elasticsearch):
     def update_index(self, vendor: Vendor):
         if type(vendor).__name__ == 'dict':
             vendor = Vendor(vendor_id=vendor["vendor_id"])
-        indices = list(vendor.vendor_id)
+        indices = list([vendor.vendor_id])
         self.update_indices(indices)
 
     def update_index_multi(self, vendors: Vendors):
         if type(vendors).__name__ == 'dict':
             vendors = Vendors(vendor_ids=vendors["vendor_ids"])
-        indices = list(vendors.vendor_ids)
+        indices = vendors.vendor_ids
         self.update_indices(indices)
 
     def update_indices(self, index_list: list = []):
-        if len(index_list) >= 0:
+        if len(index_list) > 0:
             self.indices.refresh(index=index_list)
         else:
             self.indices.refresh(index="_all")
