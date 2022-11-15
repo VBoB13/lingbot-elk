@@ -89,8 +89,8 @@ class LingtelliElastic(Elasticsearch):
             doc = ElasticDoc(vendor_id=doc["vendor_id"], fields=doc["fields"])
         try:
             self.doc = self._level_docs(doc)
-            resp = self.create(index=doc.vendor_id,
-                               document=self.doc, refresh=refresh)
+            resp = self.index(index=doc.vendor_id,
+                              document=self.doc, refresh=refresh)
         except Exception as err:
             self.logger.msg = "Could not save document!"
             self.logger.error(
@@ -103,8 +103,12 @@ class LingtelliElastic(Elasticsearch):
         This method attempts to safely save a list of documents
         into Elasticsearch.
         """
-        for doc in docs:
-            self.save(doc, refresh=True)
+        update_index = None
+        for i, doc in enumerate(docs):
+            if i == 0:
+                update_index = doc.vendor_id
+            self.save(doc)
+        self.update_index(vendor={"vendor_id": update_index})
         self.logger.msg = "Saved {} documents ".format(
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
         self.logger.info()
@@ -128,13 +132,13 @@ class LingtelliElastic(Elasticsearch):
         return dict(resp["hits"])
 
     @overload
-    def update_index(self, vendors: Vendors):
-        indices = list(vendors.vendor_ids)
+    def update_index(self, vendor: Vendor):
+        indices = list(vendor.vendor_id)
         self.update_indices(indices)
 
     @overload
-    def update_index(self, vendor: Vendor):
-        indices = list(vendor.vendor_id)
+    def update_index(self, vendors: Vendors):
+        indices = list(vendors.vendor_ids)
         self.update_indices(indices)
 
     def update_indices(self, index_list: list = []):
