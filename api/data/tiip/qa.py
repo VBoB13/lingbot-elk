@@ -79,11 +79,12 @@ class TIIP_QA_PairList(list):
                     "type": "string"
                 }]})
 
-        pprint(final_list)
-        print(type(final_list).__name__)
+        # pprint(final_list)
+        # print(type(final_list).__name__)
 
         if len(final_list) == 0:
             self.logger.msg = "to_json() did NOT generate any results!"
             self.logger.error()
             raise self.logger
+
         return final_list
