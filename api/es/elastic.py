@@ -108,7 +108,7 @@ class LingtelliElastic(Elasticsearch):
             if i == 0:
                 update_index = doc["vendor_id"]
             self.save(doc)
-        self.update_index(vendor={"vendor_id": update_index})
+        self.update_index({"vendor_id": update_index})
         self.logger.msg = "Saved {} documents ".format(
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
         self.logger.info()
