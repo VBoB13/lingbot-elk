@@ -165,6 +165,9 @@ class TIIPImporter(PDFImporter):
             self.logger.msg = "Could not save documents!"
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger
+        self.logger.msg = "Saved documents successfully to index: {}".format(
+            self.index)
+        self.logger.info()
 
 
 if __name__ == "__main__":
@@ -172,7 +175,7 @@ if __name__ == "__main__":
         file_dir = TIIP_PDF_DIR + "/TIIP_QA_110-9-24.pdf"
         pdf_reader = TIIPImporter(file_dir)
 
-        pdf_reader.logger.msg = f"Data imported {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
+        pdf_reader.logger.msg = f"PDF loaded {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
         pdf_reader.logger.info()
         pdf_reader.save_bulk()
 

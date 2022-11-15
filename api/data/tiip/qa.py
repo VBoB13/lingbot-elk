@@ -61,8 +61,6 @@ class TIIP_QA_PairList(list):
     def to_json(self, index: str = None) -> list[ElasticDoc]:
         final_list = []
         for qa_pair in self.__iter__():
-            print("Current QA pair:")
-            print(qa_pair)
             if index is None:
                 final_list.append({"q": qa_pair.question, "a": qa_pair.answer})
                 continue
