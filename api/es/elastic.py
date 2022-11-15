@@ -136,7 +136,6 @@ class LingtelliElastic(Elasticsearch):
         indices = list(vendor.vendor_id)
         self.update_indices(indices)
 
-    @overload
     def update_index(self, vendors: Vendors):
         indices = list(vendors.vendor_ids)
         self.update_indices(indices)
