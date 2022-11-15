@@ -131,12 +131,11 @@ class LingtelliElastic(Elasticsearch):
 
         return dict(resp["hits"])
 
-    @overload
     def update_index(self, vendor: Vendor):
         indices = list(vendor.vendor_id)
         self.update_indices(indices)
 
-    def update_index(self, vendors: Vendors):
+    def update_index_multi(self, vendors: Vendors):
         indices = list(vendors.vendor_ids)
         self.update_indices(indices)
 
