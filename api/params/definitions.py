@@ -68,7 +68,7 @@ class SearchField(BaseModel):
 
 
 class SearchDocument(Vendor):
-    fields: list[SearchField]
+    match: SearchField
 
 
 class SearchDocTimeRange(Vendor):

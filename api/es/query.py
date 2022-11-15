@@ -28,18 +28,14 @@ class QueryMaker(object):
                         "query": [search_term],
                         "minimum_should_match": [int],
                         "operator": [operator]
-                    },
-                    [field_name]: {
-                        ...
                     }
                 }
             }
         }
         """
         subquery = {}
-        for field in doc.fields:
-            subquery.update({field.name: {"query": field.search_term,
-                            "minimum_should_match": field.min_should_match, "operator": field.operator}})
+        subquery.update({doc.match.name: {"query": doc.match.search_term,
+                                          "minimum_should_match": doc.match.min_should_match, "operator": doc.match.operator}})
         self.query.update({"match": subquery})
 
     def create_query_from_timestamps(self, start: str, end: str) -> None:
