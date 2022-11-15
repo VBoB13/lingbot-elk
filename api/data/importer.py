@@ -12,9 +12,10 @@ from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
-from settings.settings import BASE_DIR, TIIP_PDF_DIR
+from settings.settings import BASE_DIR, TIIP_PDF_DIR, TIIP_INDEX
 from data import Q_SEP, A_SEP
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
+from es.elastic import LingtelliElastic
 
 import re
 from pprint import pprint
@@ -102,9 +103,11 @@ class TIIPImporter(PDFImporter):
         If no content is retrieved, a `DataError(Exception)` is raised.
         """
         super().__init__(stream, strict, password)
-        self.to_elasticsearch()
+        self.index = TIIP_INDEX
+        self.output = self.to_elasticsearch()
+        self.client = LingtelliElastic()
 
-    def to_elasticsearch(self) -> dict:
+    def to_elasticsearch(self):
         """
         Method for taking object's `.text` attribute and convert it into a suitable JSON
         structure that can then be saved into Elasticsearch 'as is'.
@@ -153,7 +156,15 @@ class TIIPImporter(PDFImporter):
         for qa_pair in self.qa_list[:5]:
             print(qa_pair, end="\n\n")
 
-        return self.qa_list.to_json()
+        return self.qa_list.to_json(index=self.index)
+
+    def save_bulk(self) -> None:
+        try:
+            self.client.save_bulk(self.output)
+        except Exception as err:
+            self.logger.msg = "Could not save documents!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger
 
 
 if __name__ == "__main__":
@@ -163,12 +174,17 @@ if __name__ == "__main__":
 
         pdf_reader.logger.msg = f"Data imported {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
         pdf_reader.logger.info()
-        pdf_reader.to_elasticsearch()
+        pdf_reader.save_bulk()
 
     except Exception as err:
         errObj = DataError(__file__, "importer:main",
                            "Unable to extract text from {}!".format(file_dir))
         errObj.error(extra_msg=str(err), orgErr=err)
         raise errObj from err
+
+    else:
+        pdf_reader.logger.msg = "Importing data from {} finished successfully!".format(
+            pdf_reader.source_file)
+        pdf_reader.logger.info()
 
     # pprint(pdf_reader.text)

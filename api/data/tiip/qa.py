@@ -1,8 +1,10 @@
 # File meant to make life easier to handle the specific Question+Answer
 # objects retrieved through parsing PDF files.
+from pprint import pprint
 from typing import List, Iterator
 from colorama import Fore
 
+from params.definitions import ElasticDoc
 from errors.data_err import DataError
 
 
@@ -14,7 +16,7 @@ class TIIP_QA_Pair(object):
         self.answer = answer
 
     def __str__(self):
-        return Fore.LIGHTCYAN_EX + "Q:" + Fore.RESET + f"{self.question}\n" \
+        return Fore.LIGHTCYAN_EX + "Q: " + Fore.RESET + f"{self.question}\n" \
             + Fore.LIGHTRED_EX + "A:" + Fore.RESET + \
             f" {self.answer}"
 
@@ -56,8 +58,32 @@ class TIIP_QA_PairList(list):
             raise self.logger
         super().append(obj)
 
-    def to_json(self) -> dict:
-        final_dict = {}
-        for qa_pair in self:
-            final_dict.update({"q": qa_pair.question, "a": qa_pair.answer})
-        return final_dict
+    def to_json(self, index: str = None) -> list[ElasticDoc]:
+        final_list = []
+        for qa_pair in self.__iter__():
+            print("Current QA pair:")
+            print(qa_pair)
+            if index is None:
+                final_list.append({"q": qa_pair.question, "a": qa_pair.answer})
+                continue
+
+            final_list.append({
+                "vendor_id": index,
+                "fields": [{
+                    "name": "q",
+                    "value": qa_pair.question,
+                    "type": "string"
+                }, {
+                    "name": "a",
+                    "value": qa_pair.answer,
+                    "type": "string"
+                }]})
+
+        pprint(final_list)
+        print(type(final_list).__name__)
+
+        if len(final_list) == 0:
+            self.logger.msg = "to_json() did NOT generate any results!"
+            self.logger.error()
+            raise self.logger
+        return final_list

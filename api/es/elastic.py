@@ -1,5 +1,6 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
+from colorama import Fore
 from datetime import datetime, timedelta, timezone
 from traceback import print_tb
 from typing import overload
@@ -84,6 +85,8 @@ class LingtelliElastic(Elasticsearch):
         """
         This method attempts to safely save document into Elasticsearch.
         """
+        if type(doc).__name__ == 'dict':
+            doc = ElasticDoc(vendor_id=doc["vendor_id"], fields=doc["fields"])
         try:
             self.doc = self._level_docs(doc)
             resp = self.index(index=doc.vendor_id,
@@ -94,6 +97,17 @@ class LingtelliElastic(Elasticsearch):
                 str(err), err)
             raise self.logger from err
         return resp['result']
+
+    def save_bulk(self, docs: list):
+        """
+        This method attempts to safely save a list of documents
+        into Elasticsearch.
+        """
+        for doc in docs:
+            self.save(doc)
+        self.logger.msg = "Saved {} documents ".format(
+            len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
+        self.logger.info()
 
     def search(self, doc: SearchDocTimeRange, *args, **kwargs):
         """
