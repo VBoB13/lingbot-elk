@@ -81,7 +81,7 @@ class LingtelliElastic(Elasticsearch):
             new_hits.append(new_hit)
         return new_hits
 
-    def save(self, doc: ElasticDoc):
+    def save(self, doc: ElasticDoc, refresh: bool = False):
         """
         This method attempts to safely save document into Elasticsearch.
         """
@@ -89,8 +89,8 @@ class LingtelliElastic(Elasticsearch):
             doc = ElasticDoc(vendor_id=doc["vendor_id"], fields=doc["fields"])
         try:
             self.doc = self._level_docs(doc)
-            resp = self.index(index=doc.vendor_id,
-                              document=self.doc, refresh=False)
+            resp = self.create(index=doc.vendor_id,
+                               document=self.doc, refresh=refresh)
         except Exception as err:
             self.logger.msg = "Could not save document!"
             self.logger.error(
@@ -104,7 +104,7 @@ class LingtelliElastic(Elasticsearch):
         into Elasticsearch.
         """
         for doc in docs:
-            self.save(doc)
+            self.save(doc, refresh=True)
         self.logger.msg = "Saved {} documents ".format(
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
         self.logger.info()
