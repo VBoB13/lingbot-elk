@@ -93,7 +93,7 @@ class LingtelliElastic(Elasticsearch):
             raise self.logger
 
         if len(hits) == 1:
-            return self._remove_underlines_single(hits[0])
+            return self._remove_underlines_single(dict(hits[0]))
 
         for hit in hits:
             new_hit = {}
