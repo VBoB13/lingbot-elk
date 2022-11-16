@@ -5,7 +5,7 @@ from traceback import print_tb
 from fastapi import FastAPI, status
 
 from params import DESCRIPTIONS
-from params.definitions import ElasticDoc, SearchDocTimeRange, ErrorModel, BasicResponse, SearchResponse, SearchDocument
+from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, DocID_Must, ErrorModel, BasicResponse, SearchResponse
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 
@@ -24,6 +24,16 @@ async def save_doc(doc: ElasticDoc):
         es = LingtelliElastic()
         result = es.save(doc)
         return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
+    except Exception as err:
+        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/get", description=DESCRIPTIONS["/get"])
+async def get_doc(doc: DocID_Must):
+    try:
+        es = LingtelliElastic()
+        result = es.get(doc)
+        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
