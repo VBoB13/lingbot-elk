@@ -13,10 +13,13 @@ class BaseError(Exception):
         self.cls = cls
         self._msg = msg
         self._full_msg = None
+        self.details = None
         self.logger = self._get_logger()
 
     def __str__(self):
-        return self._full_msg
+        if self.details is not None:
+            return self.msg + " Details: " + self.details
+        return self.msg
 
     def _get_logger(self) -> Logger:
         return Logger(f"{self.file}: {self.cls}")
@@ -28,6 +31,7 @@ class BaseError(Exception):
         `level: str | int[1 | 2 | 3+]` where `1='INFO'`, `2='WARN'` and `3='ERROR'`.\n
         `extra_msg: str` is a detailed description that appears in the `._full_msg` attribute as `[_msg]... Details: [extra_msg].`
         """
+        self.details = extra_msg
         color = None
         if level in ('INFO', 1):
             color = Fore.CYAN
