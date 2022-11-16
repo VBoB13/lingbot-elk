@@ -16,7 +16,7 @@ class BaseError(Exception):
         self.logger = self._get_logger()
 
     def __str__(self):
-        return self.msg
+        return self._full_msg
 
     def _get_logger(self) -> Logger:
         return Logger(f"{self.file}: {self.cls}")
