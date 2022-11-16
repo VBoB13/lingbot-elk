@@ -25,7 +25,6 @@ async def save_doc(doc: ElasticDoc):
         result = es.save(doc)
         return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
     except Exception as err:
-        print_tb(err.__traceback__)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -36,8 +35,6 @@ async def search_doc(doc: SearchDocument):
         result = es.search(doc)
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
-        es.logger.msg = "Error!"
-        es.logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -48,8 +45,6 @@ async def search_doc_timerange(doc: SearchDocTimeRange):
         result = es.search_timerange(doc)
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
-        es.logger.msg = "Error!"
-        es.logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
