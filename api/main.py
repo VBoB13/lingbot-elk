@@ -33,7 +33,7 @@ async def get_doc(doc: DocID_Must):
     try:
         es = LingtelliElastic()
         result = es.get(doc)
-        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
+        return ElkServiceResponse(content={"msg": "Document found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
