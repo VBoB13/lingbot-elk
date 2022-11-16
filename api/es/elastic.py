@@ -32,7 +32,7 @@ class LingtelliElastic(Elasticsearch):
 
     def _index_exists(self) -> bool:
         # Check what indexes exist
-        pprint(self.indices.exists(self.doc.vendor_id))
+        pprint(self.indices.exists(index=self.doc.vendor_id))
         # Return True/False
 
     def _get_query(self):
