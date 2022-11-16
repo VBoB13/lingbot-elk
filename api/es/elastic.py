@@ -32,7 +32,7 @@ class LingtelliElastic(Elasticsearch):
 
     def _index_exists(self) -> bool:
         # Check what indexes exist
-        pprint(self.indices.exists(index=self.doc.vendor_id))
+        return self.indices.exists(index=self.doc.vendor_id).body
         # Return True/False
 
     def _get_query(self):
@@ -128,7 +128,11 @@ class LingtelliElastic(Elasticsearch):
         """
         self.doc = doc
         try:
-            self._index_exists()
+            if not self._index_exists():
+                self.logger.msg = "Index {} does NOT exist!".format(
+                    self.doc.vendor_id)
+                self.logger.error()
+                raise self.logger
             query = self._get_query()
             resp = super().search(index=self.doc.vendor_id, query=query)
         except Exception as err:
