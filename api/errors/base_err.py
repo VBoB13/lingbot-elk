@@ -17,7 +17,7 @@ class BaseError(Exception):
         self.logger = self._get_logger()
 
     def __str__(self):
-        if self.details is not None:
+        if self.details:
             return self.msg + " Details: " + self.details
         return self.msg
 
@@ -48,7 +48,8 @@ class BaseError(Exception):
             Fore.RESET + " " + self.msg
         if not extra_msg or not isinstance(extra_msg, str):
             self._full_msg = full_msg
-        self._full_msg = full_msg + f"\nDetails:\n{extra_msg}"
+        else:
+            self._full_msg = full_msg + f"\nDetails:\n{extra_msg}"
 
     @property
     def msg(self) -> str:
