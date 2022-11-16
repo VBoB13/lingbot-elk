@@ -8,7 +8,7 @@ from traceback import print_tb
 
 from elasticsearch import Elasticsearch
 
-from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, Vendor, Vendors
+from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, Vendor, Vendors, DocID_Must
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
@@ -44,7 +44,7 @@ class LingtelliElastic(Elasticsearch):
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
 
-    def _level_docs(self, doc: ElasticDoc):
+    def _level_docs(self, doc: ElasticDoc) -> ElasticDoc:
         """
         Method that aims to make the document data passed through API endpoint
         into a single-layered object that can be passed to Elasticsearch.index()
@@ -87,6 +87,30 @@ class LingtelliElastic(Elasticsearch):
                     new_hit[key] = hit[key]
             new_hits.append(new_hit)
         return new_hits
+
+    def get(self, doc: DocID_Must):
+        """
+        This method attempts to retrieve a single document from Elasticsearch
+        by querying a specific document ID.
+        """
+        if type(doc).__name__ == 'dict':
+            doc = DocID_Must(vendor_id=doc["vendor_id"], doc_id=doc["doc_id"])
+
+        try:
+            self.doc = doc
+            if not self._index_exists():
+                self.logger.msg = "Could not search for documents!"
+                self.logger.error("Index {} does NOT exist!".format(
+                    self.doc.vendor_id))
+                raise self.logger
+            resp = super().get(index=self.doc.vendor_id, id=self.doc.doc_id)
+        except Exception as err:
+            self.logger.error(str(err), orgErr=err)
+            raise self.logger from err
+
+        resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
+
+        return dict(resp["hits"])
 
     def save(self, doc: ElasticDoc, refresh: bool = False):
         """

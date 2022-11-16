@@ -50,6 +50,10 @@ class DocID(BaseModel):
     doc_id: Optional[str] = None
 
 
+class DocID_Must(Vendor):
+    doc_id: str
+
+
 class Field(BaseModel):
     name: str
     value: str | int
