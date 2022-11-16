@@ -13,7 +13,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, V
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
-from . import ELASTIC_IP, ELASTIC_PORT
+from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES
 
 
 class LingtelliElastic(Elasticsearch):
@@ -31,10 +31,11 @@ class LingtelliElastic(Elasticsearch):
 
         self.logger.info("Success!")
 
-    def _index_exists(self) -> bool:
-        # Check what indexes exist
-        return self.indices.exists(index=self.doc.vendor_id).body
-        # Return True/False
+    def _get_context(self, hits: list) -> dict[str, Any]:
+        for hit in hits:
+            hit["source"] = {"context": hit["source"]
+                             [KNOWN_INDEXES[self.doc.vendor_id]["context"]]}
+        return hits
 
     def _get_query(self):
         queryObj = QueryMaker()
@@ -44,6 +45,10 @@ class LingtelliElastic(Elasticsearch):
             queryObj.create_query(self.doc)
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
+
+    def _index_exists(self) -> bool:
+        # Check what indexes exist
+        return self.indices.exists(index=self.doc.vendor_id).body
 
     def _level_docs(self, doc: ElasticDoc) -> ElasticDoc:
         """
@@ -72,7 +77,7 @@ class LingtelliElastic(Elasticsearch):
 
     def _remove_underlines_single(self, hit: dict[str, Any]):
         if not isinstance(hit, dict):
-            self.logger.msg = "'hit' argument should be a list; not {}".format(
+            self.logger.msg = "'hit' argument should be a dict; not {}".format(
                 type(hit).__name__)
             self.logger.error()
             raise self.logger
@@ -98,7 +103,6 @@ class LingtelliElastic(Elasticsearch):
         for hit in hits:
             new_hit = {}
             for key in hit:
-                print(Fore.LIGHTCYAN_EX + "Morphing key:" + Fore.RESET, key)
                 if key[0] == "_":
                     new_key_str = key[1:]
                     new_hit[new_key_str] = hit[key]
@@ -184,6 +188,8 @@ class LingtelliElastic(Elasticsearch):
             raise self.logger from err
 
         resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
+
+        resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
 
         return dict(resp["hits"])
 
