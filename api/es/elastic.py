@@ -80,6 +80,7 @@ class LingtelliElastic(Elasticsearch):
         for hit in hits:
             new_hit = {}
             for key in hit:
+                print(Fore.LIGHTCYAN_EX + "Morphing key:" + Fore.RESET, key)
                 if key[0] == "_":
                     new_key_str = key[1:]
                     new_hit[new_key_str] = hit[key]
@@ -95,7 +96,6 @@ class LingtelliElastic(Elasticsearch):
         """
         if type(doc).__name__ == 'dict':
             doc = DocID_Must(vendor_id=doc["vendor_id"], doc_id=doc["doc_id"])
-
         try:
             self.doc = doc
             if not self._index_exists():
@@ -110,7 +110,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(str(err), orgErr=err)
             raise self.logger from err
 
-        resp = self._remove_underlines(list(resp))
+        resp = self._remove_underlines([resp])
 
         return dict(resp)
 
