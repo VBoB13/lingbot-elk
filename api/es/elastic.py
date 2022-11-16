@@ -5,6 +5,7 @@ from pprint import pprint
 from colorama import Fore
 from datetime import datetime, timedelta, timezone
 from traceback import print_tb
+from typing import Any
 
 from elasticsearch import Elasticsearch
 
@@ -69,6 +70,20 @@ class LingtelliElastic(Elasticsearch):
 
         return document
 
+    def _remove_underlines_single(self, hit: dict[str, Any]):
+        if not isinstance(hit, dict):
+            self.logger.msg = "'hit' argument should be a list; not {}".format(
+                type(hit).__name__)
+            self.logger.error()
+            raise self.logger
+
+        new_hit = {}
+        for key, value in hit.items():
+            if str(key)[0] == "_":
+                new_hit.update({str(key)[1:]: value})
+
+        return new_hit
+
     def _remove_underlines(self, hits: list) -> list:
         new_hits = []
         if not isinstance(hits, list):
@@ -76,6 +91,9 @@ class LingtelliElastic(Elasticsearch):
                 type(hits).__name__)
             self.logger.error()
             raise self.logger
+
+        if len(hits) == 1:
+            return self._remove_underlines_single(hits[0])
 
         for hit in hits:
             new_hit = {}
