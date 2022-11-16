@@ -1,6 +1,7 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
 import time
+from pprint import pprint
 from colorama import Fore
 from datetime import datetime, timedelta, timezone
 from traceback import print_tb
@@ -29,6 +30,20 @@ class LingtelliElastic(Elasticsearch):
 
         self.logger.info("Success!")
 
+    def _index_exists(self) -> bool:
+        # Check what indexes exist
+        pprint(self.indices.exists(self.doc.vendor_id))
+        # Return True/False
+
+    def _get_query(self):
+        queryObj = QueryMaker()
+        if isinstance(self.doc, SearchDocTimeRange):
+            queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
+        if isinstance(self.doc, SearchDocument):
+            queryObj.create_query(self.doc)
+        # TODO: Add more situations / contexts here.
+        return dict(queryObj)
+
     def _level_docs(self, doc: ElasticDoc):
         """
         Method that aims to make the document data passed through API endpoint
@@ -53,15 +68,6 @@ class LingtelliElastic(Elasticsearch):
         document.update({"timestamp": today_str})
 
         return document
-
-    def _get_query(self):
-        queryObj = QueryMaker()
-        if isinstance(self.doc, SearchDocTimeRange):
-            queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
-        if isinstance(self.doc, SearchDocument):
-            queryObj.create_query(self.doc)
-        # TODO: Add more situations / contexts here.
-        return dict(queryObj)
 
     def _remove_underlines(self, hits: list) -> list:
         new_hits = []
@@ -122,6 +128,7 @@ class LingtelliElastic(Elasticsearch):
         """
         self.doc = doc
         try:
+            self._index_exists()
             query = self._get_query()
             resp = super().search(index=self.doc.vendor_id, query=query)
         except Exception as err:
