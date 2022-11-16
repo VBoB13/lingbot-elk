@@ -129,14 +129,13 @@ class LingtelliElastic(Elasticsearch):
         self.doc = doc
         try:
             if not self._index_exists():
-                self.logger.msg = "Index {} does NOT exist!".format(
-                    self.doc.vendor_id)
-                self.logger.error()
+                self.logger.msg = "Could not search for documents!"
+                self.logger.error("Index {} does NOT exist!".format(
+                    self.doc.vendor_id))
                 raise self.logger
             query = self._get_query()
             resp = super().search(index=self.doc.vendor_id, query=query)
         except Exception as err:
-            self.logger.msg = "Could not search for documents!"
             self.logger.error(str(err), orgErr=err)
             raise self.logger from err
 
