@@ -104,6 +104,8 @@ class LingtelliElastic(Elasticsearch):
                     self.doc.vendor_id))
                 raise self.logger
             resp = super().get(index=self.doc.vendor_id, id=self.doc.doc_id)
+            print(Fore.LIGHTCYAN_EX + "GET Response:\n" + Fore.RESET)
+            pprint(resp)
         except Exception as err:
             self.logger.error(str(err), orgErr=err)
             raise self.logger from err
