@@ -110,9 +110,9 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(str(err), orgErr=err)
             raise self.logger from err
 
-        resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
+        resp = self._remove_underlines(list(resp))
 
-        return dict(resp["hits"])
+        return dict(resp)
 
     def save(self, doc: ElasticDoc, refresh: bool = False):
         """
