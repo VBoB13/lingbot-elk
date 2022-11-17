@@ -3,22 +3,20 @@
 
 # This file can also be run as a standalone module to import content from
 # PDF files within the /data folder.
-
-from traceback import print_tb
-from pprint import pprint
-from abc import abstractmethod
+import glob
+import os
+from typing import Iterator
 
 from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
-from settings.settings import BASE_DIR, TIIP_PDF_DIR, TIIP_INDEX
+from settings.settings import BASE_DIR, TIIP_PDF_DIR
 from data import Q_SEP, A_SEP
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
+from data.tiip.doc import TIIPDocument, TIIPDocumentList
 from es.elastic import LingtelliElastic
-
-import re
-from pprint import pprint
+from es import TIIP_INDEX
 
 
 class PDFImporter(PdfReader):
@@ -170,10 +168,96 @@ class TIIPImporter(PDFImporter):
         self.logger.info()
 
 
+class TIIPDocImporter(PDFImporter):
+    def __init__(self, stream: str, strict: bool = False, password: str = None):
+        """
+        PARAMS:
+        `stream: str` Filepath to PDF file.
+        `strict: bool`
+        `password: str` Password (if PDF is encrypted).
+
+        Initializes the PdfReader and attempts to save its content into `self.text`.
+        It also takes the PDF file's `filepath` and saves it to `self.source_file`.
+        If no content is retrieved, a `DataError(Exception)` is raised.
+        """
+        super().__init__(stream, strict, password)
+        self.index = TIIP_INDEX
+        self.output = self.to_elasticsearch()
+        self.client = LingtelliElastic()
+
+    def to_elasticsearch(self):
+        """
+        Method for taking object's `.text` attribute and convert it into a suitable JSON
+        structure that can then be saved into Elasticsearch 'as is'.
+        """
+        text_list = self.text.split("\n")
+        doc_list = TIIPDocumentList(text_list)
+        return doc_list.to_json(self.index)
+
+    def save_bulk(self) -> None:
+        try:
+            self.client.save_bulk(self.output)
+        except Exception as err:
+            self.logger.msg = "Could not save documents!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger
+        self.logger.msg = "Saved documents successfully to index: {}".format(
+            self.index)
+        self.logger.info()
+
+
+class TIIPDocImporterMulti(list):
+    def __init__(self, file_list: list = []):
+        """
+        Initializes multiple PDF reader objects, aiming to simplify the reading of
+        multiple documents of similar structure.
+        :params:\n
+        `file_list: list`; should contain filepaths to PDF files to have 
+        their contents read and loaded. If emtpy, it will look in the 
+        `data/tiip/pdf` folder for `TIIP-DOC*.pdf` files. \n
+        """
+        self.logger = DataError(__file__, self.__class__.__name__)
+        if len(file_list) > 0:
+            self.file_list = file_list
+        else:
+            try:
+                self.file_list = glob.glob(
+                    os.path.join(TIIP_PDF_DIR, r'TIIP-DOC*.pdf'))
+                self.logger.msg = "Automatically loaded {} .pdf files!".format(
+                    len(self.file_list))
+                self.logger.info(extra_msg="\n".join(
+                    [path for path in self.file_list]))
+            except Exception as err:
+                self.logger.error(str(err), orgErr=err)
+                raise self.logger
+
+        self._add_docs()
+
+    def __iter__(self) -> Iterator[TIIPDocImporter]:
+        for doc in super().__iter__():
+            yield doc
+
+    def _add_docs(self):
+        for filepath in self.file_list:
+            self.append(TIIPDocImporter(filepath))
+
+    def append(self, obj):
+        if not isinstance(obj, TIIPDocImporter):
+            self.logger.msg = "{} can only contain TIIPDocImporter objects!".format(
+                self.__class__.__name__)
+            self.logger.error("Got type: {}".format(obj.__class__.__name__))
+            raise self.logger
+        super().append(obj)
+
+    def save_bulk(self):
+        for doc in self.__iter__():
+            doc.save_bulk()
+
+
 if __name__ == "__main__":
     try:
-        file_dir = TIIP_PDF_DIR + "/TIIP_QA_110-9-24.pdf"
-        pdf_reader = TIIPImporter(file_dir)
+        # file_dir = TIIP_PDF_DIR + "/TIIP_QA_110-9-24.pdf"
+        pdf_reader = TIIPDocImporterMulti()
 
         pdf_reader.logger.msg = f"PDF loaded {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
         pdf_reader.logger.info()
@@ -181,13 +265,13 @@ if __name__ == "__main__":
 
     except Exception as err:
         errObj = DataError(__file__, "importer:main",
-                           "Unable to extract text from {}!".format(file_dir))
+                           "Unable to extract text from {}!".format(TIIP_PDF_DIR))
         errObj.error(extra_msg=str(err), orgErr=err)
         raise errObj from err
 
     else:
         pdf_reader.logger.msg = "Importing data from {} finished successfully!".format(
-            pdf_reader.source_file)
+            pdf_reader.file_list)
         pdf_reader.logger.info()
 
     # pprint(pdf_reader.text)

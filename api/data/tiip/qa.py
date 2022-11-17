@@ -21,7 +21,7 @@ class TIIP_QA_Pair(object):
             f" {self.answer}"
 
     def __iter__(self):
-        return self.question, self.answer
+        yield self.question, self.answer
 
 
 class TIIP_QA_PairList(list):
