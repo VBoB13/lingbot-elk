@@ -1,8 +1,64 @@
-from typing import List, Iterator
+from typing import Iterator, Tuple
 from colorama import Fore
 
 from params.definitions import ElasticDoc
 from errors.data_err import DataError
+
+
+class DocumentPosSeparator(object):
+    """
+    Simple class to keep track of positions and length of 
+    the separator at that position.
+    """
+
+    def __init__(self, position: Tuple[int, int]):
+        self.logger = DataError(__file__, self.__class__.__name__)
+        if not isinstance(position, tuple):
+            self.logger.msg = "Argument 'position' must be of type {}!".format(
+                type(tuple).__name__)
+            self.logger.error(extra_msg="Got type: {}".format(
+                type(position).__name__))
+            raise self.logger
+
+        self.pos_obj = position
+
+        self.pos = position[0]
+        self.len = position[1]
+
+    def __len__(self):
+        return len(self.pos_obj)
+
+    def __lt__(self, other):
+        if not isinstance(other, DocumentPosSeparator):
+            self.logger.msg = "Cannot compare {} objects to {} objects!".format(
+                type(other).__name__, self.__class__.__name__)
+            self.logger.error()
+            raise self.logger
+        return self.pos < other.pos
+
+
+class DocumentPosSeparatorList(list):
+    """
+    Class that's meant to keep track of separators and their lengths in
+    order to make it easier for other classes to split texts into
+    appropriate chunks of text.\n
+    :params:\n
+    `patterns: tuple(pos: int, pattern_len: int)`
+    """
+
+    def __init__(self):
+        super().__init__([])
+        self.logger = DataError(__file__, self.__class__.__name__)
+
+    def append(self, obj):
+        if not isinstance(obj, DocumentPosSeparator):
+            self.logger.msg = "Can only add {} objects to a {}!".format(type(DocumentPosSeparator).__name__,
+                                                                        self.__class__.__name__)
+            self.logger.error(
+                extra_msg="Got type: {}".format(type(obj).__name__))
+            raise self.logger
+        if len(obj) == 2:
+            super().append(obj)
 
 
 class TIIPDocument(object):
@@ -13,7 +69,7 @@ class TIIPDocument(object):
         return Fore.LIGHTCYAN_EX + "Content: " + Fore.RESET + self.content
 
     def __iter__(self):
-        yield self.content
+        yield self
 
 
 class TIIPDocumentList(list):

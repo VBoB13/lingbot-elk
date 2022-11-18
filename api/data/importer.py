@@ -5,22 +5,23 @@
 # PDF files within the /data folder.
 import glob
 import os
-from typing import Iterator
+import re
+from typing import Iterator, List
 
 from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
 from settings.settings import BASE_DIR, TIIP_PDF_DIR
-from data import Q_SEP, A_SEP
+from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
-from data.tiip.doc import TIIPDocument, TIIPDocumentList
+from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
 from es import TIIP_INDEX
 
 
 class PDFImporter(PdfReader):
-    def __init__(self, stream: str, strict: bool = False, password: str = None):
+    def __init__(self, stream: str, strict: bool = False, password: str = None, skip_pages: int = 0):
         """
         PARAMS:
         `stream: str` Filepath to PDF file.
@@ -35,13 +36,13 @@ class PDFImporter(PdfReader):
         self.logger = errObj = DataError(__file__, self.__class__.__name__)
         self.source_file = stream
         try:
-            self._extract_contents()
+            self._extract_contents(skip_pages)
         except Exception as err:
             self.logger.msg = f"No content could be extracted from {self.source_file}!"
             errObj.error(extra_msg=str(err), orgErr=err)
             raise errObj from err
 
-    def _extract_contents(self):
+    def _extract_contents(self, skip_pages: int):
         """
         Method responsible for extracting the contents of a PDF file
         and save it into its own `.text` attribute.
@@ -53,7 +54,7 @@ class PDFImporter(PdfReader):
                 page = self.pages[0]
                 text = page.extract_text()
             else:
-                for index, page in enumerate(self.pages):
+                for index, page in enumerate(self.pages[skip_pages:]):
                     # print("Currently scanning page #{}".format(index))
                     content = page.extract_text()
                     if content is not None:
@@ -180,18 +181,97 @@ class TIIPDocImporter(PDFImporter):
         It also takes the PDF file's `filepath` and saves it to `self.source_file`.
         If no content is retrieved, a `DataError(Exception)` is raised.
         """
-        super().__init__(stream, strict, password)
+        super().__init__(stream, strict, password, skip_pages=2)
         self.index = TIIP_INDEX
         self.output = self.to_elasticsearch()
         self.client = LingtelliElastic()
+
+    def _get_pattern_pos(self, level: int = 0, start: int = 0, end: int = -1) -> DocumentPosSeparatorList[DocumentPosSeparator]:
+        """
+        Attempts to return a list of the indexes of the matched patterns / texts.
+        """
+        pos_list = DocumentPosSeparatorList()
+        if level == 0:
+            for pattern_str in DOC_SEP_LIST_1:
+                try:
+                    pos_list.append(
+                        DocumentPosSeparator((self.text.index(pattern_str), len(pattern_str))))
+                except ValueError as err:
+                    self.logger.msg = "Could not add DocumentPosSeparator object to pos_list!"
+                    self.logger.error(extra_msg=str(err), orgErr=err)
+                    raise self.logger
+            return pos_list
+
+        elif level == 1:
+            sep_list = DOC_SEP_LIST_2
+        elif level == 2:
+            sep_list = DOC_SEP_LIST_3
+
+        if level > 0:
+            for pattern_obj in sep_list:
+                try:
+                    match_list = pattern_obj.findall(self.text, start, end)
+                    for match in match_list:
+                        try:
+                            pos_list.append(
+                                DocumentPosSeparator((self.text.index(match), len(match))))
+                        except ValueError:
+                            self.logger.msg = "Could not get index!"
+                            self.logger.warn(
+                                extra_msg="Tried to get index for match: {}".format(match))
+                            continue
+
+                except Exception as err:
+                    self.logger.msg = "Could not get a match list!"
+                    self.logger.error(extra_msg="Tried to match the pattern " + str(
+                        pattern_obj) + ", between index {} and {}.".format(start, end), orgErr=err)
+                    raise self.logger from err
+
+        pos_list.sort()
+
+        return pos_list
+
+    def _split_text(self) -> List[str]:
+        """
+        Attempts to use 'SEP' constants defined in the directory's __init__.py file
+        to divide the document's content (`self.text`) into appropriate text 'chunks'.
+        """
+        txt_chunk_list = []
+
+        pos_list1 = self._get_pattern_pos(0)
+        self.logger.msg = "pos_list1 length: {}".format(len(pos_list1))
+        self.logger.info()
+        for index, pos in enumerate(pos_list1):
+            if index < len(pos_list1)-1:
+                pos_list2 = self._get_pattern_pos(
+                    1, pos.pos+pos.len, pos_list1[index+1].pos)
+            for index2, pos2 in enumerate(pos_list2):
+                if index2 < len(pos_list2)-1:
+                    pos_list3 = self._get_pattern_pos(
+                        2, pos2.pos+pos2.len, pos_list2[index2+1].pos)
+                for index3, pos3 in enumerate(pos_list3):
+                    if index3 < len(pos_list3)-1:
+                        extracted_text = self.text[pos3.pos +
+                                                   pos3.len:pos_list3[index3+1].pos]
+                        if len(extracted_text) >= 10:
+                            txt_chunk_list.append(extracted_text)
+
+        return txt_chunk_list
 
     def to_elasticsearch(self):
         """
         Method for taking object's `.text` attribute and convert it into a suitable JSON
         structure that can then be saved into Elasticsearch 'as is'.
         """
-        text_list = self.text.split("\n")
+        # Split text into suitable list
+        text_list = self._split_text()
+        # Send list to create a DocumentList
         doc_list = TIIPDocumentList(text_list)
+        # Print out 10 examples from the list.
+        index_distance = len(doc_list) // 25
+        for doc in doc_list[::index_distance]:
+            print(doc)
+        # Return the list transformed to a json/dict format (to save in ES).
         return doc_list.to_json(self.index)
 
     def save_bulk(self) -> None:
@@ -261,7 +341,8 @@ if __name__ == "__main__":
 
         pdf_reader.logger.msg = f"PDF loaded {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
         pdf_reader.logger.info()
-        pdf_reader.save_bulk()
+
+        # pdf_reader.save_bulk()
 
     except Exception as err:
         errObj = DataError(__file__, "importer:main",
