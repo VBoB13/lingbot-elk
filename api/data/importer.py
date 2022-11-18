@@ -13,7 +13,7 @@ from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
 from settings.settings import BASE_DIR, TIIP_PDF_DIR
-from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3
+from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_LENGTH
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
@@ -238,22 +238,44 @@ class TIIPDocImporter(PDFImporter):
         """
         txt_chunk_list = []
 
+        # Get index positions of 1st level separators
         pos_list1 = self._get_pattern_pos(0)
-        self.logger.msg = "pos_list1 length: {}".format(len(pos_list1))
-        self.logger.info()
+
         for index, pos in enumerate(pos_list1):
             if index < len(pos_list1)-1:
+                # Get index positions of 2nd level separators
                 pos_list2 = self._get_pattern_pos(
                     1, pos.pos+pos.len, pos_list1[index+1].pos)
+                # If we don't find any indexes for 3rd level separators,
+                # we extract based on the 2nd level separators.
+                if len(pos_list2) == 0:
+                    extracted_text = self.text[pos.pos +
+                                               pos.len:pos_list1[index+1].pos]
+                    if len(extracted_text) >= DOC_LENGTH:
+                        txt_chunk_list.append(extracted_text)
+                    # If we don't get any indexes, we continue.
+                    continue
+
             for index2, pos2 in enumerate(pos_list2):
                 if index2 < len(pos_list2)-1:
+                    # Get index positions of 3rd level separators
                     pos_list3 = self._get_pattern_pos(
                         2, pos2.pos+pos2.len, pos_list2[index2+1].pos)
+                    # If we don't find any indexes for 3rd level separators,
+                    # we extract based on the 2nd level separators.
+                    if len(pos_list3) == 0:
+                        extracted_text = self.text[pos2.pos +
+                                                   pos2.len:pos_list2[index2+1].pos]
+                        if len(extracted_text) >= DOC_LENGTH:
+                            txt_chunk_list.append(extracted_text)
+                        # If we don't get any indexes, we continue.
+                        continue
+
                 for index3, pos3 in enumerate(pos_list3):
                     if index3 < len(pos_list3)-1:
                         extracted_text = self.text[pos3.pos +
                                                    pos3.len:pos_list3[index3+1].pos]
-                        if len(extracted_text) >= 10:
+                        if len(extracted_text) >= DOC_LENGTH:
                             txt_chunk_list.append(extracted_text)
 
         return txt_chunk_list
@@ -267,10 +289,12 @@ class TIIPDocImporter(PDFImporter):
         text_list = self._split_text()
         # Send list to create a DocumentList
         doc_list = TIIPDocumentList(text_list)
+        self.logger.msg = "Got {} document(s)!".format(len(doc_list))
+        self.logger.info()
         # Print out 10 examples from the list.
-        index_distance = len(doc_list) // 25
-        for doc in doc_list[::index_distance]:
-            print(doc)
+        # index_distance = len(doc_list) // 10
+        # for doc in doc_list[::index_distance]:
+        #     print(doc)
         # Return the list transformed to a json/dict format (to save in ES).
         return doc_list.to_json(self.index)
 

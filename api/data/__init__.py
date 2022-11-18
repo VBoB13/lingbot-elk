@@ -11,3 +11,5 @@ DOC_SEP_LIST_2 = [re.compile(
     ".*[一二三四五六七八九十]{1,3}、.*"), re.compile(".*附件[一二三四五六七八九十]+[:：].*")]
 
 DOC_SEP_LIST_3 = [re.compile(".*\([一二三四五六七八九十]{1,2}\).*")]
+
+DOC_LENGTH = 7
