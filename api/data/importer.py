@@ -404,7 +404,7 @@ if __name__ == "__main__":
         pdf_reader.logger.msg = f"PDF loaded {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
         pdf_reader.logger.info()
 
-        # pdf_reader.save_bulk()
+        pdf_reader.save_bulk()
 
     except Exception as err:
         errObj = DataError(__file__, "importer:main",
