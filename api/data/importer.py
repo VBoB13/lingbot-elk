@@ -6,6 +6,7 @@
 import glob
 import os
 import re
+from pprint import pprint
 from typing import Iterator, List
 
 from colorama import Fore, Back, Style
@@ -58,14 +59,13 @@ class PDFImporter(PdfReader):
                     # print("Currently scanning page #{}".format(index))
                     content = page.extract_text()
                     if content is not None:
-                        content.replace("\n", "")
-                        content.replace("'", "")
-                        text += page.extract_text()
+                        content = content.strip("\n").strip()
+                        text += content
 
-        if len(text) > 0 and isinstance(text, str):
-            self._text = text
-        else:
+        if not len(text) > 0:
             raise Exception("PDF file content not found!")
+
+        self._text = text
 
     @property
     def text(self):
@@ -207,25 +207,33 @@ class TIIPDocImporter(PDFImporter):
         elif level == 2:
             sep_list = DOC_SEP_LIST_3
 
-        if level > 0:
-            for pattern_obj in sep_list:
-                try:
-                    match_list = pattern_obj.findall(self.text, start, end)
-                    for match in match_list:
-                        try:
-                            pos_list.append(
-                                DocumentPosSeparator((self.text.index(match), len(match))))
-                        except ValueError:
-                            self.logger.msg = "Could not get index!"
-                            self.logger.warn(
-                                extra_msg="Tried to get index for match: {}".format(match))
-                            continue
+        for pattern_obj in sep_list:
+            try:
+                match_list = pattern_obj.findall(self.text, start, end)
 
-                except Exception as err:
-                    self.logger.msg = "Could not get a match list!"
-                    self.logger.error(extra_msg="Tried to match the pattern " + str(
-                        pattern_obj) + ", between index {} and {}.".format(start, end), orgErr=err)
-                    raise self.logger from err
+                if len(match_list) == 0:
+                    # self.logger.msg = "Could NOT find any matches for pattern object {}!".format(
+                    #     str(pattern_obj))
+                    # self.logger.warn()
+                    continue
+
+                print(Fore.RED + "Match:\n" + Fore.RESET +
+                      " | ".join(str(match) for match in match_list))
+                for match in match_list:
+                    try:
+                        pos_list.append(
+                            DocumentPosSeparator((self.text.index(match), len(match))))
+                    except ValueError:
+                        self.logger.msg = "Could not get index!"
+                        self.logger.warn(
+                            extra_msg="Tried to get index for match: {}".format(match))
+                        continue
+
+            except Exception as err:
+                self.logger.msg = "Could not get a match list!"
+                self.logger.error(extra_msg="Tried to match the pattern " + str(
+                    pattern_obj) + ", between index {} and {}.".format(start, end), orgErr=err)
+                raise self.logger from err
 
         pos_list.sort()
 
@@ -240,45 +248,73 @@ class TIIPDocImporter(PDFImporter):
 
         # Get index positions of 1st level separators
         pos_list1 = self._get_pattern_pos(0)
+        self.logger.msg = "Indexes #1 matched: {}".format(
+            ", ".join([str(position) for position in pos_list1]))
+        if len(pos_list1) > 0:
+            self.logger.info()
 
         for index, pos in enumerate(pos_list1):
             if index < len(pos_list1)-1:
                 # Get index positions of 2nd level separators
                 pos_list2 = self._get_pattern_pos(
                     1, pos.pos+pos.len, pos_list1[index+1].pos)
-                # If we don't find any indexes for 3rd level separators,
-                # we extract based on the 2nd level separators.
-                if len(pos_list2) == 0:
+            else:
+                pos_list2 = self._get_pattern_pos(1, pos.pos+pos.len)
+            # If we don't find any indexes for 3rd level separators,
+            # we extract based on the 2nd level separators.
+            if len(pos_list2) == 0:
+                if index < len(pos_list1)-1:
                     extracted_text = self.text[pos.pos +
                                                pos.len:pos_list1[index+1].pos]
-                    if len(extracted_text) >= DOC_LENGTH:
-                        txt_chunk_list.append(extracted_text)
-                    # If we don't get any indexes, we continue.
-                    continue
+                else:
+                    extracted_text = self.text[pos.pos +
+                                               pos.len:-1]
+                if len(extracted_text) >= DOC_LENGTH:
+                    txt_chunk_list.append(extracted_text)
+                # If we don't get any indexes, we continue.
+                continue
+
+            self.logger.msg = "Indexes #2 matched: {}".format(
+                ", ".join([str(position) for position in pos_list2]))
+            if len(pos_list2) > 0:
+                self.logger.info()
 
             for index2, pos2 in enumerate(pos_list2):
                 if index2 < len(pos_list2)-1:
                     # Get index positions of 3rd level separators
                     pos_list3 = self._get_pattern_pos(
                         2, pos2.pos+pos2.len, pos_list2[index2+1].pos)
-                    # If we don't find any indexes for 3rd level separators,
-                    # we extract based on the 2nd level separators.
-                    if len(pos_list3) == 0:
+                else:
+                    pos_list3 = self._get_pattern_pos(2, pos2.pos+pos2.len)
+                # If we don't find any indexes for 3rd level separators,
+                # we extract based on the 2nd level separators.
+                if len(pos_list3) == 0:
+                    if index2 < len(pos_list2)-1:
                         extracted_text = self.text[pos2.pos +
                                                    pos2.len:pos_list2[index2+1].pos]
-                        if len(extracted_text) >= DOC_LENGTH:
-                            txt_chunk_list.append(extracted_text)
+                    else:
+                        extracted_text = self.text[pos2.pos + pos2.len:-1]
+                    if len(extracted_text) >= DOC_LENGTH:
+                        txt_chunk_list.append(extracted_text)
                         # If we don't get any indexes, we continue.
                         continue
+
+                self.logger.msg = "Index #3 matched: {}".format(
+                    ", ".join([str(position) for position in pos_list3]))
+                if len(pos_list3) > 0:
+                    self.logger.info()
 
                 for index3, pos3 in enumerate(pos_list3):
                     if index3 < len(pos_list3)-1:
                         extracted_text = self.text[pos3.pos +
                                                    pos3.len:pos_list3[index3+1].pos]
+                    else:
+                        extracted_text = self.text[pos3.pos +
+                                                   pos3.len:-1]
                         if len(extracted_text) >= DOC_LENGTH:
                             txt_chunk_list.append(extracted_text)
 
-        return txt_chunk_list
+        return set(txt_chunk_list)
 
     def to_elasticsearch(self):
         """
@@ -291,10 +327,12 @@ class TIIPDocImporter(PDFImporter):
         doc_list = TIIPDocumentList(text_list)
         self.logger.msg = "Got {} document(s)!".format(len(doc_list))
         self.logger.info()
+
         # Print out 10 examples from the list.
         # index_distance = len(doc_list) // 10
         # for doc in doc_list[::index_distance]:
         #     print(doc)
+
         # Return the list transformed to a json/dict format (to save in ES).
         return doc_list.to_json(self.index)
 
@@ -366,7 +404,7 @@ if __name__ == "__main__":
         pdf_reader.logger.msg = f"PDF loaded {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
         pdf_reader.logger.info()
 
-        pdf_reader.save_bulk()
+        # pdf_reader.save_bulk()
 
     except Exception as err:
         errObj = DataError(__file__, "importer:main",

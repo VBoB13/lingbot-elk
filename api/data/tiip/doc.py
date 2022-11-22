@@ -25,6 +25,9 @@ class DocumentPosSeparator(object):
         self.pos = position[0]
         self.len = position[1]
 
+    def __str__(self):
+        return "{}".format(self.pos)
+
     def __len__(self):
         return len(self.pos_obj)
 
@@ -89,6 +92,13 @@ class TIIPDocumentList(list):
         for item in super().__iter__():
             yield item
 
+    def __str__(self) -> str:
+        string = ""
+        for doc in self.__iter__():
+            string += Fore.LIGHTCYAN_EX + "Content:\n" + \
+                Fore.RESET + "{}\n\n".format(str(doc))
+        return string
+
     def _load_list_arg(self, content_list: list):
         for item in content_list:
             if isinstance(item, TIIPDocument):
@@ -107,6 +117,20 @@ class TIIPDocumentList(list):
         super().append(obj)
 
     def to_json(self, index: str) -> list[ElasticDoc]:
+        """
+Takes the content of the list and returns a doctionary formatted as:\n
+`{"vendor_id": index,\n
+"fields":[{\n
+\t"name": <string>,\n
+\t"value": <TIIPDocument.content: str>,\n
+\t"type": <string: 'string'|'integer'>\n
+}]}`
+        """
+        if len(self) == 0:
+            self.logger.msg = "to_json() did NOT generate any results!"
+            self.logger.error()
+            raise self.logger
+
         final_list = []
         for doc in self.__iter__():
             final_list.append({
@@ -119,10 +143,5 @@ class TIIPDocumentList(list):
 
         # pprint(final_list)
         # print(type(final_list).__name__)
-
-        if len(final_list) == 0:
-            self.logger.msg = "to_json() did NOT generate any results!"
-            self.logger.error()
-            raise self.logger
 
         return final_list
