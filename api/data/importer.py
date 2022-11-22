@@ -5,16 +5,15 @@
 # PDF files within the /data folder.
 import glob
 import os
-import re
-from pprint import pprint
+import json
 from typing import Iterator, List
 
 from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
-from settings.settings import BASE_DIR, TIIP_PDF_DIR
-from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_LENGTH
+from settings.settings import DATA_DIR, TIIP_PDF_DIR
+from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
@@ -195,7 +194,8 @@ class TIIPDocImporter(PDFImporter):
             for pattern_str in DOC_SEP_LIST_1:
                 try:
                     pos_list.append(
-                        DocumentPosSeparator((self.text.index(pattern_str), len(pattern_str))))
+                        DocumentPosSeparator((self.text.index(pattern_str, start), len(pattern_str))))
+                    start = self.text.index(pattern_str) + len(pattern_str)
                 except ValueError as err:
                     self.logger.msg = "Could not add DocumentPosSeparator object to pos_list!"
                     self.logger.error(extra_msg=str(err), orgErr=err)
@@ -206,6 +206,8 @@ class TIIPDocImporter(PDFImporter):
             sep_list = DOC_SEP_LIST_2
         elif level == 2:
             sep_list = DOC_SEP_LIST_3
+        elif level == 3:
+            sep_list = DOC_SEP_LIST_4
 
         for pattern_obj in sep_list:
             try:
@@ -217,12 +219,13 @@ class TIIPDocImporter(PDFImporter):
                     # self.logger.warn()
                     continue
 
-                print(Fore.RED + "Match:\n" + Fore.RESET +
-                      " | ".join(str(match) for match in match_list))
+                # Print out matched objects
+                # print(Fore.RED + "Match:\n" + Fore.RESET +
+                #       "\n".join(str(match) for match in match_list))
                 for match in match_list:
                     try:
                         pos_list.append(
-                            DocumentPosSeparator((self.text.index(match), len(match))))
+                            DocumentPosSeparator((self.text.index(match, start, end), len(match))))
                     except ValueError:
                         self.logger.msg = "Could not get index!"
                         self.logger.warn(
@@ -253,6 +256,8 @@ class TIIPDocImporter(PDFImporter):
         if len(pos_list1) > 0:
             self.logger.info()
 
+        # Iterate through 1st level separators position objects
+        # E.g. DocumentPosSeparator's
         for index, pos in enumerate(pos_list1):
             if index < len(pos_list1)-1:
                 # Get index positions of 2nd level separators
@@ -278,7 +283,13 @@ class TIIPDocImporter(PDFImporter):
                 ", ".join([str(position) for position in pos_list2]))
             if len(pos_list2) > 0:
                 self.logger.info()
+                if (pos.pos+pos.len) - (pos_list2[0].pos-1) >= 5:
+                    extracted_text = self.text[pos.pos +
+                                               pos.len: pos_list2[0].pos]
+                    txt_chunk_list.append(extracted_text)
 
+            # Iterate through 2nd level separator objects
+            # E.g. DocumentPosSeparator's
             for index2, pos2 in enumerate(pos_list2):
                 if index2 < len(pos_list2)-1:
                     # Get index positions of 3rd level separators
@@ -303,16 +314,53 @@ class TIIPDocImporter(PDFImporter):
                     ", ".join([str(position) for position in pos_list3]))
                 if len(pos_list3) > 0:
                     self.logger.info()
+                    if (pos2.pos+pos2.len) - (pos_list3[0].pos-1) >= DOC_LENGTH:
+                        extracted_text = self.text[pos2.pos +
+                                                   pos2.len: pos_list3[0].pos]
+                        txt_chunk_list.append(extracted_text)
 
+                # Iterate through 3rd level separator objects
+                # E.g. DocumentPosSeparator's
                 for index3, pos3 in enumerate(pos_list3):
                     if index3 < len(pos_list3)-1:
-                        extracted_text = self.text[pos3.pos +
-                                                   pos3.len:pos_list3[index3+1].pos]
+                        # Get index positions of 4th level separators
+                        pos_list4 = self._get_pattern_pos(
+                            3, pos3.pos+pos3.len, pos_list3[index3+1].pos)
                     else:
-                        extracted_text = self.text[pos3.pos +
-                                                   pos3.len:-1]
+                        pos_list4 = self._get_pattern_pos(3, pos3.pos+pos3.len)
+                    # If we don't find any indexes for 4th level separators,
+                    # we extract based on the 3rd level separators.
+                    if len(pos_list4) == 0:
+                        if index3 < len(pos_list3)-1:
+                            extracted_text = self.text[pos3.pos +
+                                                       pos3.len:pos_list3[index3+1].pos]
+                        else:
+                            extracted_text = self.text[pos3.pos + pos3.len:-1]
                         if len(extracted_text) >= DOC_LENGTH:
                             txt_chunk_list.append(extracted_text)
+                            # If we don't get any indexes, we continue.
+                            continue
+
+                    self.logger.msg = "Index #4 matched: {}".format(
+                        ", ".join([str(position) for position in pos_list4]))
+                    if len(pos_list4) > 0:
+                        self.logger.info()
+                        if (pos3.pos+pos3.len) - (pos_list4[0].pos-1) >= DOC_LENGTH:
+                            extracted_text = self.text[pos3.pos +
+                                                       pos3.len: pos_list4[0].pos]
+                            txt_chunk_list.append(extracted_text)
+
+                    # Iterate through 3rd level separator objects
+                    # E.g. DocumentPosSeparator's
+                    for index4, pos4 in enumerate(pos_list4):
+                        if index4 < len(pos_list4)-1:
+                            extracted_text = self.text[pos4.pos +
+                                                       pos4.len:pos_list4[index4+1].pos]
+                        else:
+                            extracted_text = self.text[pos4.pos +
+                                                       pos4.len:-1]
+                            if len(extracted_text) >= DOC_LENGTH:
+                                txt_chunk_list.append(extracted_text)
 
         return set(txt_chunk_list)
 
@@ -346,6 +394,23 @@ class TIIPDocImporter(PDFImporter):
         self.logger.msg = "Saved documents successfully to index: {}".format(
             self.index)
         self.logger.info()
+
+    def save_json(self, index: int) -> None:
+        """
+        Atempts to save the documents contained in the importer in a .json file.
+        """
+
+        full_path = os.path.join(DATA_DIR, f"{self.index}-{index}.json")
+        try:
+            with open(full_path, "w+", encoding="utf8") as file:
+                json.dump(self.output, file, indent=2, ensure_ascii=False)
+        except Exception as err:
+            self.logger.msg = "Could not save documents into file: {}".format(
+                full_path)
+            self.logger.error(extra_msg=str(err), orgErr=err)
+
+        self.logger.msg = "Successfully saved object into JSON!"
+        self.logger.info(extra_msg="Path: {}".format(full_path))
 
 
 class TIIPDocImporterMulti(list):
@@ -395,6 +460,10 @@ class TIIPDocImporterMulti(list):
         for doc in self.__iter__():
             doc.save_bulk()
 
+    def save_json(self):
+        for index, doc in enumerate(self.__iter__()):
+            doc.save_json(index)
+
 
 if __name__ == "__main__":
     try:
@@ -404,7 +473,7 @@ if __name__ == "__main__":
         pdf_reader.logger.msg = f"PDF loaded {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
         pdf_reader.logger.info()
 
-        pdf_reader.save_bulk()
+        pdf_reader.save_json()
 
     except Exception as err:
         errObj = DataError(__file__, "importer:main",
