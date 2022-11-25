@@ -7,4 +7,7 @@ RUN mkdir -p /data/elasticsearch/load
 ADD ./elasticsearch/load/ /data/elasticsearch/load/ 
 ENV ES_HOME /opt/elasticsearch
 WORKDIR ${ES_HOME}
+RUN ${ES_HOME}/bin/elasticsearch-plugin install analysis-icu
 RUN ${ES_HOME}/bin/elasticsearch-plugin install analysis-smartcn
+
+
