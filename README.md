@@ -20,7 +20,7 @@ mappings and shard/replica settings on **each node** (if multiple) by entering t
 - Through Kibana, it would look like this:
 
 ```
-PUT 193b3d9c-744c-37d6-bfcb-cc5707cf20d6
+PUT <YOUR_INDEX_HERE>
 {
   "mappings": {
     "properties": {
