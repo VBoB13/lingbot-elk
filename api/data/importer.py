@@ -13,7 +13,7 @@ from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
 from settings.settings import DATA_DIR, TIIP_PDF_DIR
-from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH
+from data import Q_SEP, A_SEP, DOC_SEP_LIST, ADD_DOCS_SEP_LIST, DOC_LENGTH, INIT_SEP_LIST_STR
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
@@ -35,6 +35,7 @@ class PDFImporter(PdfReader):
         super().__init__(stream, strict, password)
         self.logger = errObj = DataError(__file__, self.__class__.__name__)
         self.source_file = stream
+        self.page_indexes = {}
         try:
             self._extract_contents(skip_pages)
         except Exception as err:
@@ -54,12 +55,16 @@ class PDFImporter(PdfReader):
                 page = self.pages[0]
                 text = page.extract_text()
             else:
+                content_length = 0
                 for index, page in enumerate(self.pages[skip_pages:]):
                     # print("Currently scanning page #{}".format(index))
                     content = page.extract_text()
                     if content is not None:
                         content = content.strip("\n").strip()
                         text += content
+                        content_length += len(content)
+                        self.page_indexes.update(
+                            {str(index+1): content_length})
 
         if not len(text) > 0:
             raise Exception("PDF file content not found!")
@@ -181,6 +186,8 @@ class TIIPDocImporter(PDFImporter):
         If no content is retrieved, a `DataError(Exception)` is raised.
         """
         super().__init__(stream, strict, password, skip_pages=2)
+        self.logger.msg = "Page indexes: {}".format(str(self.page_indexes))
+        self.logger.info()
         self.index = TIIP_INDEX
         self.output = self.to_elasticsearch()
         self.client = LingtelliElastic()
@@ -190,8 +197,15 @@ class TIIPDocImporter(PDFImporter):
         Attempts to return a list of the indexes of the matched patterns / texts.
         """
         pos_list = DocumentPosSeparatorList()
-        if level == 0:
-            for pattern_str in DOC_SEP_LIST_1:
+        if self.page_indexes["12"] > start < self.page_indexes["38"]:
+            sep_major_list = ADD_DOCS_SEP_LIST
+        else:
+            sep_major_list = DOC_SEP_LIST
+
+        sep_list = sep_major_list[level]
+
+        if sep_major_list == DOC_SEP_LIST and level == 0:
+            for pattern_str in INIT_SEP_LIST_STR:
                 try:
                     pos_list.append(
                         DocumentPosSeparator((self.text.index(pattern_str, start), len(pattern_str))))
@@ -201,13 +215,6 @@ class TIIPDocImporter(PDFImporter):
                     self.logger.error(extra_msg=str(err), orgErr=err)
                     raise self.logger
             return pos_list
-
-        elif level == 1:
-            sep_list = DOC_SEP_LIST_2
-        elif level == 2:
-            sep_list = DOC_SEP_LIST_3
-        elif level == 3:
-            sep_list = DOC_SEP_LIST_4
 
         for pattern_obj in sep_list:
             try:

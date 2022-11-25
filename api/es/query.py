@@ -1,8 +1,10 @@
 # This file contains code related to [search]query making for Elasticsearch.
 
-from params.definitions import SearchDocument
+from params.definitions import SearchDocument, SearchPhraseDoc
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp
+
+from . import KNOWN_INDEXES
 
 
 class QueryMaker(object):
@@ -18,9 +20,33 @@ class QueryMaker(object):
         for key, value in self.query.items():
             yield f"{key}", value
 
+    def create_phrase_query(self, doc: SearchPhraseDoc):
+        """
+        Method that creates a query object based on Elasticsearch's
+        'match_phrase' query structure as below:\n
+        {
+            "query": {
+                "match_phrase": {
+                    "[field_name]": {
+                        "query": "[your_query_here]"
+                    }
+                }
+            }
+        }
+
+        Assume you search for the phrase 'Shape of you':
+        1. The search terms "Shape", "of", and "you" must appear in the field headline .
+        2. The terms must appear in that order.
+        3. The terms must appear next to each other.
+        """
+        subquery = {}
+        subquery.update({KNOWN_INDEXES[doc.vendor_id]["context"]: {
+                        "query": doc.match_phrase}})
+        self.query.update({"match_phrase": subquery})
+
     def create_query(self, doc: SearchDocument):
         """
-        Method that sets the 'query' attribute to the format of:
+        Method that sets the 'query' attribute to the format of:\n
         {
             "query": {
                 "match": {
