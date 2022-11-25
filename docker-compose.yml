@@ -6,6 +6,8 @@ services:
       context: ./elk/
     env_file: 
       - .env
+    volumes:
+      - elk-service-data:/var/lib/elasticsearch
     ports:
       - 5601:5601
       - 5044:5044
@@ -29,6 +31,9 @@ services:
       - 5000
     networks:
       - es_net
+
+volumes:
+  elk-service-data:
 
 networks:
   es_net:
