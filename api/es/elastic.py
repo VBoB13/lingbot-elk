@@ -9,7 +9,8 @@ from typing import Any
 
 from elasticsearch import Elasticsearch
 
-from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, Vendor, Vendors, DocID_Must
+from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
+    Vendor, Vendors, DocID_Must, SearchPhraseDoc
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
@@ -27,7 +28,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.msg = "Initialization of Elasticsearch client FAILED!"
             self.logger.error(extra_msg=str(err))
             print_tb(err.__traceback__)
-            raise err
+            raise self.logger from err
 
         self.logger.info("Success!")
 
@@ -41,8 +42,10 @@ class LingtelliElastic(Elasticsearch):
         queryObj = QueryMaker()
         if isinstance(self.doc, SearchDocTimeRange):
             queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
-        if isinstance(self.doc, SearchDocument):
+        elif isinstance(self.doc, SearchDocument):
             queryObj.create_query(self.doc)
+        elif isinstance(self.doc, SearchPhraseDoc):
+            queryObj.create_phrase_query(self.doc)
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
 
@@ -189,6 +192,30 @@ class LingtelliElastic(Elasticsearch):
 
         resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
 
+        resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
+
+        return dict(resp["hits"])
+
+    def search_phrase(self, doc: SearchPhraseDoc):
+        """
+        This method is the go-to search method for most use cases for our
+        Lingtelli services.
+        """
+        self.doc = doc
+
+        try:
+            if not self._index_exists():
+                self.logger.msg = "Could not search for documents!"
+                self.logger.error(
+                    extra_msg="Index {} does NOT exist!".format(self.doc.vendor_id))
+                raise self.logger
+            query = self._get_query()
+            resp = super().search(index=self.doc.vendor_id, query=query)
+        except Exception as err:
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+
+        resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
         resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
 
         return dict(resp["hits"])
