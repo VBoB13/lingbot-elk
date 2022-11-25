@@ -75,6 +75,10 @@ class SearchDocument(Vendor):
     match: SearchField
 
 
+class SearchPhraseDoc(Vendor):
+    match_phrase: str
+
+
 class SearchDocTimeRange(Vendor):
     start: str = (datetime.now() - timedelta(days=1)
                   ).strftime("%Y-%m-%dT%H:%M:%S")

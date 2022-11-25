@@ -44,7 +44,7 @@ class BaseError(Exception):
             level = 'ERROR'
         full_msg = color + \
             f"|{level}| " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + \
-            f" | {self.file} | {self.__class__.__name__}" + \
+            f" | {self.file} | {self.cls}" + \
             Fore.RESET + " " + self.msg
         if not extra_msg or not isinstance(extra_msg, str):
             self._full_msg = full_msg
