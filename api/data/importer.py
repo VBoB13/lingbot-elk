@@ -13,7 +13,7 @@ from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
 from settings.settings import DATA_DIR, TIIP_PDF_DIR
-from data import Q_SEP, A_SEP, DOC_SEP_LIST, ADD_DOCS_SEP_LIST, DOC_LENGTH, INIT_SEP_LIST_STR
+from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
@@ -197,15 +197,8 @@ class TIIPDocImporter(PDFImporter):
         Attempts to return a list of the indexes of the matched patterns / texts.
         """
         pos_list = DocumentPosSeparatorList()
-        if self.page_indexes["12"] > start < self.page_indexes["38"]:
-            sep_major_list = ADD_DOCS_SEP_LIST
-        else:
-            sep_major_list = DOC_SEP_LIST
-
-        sep_list = sep_major_list[level]
-
-        if sep_major_list == DOC_SEP_LIST and level == 0:
-            for pattern_str in INIT_SEP_LIST_STR:
+        if level == 0:
+            for pattern_str in DOC_SEP_LIST_1:
                 try:
                     pos_list.append(
                         DocumentPosSeparator((self.text.index(pattern_str, start), len(pattern_str))))
@@ -215,6 +208,13 @@ class TIIPDocImporter(PDFImporter):
                     self.logger.error(extra_msg=str(err), orgErr=err)
                     raise self.logger
             return pos_list
+
+        elif level == 1:
+            sep_list = DOC_SEP_LIST_2
+        elif level == 2:
+            sep_list = DOC_SEP_LIST_3
+        elif level == 3:
+            sep_list = DOC_SEP_LIST_4
 
         for pattern_obj in sep_list:
             try:
@@ -426,8 +426,8 @@ class TIIPDocImporterMulti(list):
         Initializes multiple PDF reader objects, aiming to simplify the reading of
         multiple documents of similar structure.
         :params:\n
-        `file_list: list`; should contain filepaths to PDF files to have 
-        their contents read and loaded. If emtpy, it will look in the 
+        `file_list: list`; should contain filepaths to PDF files to have
+        their contents read and loaded. If emtpy, it will look in the
         `data/tiip/pdf` folder for `TIIP-DOC*.pdf` files. \n
         """
         self.logger = DataError(__file__, self.__class__.__name__)
