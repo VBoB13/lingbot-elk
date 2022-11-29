@@ -566,7 +566,7 @@ if __name__ == "__main__":
 
     try:
         csv_obj = TIIPCSVLoader()
-        # csv_obj.save_bulk()
+        csv_obj.save_bulk()
     except Exception as err:
         errObj = DataError(__file__, "importer:main",
                            "Unable to extract content from .csv file(s)!")
