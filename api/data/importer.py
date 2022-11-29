@@ -487,24 +487,23 @@ class TIIPCSVLoader(object):
         self.logger = DataError(__file__, self.__class__.__name__)
         self.client = LingtelliElastic()
         self.contents = TIIPDocumentList()
-        if file:
-            try:
-                self.contents = self._load_csv(file)
-            except Exception as err:
-                self.logger.msg = "Unable to load .csv file!"
-                self.logger.warn(extra_msg=str(err))
-                if question_check("Want to load files from {}?".format(TIIP_CSV_DIR)):
-                    try:
-                        for file in glob.glob("*.csv", root_dir=TIIP_CSV_DIR):
-                            self.contents.extend(self._load_csv(file))
-                    except Exception as err:
-                        self.logger.msg = "Unable to load .csv file from {}!".format(
-                            file)
-                        self.logger.error(extra_msg=str(err), orgErr=err)
-                        raise self.logger from err
-                else:
-                    self.logger.msg = "Not loading any files."
-                    self.logger.info()
+        try:
+            self.contents = self._load_csv(file)
+        except Exception as err:
+            self.logger.msg = "Unable to load .csv file!"
+            self.logger.warn(extra_msg=str(err))
+            if question_check("Want to load files from {}?".format(TIIP_CSV_DIR)):
+                try:
+                    for file in glob.glob("*.csv", root_dir=TIIP_CSV_DIR):
+                        self.contents.extend(self._load_csv(file))
+                except Exception as err:
+                    self.logger.msg = "Unable to load .csv file from {}!".format(
+                        file)
+                    self.logger.error(extra_msg=str(err), orgErr=err)
+                    raise self.logger from err
+            else:
+                self.logger.msg = "Not loading any files."
+                self.logger.info()
 
         # No content? Can't proceed.
         if len(self.contents) == 0:
