@@ -166,7 +166,8 @@ class LingtelliElastic(Elasticsearch):
             if i == 0:
                 update_index = doc["vendor_id"]
             self.save(doc)
-        time.sleep(1.5)
+            time.sleep(0.1)
+        time.sleep(1)
         if update_index is not None:
             self.update_index({"vendor_id": update_index})
         self.logger.msg = "Saved {} documents ".format(

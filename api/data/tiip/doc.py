@@ -68,11 +68,11 @@ class TIIPDocument(object):
     def __init__(self, content: str):
         self.content = content
 
-    def __str__(self):
+    def __str__(self) -> str:
         return Fore.LIGHTCYAN_EX + "Content: " + Fore.RESET + self.content
 
     def __iter__(self):
-        yield self
+        yield "content", self.content
 
 
 class TIIPDocumentList(list):
@@ -104,8 +104,7 @@ class TIIPDocumentList(list):
             if isinstance(item, TIIPDocument):
                 self.append(item)
             else:
-                converted_item = TIIPDocument(item)
-                self.append(converted_item)
+                self.append(TIIPDocument(item))
 
     def append(self, obj) -> None:
         if not isinstance(obj, TIIPDocument):
@@ -120,11 +119,12 @@ class TIIPDocumentList(list):
         """
 Takes the content of the list and returns a doctionary formatted as:\n
 `{"vendor_id": index,\n
-"fields":[{\n
-\t"name": <string>,\n
-\t"value": <TIIPDocument.content: str>,\n
-\t"type": <string: 'string'|'integer'>\n
-}]}`
+\t"fields":[{\n
+\t\t"name": <string>,\n
+\t\t"value": <TIIPDocument.content: str>,\n
+\t\t"type": <string: 'string'|'integer'>\n
+\t}]
+}`
         """
         if len(self) == 0:
             self.logger.msg = "to_json() did NOT generate any results!"

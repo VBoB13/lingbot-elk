@@ -6,18 +6,20 @@
 import glob
 import os
 import json
+import csv
 from typing import Iterator, List
 
 from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
-from settings.settings import DATA_DIR, TIIP_PDF_DIR
+from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR
 from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
 from es import TIIP_INDEX
+from helpers.interactive import question_check
 
 
 class PDFImporter(PdfReader):
@@ -472,25 +474,115 @@ class TIIPDocImporterMulti(list):
             doc.save_json(index)
 
 
+class TIIPCSVLoader(object):
+    """
+    Class meant to parse CSV files and save its contents into
+    Elasticsearch for later use in Lingbot services.\n
+    Parameters:\n
+    `file:<str>` : Filepath to .csv file to be loaded.
+    """
+
+    def __init__(self, file: str = None) -> None:
+        """Takes a filename/path as string to load its content into TIIPDocument objects."""
+        self.logger = DataError(__file__, self.__class__.__name__)
+        self.client = LingtelliElastic()
+        self.contents = TIIPDocumentList()
+        if file:
+            try:
+                self.contents = self._load_csv(file)
+            except Exception as err:
+                self.logger.msg = "Unable to load .csv file!"
+                self.logger.warn(extra_msg=str(err))
+                if question_check("Want to load files from {}?".format(TIIP_CSV_DIR)):
+                    try:
+                        for file in glob.glob("*.csv", root_dir=TIIP_CSV_DIR):
+                            self.contents.extend(self._load_csv(file))
+                    except Exception as err:
+                        self.logger.msg = "Unable to load .csv file from {}!".format(
+                            file)
+                        self.logger.error(extra_msg=str(err), orgErr=err)
+                        raise self.logger from err
+                else:
+                    self.logger.msg = "Not loading any files."
+                    self.logger.info()
+
+        # No content? Can't proceed.
+        if len(self.contents) == 0:
+            self.logger.msg = "No content available!"
+            self.logger.error(extra_msg="No content loaded.")
+            raise self.logger
+
+        print(Fore.LIGHTCYAN_EX + "CSV content type:" +
+              Fore.RESET, type(self.contents).__name__)
+        print(Fore.RED + "CSV contents:\n" + Fore.RESET + self.contents)
+
+        self.output = self.contents.to_json(TIIP_INDEX)
+
+    def _load_csv(self, file: str) -> TIIPDocumentList[TIIPDocument]:
+        """
+        Method that loads the content of a .csv file into the attribute
+        `self.contents`
+        """
+        try:
+            # We take only the first column in the CSV file
+            content = [str(row[0]) for row in csv.reader(file)]
+        except Exception as err:
+            self.logger.msg = "Could not create string contents from CSV file!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+
+        return TIIPDocumentList(content)
+
+    def save_bulk(self):
+        self.logger.msg = "Attempting to save {} document(s)...".format(
+            len(self.output))
+        try:
+            self.client.save_bulk(self.output)
+        except Exception as err:
+            self.logger.msg = "Unable to save documents to Elasticsearch!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger
+
+        self.logger.msg = "Saved {} document(s) ".format(
+            len(self.output)) + Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
+        self.logger.info()
+
+
 if __name__ == "__main__":
+    # CSV IMPORT
+
     try:
-        # file_dir = TIIP_PDF_DIR + "/TIIP_QA_110-9-24.pdf"
-        pdf_reader = TIIPDocImporterMulti()
-
-        pdf_reader.logger.msg = f"PDF loaded {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
-        pdf_reader.logger.info()
-
-        pdf_reader.save_bulk()
-
+        csv_obj = TIIPCSVLoader()
+        csv_obj.save_bulk()
     except Exception as err:
         errObj = DataError(__file__, "importer:main",
-                           "Unable to extract text from {}!".format(TIIP_PDF_DIR))
+                           "Unable to extract content from .csv file(s)!")
         errObj.error(extra_msg=str(err), orgErr=err)
         raise errObj from err
-
     else:
-        pdf_reader.logger.msg = "Importing data from {} finished successfully!".format(
-            pdf_reader.file_list)
-        pdf_reader.logger.info()
+        errObj = DataError(__file__, "importer:main")
+        errObj.msg = "Imported content from .csv files " + \
+            Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
+        errObj.info()
+    # PDF IMPORT
+    # try:
+    #     # file_dir = TIIP_PDF_DIR + "/TIIP_QA_110-9-24.pdf"
+    #     pdf_reader = TIIPDocImporterMulti()
+
+    #     pdf_reader.logger.msg = f"PDF loaded {Fore.LIGHTGREEN_EX}successfully!{Fore.RESET}"
+    #     pdf_reader.logger.info()
+
+    #     pdf_reader.save_bulk()
+
+    # except Exception as err:
+    #     errObj = DataError(__file__, "importer:main",
+    #                        "Unable to extract text from {}!".format(TIIP_PDF_DIR))
+    #     errObj.error(extra_msg=str(err), orgErr=err)
+    #     raise errObj from err
+
+    # else:
+    #     pdf_reader.logger.msg = "Importing data from {} finished successfully!".format(
+    #         pdf_reader.file_list)
+    #     pdf_reader.logger.info()
 
     # pprint(pdf_reader.text)
