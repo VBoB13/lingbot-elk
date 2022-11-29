@@ -513,7 +513,7 @@ class TIIPCSVLoader(object):
 
         print(Fore.LIGHTCYAN_EX + "CSV content type:" +
               Fore.RESET, type(self.contents).__name__)
-        print(Fore.RED + "CSV contents:\n" + Fore.RESET + self.contents)
+        print(Fore.RED + "CSV contents:\n" + Fore.RESET + str(self.contents))
 
         self.output = self.contents.to_json(TIIP_INDEX)
 
