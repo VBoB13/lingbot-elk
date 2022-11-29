@@ -530,6 +530,9 @@ class TIIPCSVLoader(object):
             self.logger.msg = "Could not create string contents from CSV file!"
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
+        else:
+            self.logger.msg = "Content loaded!"
+            self.logger.info(extra_msg=str(content))
 
         return TIIPDocumentList(content)
 
