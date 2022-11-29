@@ -69,7 +69,7 @@ class TIIPDocument(object):
         self.content = content
 
     def __str__(self) -> str:
-        return Fore.LIGHTCYAN_EX + "Content: " + Fore.RESET + self.content
+        return self.content
 
     def __iter__(self):
         yield "content", self.content

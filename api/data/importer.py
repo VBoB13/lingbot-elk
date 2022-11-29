@@ -494,11 +494,19 @@ class TIIPCSVLoader(object):
             self.logger.warn(extra_msg=str(err))
             if question_check("Want to load files from {}?".format(TIIP_CSV_DIR)):
                 try:
-                    for file in glob.glob("*.csv", root_dir=TIIP_CSV_DIR):
-                        self.contents.extend(self._load_csv(file))
+                    filepaths = glob.glob(os.path.join(TIIP_CSV_DIR, "*.csv"))
+                    if len(filepaths) == 0:
+                        self.logger.msg = "Could not find any .csv files in {}".format(
+                            TIIP_CSV_DIR)
+                        self.logger.error(orgErr=err)
+                        raise self.logger
+
+                    for filepath in filepaths:
+                        self.contents.extend(self._load_csv(filepath))
+
                 except Exception as err:
                     self.logger.msg = "Unable to load .csv file from {}!".format(
-                        file)
+                        filepath)
                     self.logger.error(extra_msg=str(err), orgErr=err)
                     raise self.logger from err
             else:
@@ -522,9 +530,12 @@ class TIIPCSVLoader(object):
         Method that loads the content of a .csv file into the attribute
         `self.contents`
         """
+        content = []
         try:
-            # We take only the first column in the CSV file
-            content = [str(row[0]) for row in csv.reader(file)]
+            with open(file) as fileObj:
+                for row in fileObj.readlines():
+                    content.append(str(row))
+
         except Exception as err:
             self.logger.msg = "Could not create string contents from CSV file!"
             self.logger.error(extra_msg=str(err), orgErr=err)
