@@ -1,4 +1,6 @@
 *pycache*
 */api_venv/*
 
+**/.DS_Store
+
 **/data/*.json
