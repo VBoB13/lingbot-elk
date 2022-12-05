@@ -33,37 +33,6 @@ PUT <YOUR_INDEX_HERE>
     "index" : {
       "number_of_shards" : 3,
       "number_of_replicas" : 1
-    },
-    "analysis": {
-      "char_filter": {
-        "stconvert": {
-          "type": "stconvert",
-          "delimiter": "#",
-          "keep_both": false,
-          "convert_type": "t2s"
-        }
-      },
-      "tokenizer": {
-        "ik_smart": {
-          "type": "ik_smart"
-        }
-      },
-      "filter": {
-        "stconvert": {
-          "type": "stconvert",
-          "delimiter": "#",
-          "keep_both": false,
-          "convert_type": "s2t"
-        }
-      },
-      "analyzer": {
-        "my_chinese_analyzer": {
-          "type": "custom",
-          "char_filter": ["stconvert"],
-          "tokenizer": "ik_smart",
-          "filter": ["stconvert"]
-        }
-      }
     }
   }
 }
