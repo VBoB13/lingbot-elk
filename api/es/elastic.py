@@ -33,10 +33,14 @@ class LingtelliElastic(Elasticsearch):
         self.logger.info("Success!")
 
     def _get_context(self, hits: list) -> dict[str, Any]:
-        for hit in hits:
-            hit["source"] = {"context": hit["source"]
-                             [KNOWN_INDEXES[self.doc.vendor_id]["context"]]}
-        return hits
+        if len(hits) > 0:
+            for hit in hits:
+                hit["source"] = {"context": hit["source"]
+                                 [KNOWN_INDEXES[self.doc.vendor_id]["context"]]}
+            return hits
+        self.logger.msg = "Could not get any documents!"
+        self.logger.error(extra_msg="No documents for provided query.")
+        raise self.logger
 
     def _get_query(self):
         queryObj = QueryMaker()
@@ -212,12 +216,12 @@ class LingtelliElastic(Elasticsearch):
                 raise self.logger
             query = self._get_query()
             resp = super().search(index=self.doc.vendor_id, query=query)
+            resp["hits"]["hits"] = self._remove_underlines(
+                resp["hits"]["hits"])
+            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
         except Exception as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
-
-        resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
-        resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
 
         return dict(resp["hits"])
 
