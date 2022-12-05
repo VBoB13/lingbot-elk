@@ -10,13 +10,14 @@ from . import KNOWN_INDEXES
 class QueryMaker(object):
     def __init__(self):
         self.query = dict({})
+        self.logger = ElasticError(__file__, self.__class__.__name__)
 
     def __iter__(self):
         if len(self.query.keys()) == 0:
-            errObj = ElasticError(
-                __file__, self.__class__.__name__, "Query isn't built yet!")
-            errObj.error()
-            raise errObj
+            self.logger.msg = "Query isn't built yet!"
+            self.logger.error(
+                extra_msg="Trying to extract query before it's built?")
+            raise self.logger
         for key, value in self.query.items():
             yield f"{key}", value
 
