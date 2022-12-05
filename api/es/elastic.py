@@ -35,9 +35,10 @@ class LingtelliElastic(Elasticsearch):
     def _get_context(self, hits: list) -> dict[str, Any]:
         if len(hits) > 0:
             for hit in hits:
-                hit["source"] = {
-                    "context": hit["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
-                }
+                if isinstance(hit, dict) and hit.get("source", False):
+                    hit["source"] = {
+                        "context": hit["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
+                    }
             return hits
         self.logger.msg = "Could not get any documents!"
         self.logger.error(extra_msg="No documents for provided query.")
