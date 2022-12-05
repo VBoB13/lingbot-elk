@@ -35,7 +35,8 @@ class LingtelliElastic(Elasticsearch):
     def _get_context(self, hits: list) -> dict[str, Any]:
         if len(hits) > 0:
             for hit in hits:
-                if isinstance(hit, dict) and hit.get("source", False):
+                if isinstance(hit, dict) and hit.get("source", False)\
+                        and hit["source"].get(KNOWN_INDEXES[self.doc.vendor_id]["context"], False):
                     hit["source"] = {
                         "context": hit["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
                     }
