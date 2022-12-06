@@ -1,6 +1,6 @@
 from datetime import datetime
 from logging import Logger
-from traceback import print_tb
+from traceback import print_tb, format_tb
 from colorama import Fore
 
 from settings.settings import BASE_DIR
@@ -65,7 +65,7 @@ class BaseError(Exception):
     def msg(self):
         self._msg = ""
 
-    def info(self, extra_msg: str = "") -> None:
+    def info(self, extra_msg: str = None) -> None:
         """
         Log a message (.msg attribute) to console preceded with a |INFO| tag.
         """
@@ -73,7 +73,7 @@ class BaseError(Exception):
         print(self._full_msg)
         self.logger.info(self._full_msg)
 
-    def warn(self, extra_msg: str = "") -> None:
+    def warn(self, extra_msg: str = None) -> None:
         """
         Log a message (.msg attribute) to console preceded with a |WARN| tag.
         """
@@ -81,12 +81,23 @@ class BaseError(Exception):
         print(self._full_msg)
         self.logger.warn(self._full_msg)
 
-    def error(self, extra_msg=str(""), orgErr: Exception = None) -> None:
+    def error(self, extra_msg: str = None, orgErr: Exception = None) -> None:
         """
         Log a message (.msg attribute) to console preceded with a |ERROR| tag.
         """
+        if orgErr:
+            self.tb_list = format_tb(orgErr.__traceback__)
+            extra_msg += "".join(msg for msg in self.tb_list)
+
         self._get_full_msg('ERROR', extra_msg)
         self.logger.error(self._full_msg)
         print_tb(self.__traceback__)
+
         if orgErr:
             print_tb(orgErr.__traceback__)
+
+    def save_log(self):
+        """
+        Log a message (.msg attribute) to a log file and save onto system.
+        This method is meant to be called from within the 'info', 'warn' or 'error' methods.
+        """
