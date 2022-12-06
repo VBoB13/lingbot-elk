@@ -1,5 +1,9 @@
 import re
-from re import Pattern
+import re
+import os
+
+CLAUDE_TEST_SERVER = os.environ.get('CLAUDE_TEST_SERVER', None)
+OOV_PORT = 5000
 
 Q_SEP = ".Q："
 A_SEP = "A："
