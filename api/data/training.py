@@ -29,3 +29,17 @@ class OOVService(object):
         to extract eventual new words, terms and/or phrases and add them into
         Elasticsearch's 'ik_smart' analyzer's dictionairy files (.dic).
         """
+        # 1. Send request with content to OOV service
+        # 2. Send a similar request to Elasticsearch's /_analyze endpoint
+        # 3. Compare results by figuring out which terms exist in OOV result
+        #       that does not exist in the /_analyze results.
+        # 4. Return the words, terms and/or phrases that are new.
+
+    def _send_results(self):
+        """
+        Method designated to add results from _run() into Elasticsearch's
+        'ik_smart' analyzer's dictionairy files (.dic).
+        """
+        # 1. Open .dic file with content
+        # 2. Add content to the file
+        # 3. Close file
