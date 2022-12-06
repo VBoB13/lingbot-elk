@@ -19,7 +19,7 @@ def question_check(question: str) -> bool:
     while answer not in INTERACTIVE_ANSWERS:
         logger.msg = "Only the following answers are accepted: {}".format(
             str(INTERACTIVE_ANSWERS))
-        logger.info()
+        logger.warn()
         answer = input(question + "\n(Y/N): ")
 
     if answer in YES_ANSWERS:
