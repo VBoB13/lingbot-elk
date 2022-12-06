@@ -2,7 +2,7 @@
 # to the app's different endpoints.
 
 from pydantic import BaseModel
-from pydantic.typing import Any, Optional
+from pydantic.typing import Any
 from datetime import datetime, timedelta
 
 
@@ -47,7 +47,7 @@ class Vendors(BaseModel):
 
 
 class DocID(BaseModel):
-    doc_id: Optional[str] = None
+    doc_id: str | None = None
 
 
 class DocID_Must(Vendor):
@@ -57,7 +57,7 @@ class DocID_Must(Vendor):
 class Field(BaseModel):
     name: str
     value: str | int
-    type: Optional[str] = None
+    type: str | None = None
 
 
 class ElasticDoc(Vendor):
@@ -68,7 +68,7 @@ class SearchField(BaseModel):
     name: str
     search_term: str
     operator: str = "OR"
-    min_should_match: int = None
+    min_should_match: int = 1
 
 
 class SearchDocument(Vendor):
