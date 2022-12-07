@@ -15,7 +15,7 @@ def check_timestamp(date_str: str) -> bool:
     :param: date_str = 'YYYY-mm-ddTHH:MM:SS'
     """
     try:
-        dateObj = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
+        datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
     except Exception as err:
         errObj = HelperError(__file__, "check_timestamp",
                              "Format on date_str is incorrect!")

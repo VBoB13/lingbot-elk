@@ -3,10 +3,11 @@
 import time
 from pprint import pprint
 from colorama import Fore
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from traceback import print_tb
 from typing import Any
 
+import requests
 from elasticsearch import Elasticsearch
 
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
@@ -120,6 +121,29 @@ class LingtelliElastic(Elasticsearch):
                     new_hit[key] = hit[key]
             new_hits.append(new_hit)
         return new_hits
+
+    def analyze(self, text: str, analyzer: str = 'ik_smart') -> set:
+        """
+        Method meant to be used as a shortcut for requesting
+        segmented results from Elasticsearch analyzers.
+        Default analyzer: `ik_smart`
+        """
+        data = {
+            "text": text,
+            "analyzer": analyzer
+        }
+        response = requests.post(
+            ELASTIC_IP + ':' + str(ELASTIC_PORT) + '/_analyze', data=data)
+
+        if response.ok:
+            json_resp = response.json()
+            if json_resp.get('tokens', None):
+                return set([item['token'] for item in json_resp['tokens']])
+
+        self.logger.msg = "Got a non-200 code from Elasticsearch!"
+        self.logger.error(extra_msg="Got code: {}".format(
+            Fore.LIGHTRED_EX + str(response.status_code) + Fore.RESET))
+        raise self.logger
 
     def get(self, doc: DocID_Must):
         """
