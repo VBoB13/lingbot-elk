@@ -2,6 +2,7 @@ from datetime import datetime
 from logging import Logger
 from traceback import print_tb, format_tb
 from colorama import Fore
+from gettext import gettext as translate
 
 from settings.settings import BASE_DIR
 
@@ -31,7 +32,7 @@ class BaseError(Exception):
         `level: str | int[1 | 2 | 3+]` where `1='INFO'`, `2='WARN'` and `3='ERROR'`.\n
         `extra_msg: str` is a detailed description that appears in the `._full_msg` attribute as `[_msg]... Details: [extra_msg].`
         """
-        self.details = extra_msg
+        self.details = translate(extra_msg)
         color = None
         if level in ('INFO', 1):
             color = Fore.CYAN
@@ -43,7 +44,7 @@ class BaseError(Exception):
             color = Fore.RED
             level = 'ERROR'
         full_msg = color + \
-            f"|{level}| " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + \
+            f"| {level} | " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + \
             f" | {self.file} | {self.cls}" + \
             Fore.RESET + " " + self.msg
         if not extra_msg or not isinstance(extra_msg, str):
@@ -59,7 +60,7 @@ class BaseError(Exception):
     def msg(self, val):
         if not isinstance(val, str):
             raise Exception("Cannot set 'msg' to anything other than 'str'!")
-        self._msg = val
+        self._msg = translate(val)
 
     @msg.deleter
     def msg(self):
