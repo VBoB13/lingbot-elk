@@ -57,7 +57,7 @@ class BaseError(Exception):
         return self._msg
 
     @msg.setter
-    def msg(self, val):
+    def msg(self, val: str):
         if not isinstance(val, str):
             raise Exception("Cannot set 'msg' to anything other than 'str'!")
         self._msg = translate(val)
