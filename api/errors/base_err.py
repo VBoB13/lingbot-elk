@@ -4,7 +4,7 @@ from traceback import print_tb, format_tb
 from colorama import Fore
 from gettext import gettext as translate
 
-from settings.settings import BASE_DIR
+from settings.settings import BASE_DIR, LOG_DIR
 
 
 class BaseError(Exception):
@@ -52,6 +52,16 @@ class BaseError(Exception):
         else:
             self._full_msg = full_msg + f"\nDetails:\n{extra_msg}"
 
+    def _save_log(self):
+        """
+        Log a message (.msg attribute) to a log file and save onto system.
+        This method is meant to be called from within the 'info', 'warn' or 'error' methods.
+        """
+        # TODO: Check whether this can be improved further.
+        #       Just don't spend all day on it :)
+        with open(LOG_DIR + f"/{datetime.now().strftime('%Y-%m-%d')}", 'a+') as log_file:
+            log_file.write(self._full_msg)
+
     @property
     def msg(self) -> str:
         return self._msg
@@ -59,7 +69,8 @@ class BaseError(Exception):
     @msg.setter
     def msg(self, val: str):
         if not isinstance(val, str):
-            raise Exception("Cannot set 'msg' to anything other than 'str'!")
+            raise Exception(
+                translate("Cannot set 'msg' to anything other than 'str'!"))
         self._msg = translate(val)
 
     @msg.deleter
@@ -68,7 +79,7 @@ class BaseError(Exception):
 
     def info(self, extra_msg: str = None) -> None:
         """
-        Log a message (.msg attribute) to console preceded with a |INFO| tag.
+        Log a message (.msg attribute) to console preceded with a | INFO | tag.
         """
         self._get_full_msg('INFO', extra_msg)
         print(self._full_msg)
@@ -76,15 +87,15 @@ class BaseError(Exception):
 
     def warn(self, extra_msg: str = None) -> None:
         """
-        Log a message (.msg attribute) to console preceded with a |WARN| tag.
+        Log a message (.msg attribute) to console preceded with a | WARN | tag.
         """
         self._get_full_msg('WARN', extra_msg)
         print(self._full_msg)
         self.logger.warn(self._full_msg)
 
-    def error(self, extra_msg: str = None, orgErr: Exception = None) -> None:
+    def error(self, extra_msg: str = None, orgErr: Exception = None, save: bool = False) -> None:
         """
-        Log a message (.msg attribute) to console preceded with a |ERROR| tag.
+        Log a message (.msg attribute) to console preceded with a | ERROR | tag.
         """
         if orgErr:
             self.tb_list = format_tb(orgErr.__traceback__)
@@ -96,9 +107,5 @@ class BaseError(Exception):
 
         if orgErr:
             print_tb(orgErr.__traceback__)
-
-    def save_log(self):
-        """
-        Log a message (.msg attribute) to a log file and save onto system.
-        This method is meant to be called from within the 'info', 'warn' or 'error' methods.
-        """
+        if save:
+            self._save_log()
