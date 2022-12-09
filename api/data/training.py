@@ -65,7 +65,7 @@ class OOVService(object):
         except Exception as err:
             self.logger.msg = "Could not compare data from {} with Elasticsearch analyzer's!".format(
                 self.server)
-            self.logger.error(extra_msg=str(err), orgErr=err)
+            self.logger.error(extra_msg=str(err), orgErr=err, save=True)
             raise self.logger from err
 
     def _save_results(self):

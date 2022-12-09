@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from logging import Logger
 from traceback import print_tb, format_tb
@@ -57,10 +58,18 @@ class BaseError(Exception):
         Log a message (.msg attribute) to a log file and save onto system.
         This method is meant to be called from within the 'info', 'warn' or 'error' methods.
         """
-        # TODO: Check whether this can be improved further.
-        #       Just don't spend all day on it :)
-        with open(LOG_DIR + f"/{datetime.now().strftime('%Y-%m-%d')}.log", 'a+') as log_file:
-            log_file.write(self._full_msg)
+        file_name = LOG_DIR + f"/{datetime.now().strftime('%Y-%m-%d')}.log"
+        try:
+            with open(file_name, 'a+') as log_file:
+                log_file.write(self._full_msg)
+        except Exception as err:
+            self.msg = "Could not save log into .log file!"
+            self.error(extra_msg=str(err), orgErr=err, save=True)
+            raise self
+        else:
+            self.msg = "Saved file {}".format(
+                os.path.split(file_name)[1]) + Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
+            self.info(extra_msg="Saved in path: {}".format(file_name))
 
     @property
     def msg(self) -> str:
