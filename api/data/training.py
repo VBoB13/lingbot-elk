@@ -48,8 +48,8 @@ class OOVService(object):
 
             if req.response.ok:
                 segments = set(req.response.json()["segmentresult"])
-                es = LingtelliElastic()
                 # 2. Send a similar request to Elasticsearch's /_analyze endpoint
+                es = LingtelliElastic()
                 analyzer_segments = es.analyze(text)
                 # 3. Compare results by figuring out which terms exist in OOV result
                 #       that does not exist in the /_analyze results.
