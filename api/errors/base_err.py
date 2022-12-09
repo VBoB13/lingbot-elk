@@ -59,7 +59,7 @@ class BaseError(Exception):
         """
         # TODO: Check whether this can be improved further.
         #       Just don't spend all day on it :)
-        with open(LOG_DIR + f"/{datetime.now().strftime('%Y-%m-%d')}", 'a+') as log_file:
+        with open(LOG_DIR + f"/{datetime.now().strftime('%Y-%m-%d')}.log", 'a+') as log_file:
             log_file.write(self._full_msg)
 
     @property
