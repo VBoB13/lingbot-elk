@@ -4,7 +4,6 @@ import time
 from pprint import pprint
 from colorama import Fore
 from datetime import datetime
-from traceback import print_tb
 from typing import Any
 
 import requests
@@ -15,6 +14,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
+from es.gpt3 import GPT3Request
 from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES
 
 
@@ -27,8 +27,7 @@ class LingtelliElastic(Elasticsearch):
                              max_retries=30, retry_on_timeout=True, request_timeout=30)
         except Exception as err:
             self.logger.msg = "Initialization of Elasticsearch client FAILED!"
-            self.logger.error(extra_msg=str(err))
-            print_tb(err.__traceback__)
+            self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
 
         self.logger.info("Success!")
@@ -46,7 +45,7 @@ class LingtelliElastic(Elasticsearch):
         self.logger.error(extra_msg="No documents for provided query.")
         raise self.logger
 
-    def _get_query(self):
+    def _get_query(self) -> dict:
         queryObj = QueryMaker()
         if isinstance(self.doc, SearchDocTimeRange):
             queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
@@ -86,7 +85,7 @@ class LingtelliElastic(Elasticsearch):
 
         return document
 
-    def _remove_underlines_single(self, hit: dict[str, Any]):
+    def _remove_underlines_single(self, hit: dict[str, Any]) -> dict:
         if not isinstance(hit, dict):
             self.logger.msg = "'hit' argument should be a dict; not {}".format(
                 type(hit).__name__)
@@ -226,7 +225,12 @@ class LingtelliElastic(Elasticsearch):
 
         resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
 
-        return dict(resp["hits"])
+        # Throw another request to GPT-3 service to get answer from there.
+        context = "".join([hit["source"]["context"]
+                          for hit in resp["hits"]["hits"]])
+        results = str(GPT3Request(self.doc.match.search_term, context))
+
+        return results
 
     def search_phrase(self, doc: SearchPhraseDoc):
         """
