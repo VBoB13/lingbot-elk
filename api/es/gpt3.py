@@ -17,8 +17,8 @@ class GPT3Request(object):
     def __init__(self, question: str, context: str):
         self.logger = ElasticError(__file__, self.__class__.__name__)
         try:
-            self.res = requests.get("http://" + GPT3_SERVER + ":" + str(
-                GPT3_PORT) + "/question?question=" + question + "&" + "context="+context)
+            self.res = requests.post("http://" + GPT3_SERVER + ":" + str(
+                GPT3_PORT) + "/question", data={"question": question, "context": context})
         except Exception as err:
             self.logger.msg = "Something went wrong when trying to call the GPT-3 service!"
             self.logger.error(extra_msg=str(err), orgErr=err)
