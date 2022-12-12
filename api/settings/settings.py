@@ -10,7 +10,7 @@ TIIP_PDF_DIR = os.path.join(DATA_DIR, "tiip", "pdf")
 TIIP_CSV_DIR = os.path.join(DATA_DIR, "tiip", "csv")
 
 # OpenAI stuff
-GPT3_SERVER = os.environ.get("GPT3_SERVER", "192.168.112.4")
+GPT3_SERVER = os.environ.get("GPT3_SERVER", "192.168.112.3")
 GPT3_PORT = int(os.environ.get("GPT3_PORT", "4200"))
 
 # Dictionairy dir's (ELK)
