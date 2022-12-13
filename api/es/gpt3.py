@@ -29,7 +29,8 @@ class GPT3Request(object):
                 self.results = self.res.content.decode('utf-8')
                 self.logger.msg = "Response from GPT-3 service: {}".format(
                     self.results)
-                self.logger.info()
+                self.logger.info(extra_msg="Type: {}".format(
+                    type(self.results).__name__))
             else:
                 self.logger.msg = "Response from <OUR> GPT-3 service NOT OK!"
                 self.logger.error(extra_msg="Code received: {}".format(
