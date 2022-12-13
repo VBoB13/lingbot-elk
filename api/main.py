@@ -39,7 +39,7 @@ async def get_doc(doc: DocID_Must):
         result = es.get(doc)
         return ElkServiceResponse(content={"msg": "Document found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
-        if err.msg == "Could not get any documents!":
+        if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
             return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_204_NO_CONTENT)
         es.logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -52,7 +52,7 @@ async def search_doc(doc: SearchDocument):
         result = es.search(doc)
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
-        if err.msg == "Could not get any documents!":
+        if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
             return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_204_NO_CONTENT)
         es.logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -65,7 +65,7 @@ async def search_phrase(doc: SearchPhraseDoc):
         result = es.search_phrase(doc)
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
-        if err.msg == "Could not get any documents!":
+        if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
             return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_204_NO_CONTENT)
         es.logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
