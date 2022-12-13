@@ -228,7 +228,7 @@ class LingtelliElastic(Elasticsearch):
         # Throw another request to GPT-3 service to get answer from there.
         context = ""
         for hit in resp["hits"]["hits"]:
-            if len(context) + len(hit["source"]["context"]) > 3550:
+            if len(context) + len(hit["source"]["context"]) >= 2500:
                 break
             context += hit["source"]["context"]
 
