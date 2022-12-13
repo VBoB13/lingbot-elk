@@ -26,7 +26,7 @@ class GPT3Request(object):
             raise self.logger
         else:
             if self.res.ok:
-                self.results = self.res["data"]["choices"][0]["text"]
+                self.results = self.res["data"]
             else:
                 self.logger.msg = "Response from <OUR> GPT-3 service NOT OK!"
                 self.logger.error(extra_msg="Code received: {}".format(
