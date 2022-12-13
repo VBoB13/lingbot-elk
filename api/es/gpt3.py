@@ -36,7 +36,7 @@ class GPT3Request(object):
                     type(self.results).__name__))
                 # String?
                 if type(self.results).__name__ == 'str':
-                    self.results = self.results.split('":"')[1][:-1]
+                    self.results = self.results.split('":"')[1][:-2]
                 # Dict?
                 elif type(self.results).__name__ == 'dict':
                     self.results = self.results['data']
