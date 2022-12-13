@@ -226,8 +226,12 @@ class LingtelliElastic(Elasticsearch):
         resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
 
         # Throw another request to GPT-3 service to get answer from there.
-        context = "".join([hit["source"]["context"]
-                          for hit in resp["hits"]["hits"]])
+        context = ""
+        for hit in resp["hits"]["hits"]:
+            if len(context) + len(hit["source"]["context"]) > 3550:
+                break
+            context += hit["source"]["context"]
+
         results = str(GPT3Request(self.doc.match.search_term, context))
 
         return results
