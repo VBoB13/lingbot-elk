@@ -8,6 +8,7 @@ services:
       - .env
     volumes:
       - elk-service-data:/var/lib/elasticsearch
+      - elk-service-csv:/data/elasticsearch/load
     ports:
       - 5601:5601
       - 5044:5044
@@ -40,6 +41,8 @@ services:
       context: ./api/
     env_file: 
       - .env
+    volumes:
+      - elk-service-csv:/opt/api/data/csv/finished
     ports:
       - 420:420
     expose:
@@ -49,6 +52,7 @@ services:
 
 volumes:
   elk-service-data:
+  elk-service-csv:
 
 networks:
   es_net:

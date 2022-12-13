@@ -6,6 +6,8 @@ BASE_DIR = os.getcwd()
 # API dir's
 LOG_DIR = os.path.join(BASE_DIR, "log")
 DATA_DIR = os.path.join(BASE_DIR, "data")
+CSV_DIR = os.path.join(DATA_DIR, 'csv')
+CSV_FINISHED_DIR = os.path.join(CSV_DIR, 'finished')
 TIIP_PDF_DIR = os.path.join(DATA_DIR, "tiip", "pdf")
 TIIP_CSV_DIR = os.path.join(DATA_DIR, "tiip", "csv")
 
