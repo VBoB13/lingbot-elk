@@ -233,9 +233,9 @@ class LingtelliElastic(Elasticsearch):
             else:
                 break
 
-        results = str(GPT3Request(self.doc.match.search_term, context))
+        gpt3 = GPT3Request(self.doc.match.search_term, context)
 
-        return results
+        return gpt3.results
 
     def search_phrase(self, doc: SearchPhraseDoc):
         """
