@@ -25,12 +25,22 @@ class GPT3Request(object):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger
         else:
+            # Response OK?
             if self.res.ok:
+                # Decode response
                 self.results = self.res.content.decode('utf-8')
+                # Check response content and type
                 self.logger.msg = "Response from GPT-3 service: {}".format(
                     self.results)
                 self.logger.info(extra_msg="Type: {}".format(
                     type(self.results).__name__))
+                # String?
+                if type(self.results).__name__ == 'str':
+                    self.results = self.results.split('":"')[1][:-1]
+                # Dict?
+                elif type(self.results).__name__ == 'dict':
+                    self.results = self.results['data']
+
             else:
                 self.logger.msg = "Response from <OUR> GPT-3 service NOT OK!"
                 self.logger.error(extra_msg="Code received: {}".format(
