@@ -5,6 +5,8 @@ the GPT-3 service.
 
 import requests
 import json
+import time
+from colorama import Fore
 
 from errors.elastic_err import ElasticError
 from settings.settings import GPT3_SERVER, GPT3_PORT
@@ -18,6 +20,7 @@ class GPT3Request(object):
     def __init__(self, question: str, context: str):
         self.logger = ElasticError(__file__, self.__class__.__name__)
         try:
+            start = time.time()
             self.res = requests.post("http://" + GPT3_SERVER + ":" + str(
                 GPT3_PORT) + "/question", data=json.dumps({"question": question, "context": context}))
         except Exception as err:
@@ -27,6 +30,9 @@ class GPT3Request(object):
         else:
             # Response OK?
             if self.res.ok:
+                # Log out response
+                self.logger.msg = str(self.res.content)
+                self.logger.info()
                 # Decode response
                 self.results = self.res.content.decode('utf-8')
                 # Check response content and type
@@ -46,6 +52,11 @@ class GPT3Request(object):
                 self.logger.error(extra_msg="Code received: {}".format(
                     str(self.res.status_code)))
                 raise self.logger
+            end = time.time()
+            finish = int(end - start)
+            self.logger.msg = "GPT-3 algorithm took {} seconds".format(
+                Fore.LIGHTCYAN_EX + finish + Fore.RESET)
+            self.logger.info()
 
     def __str__(self):
         return self.results

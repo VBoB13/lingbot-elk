@@ -53,7 +53,7 @@ async def search_doc(doc: SearchDocument):
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
         if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
-            return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_204_NO_CONTENT)
+            return ElkServiceResponse(content={"error": "{}".format(err._full_msg)}, status_code=status.HTTP_204_NO_CONTENT)
         es.logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

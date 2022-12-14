@@ -225,9 +225,17 @@ class LingtelliElastic(Elasticsearch):
 
         resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
 
+        return resp["hits"]
+
+    def search_gpt(self, doc: SearchDocument):
+        """
+        This method is the standard 'search' method for most searches.
+        """
+        resp = self.search(doc)
+
         # Throw another request to GPT-3 service to get answer from there.
         context = ""
-        for hit in resp["hits"]["hits"]:
+        for hit in resp["hits"]:
             if len(context) + len(hit["source"]["context"]) <= 1250:
                 context += hit["source"]["context"]
             else:

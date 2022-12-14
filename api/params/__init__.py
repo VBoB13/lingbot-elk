@@ -6,6 +6,7 @@ DESCRIPTIONS = {
     "/save": "Endpoint used for saving documents.",
     # Search
     "/search": "Endpoint used for searching for documents in Elasticsearch.",
+    "/search_gpt": "Endpoint used for searching for documents in Elasticsearch, then providing results as context and retrieving answer from GPT-3 DaVinci AI model.",
     "/search/phrase": "Endpoint used for searching for documents according to a phrase rather than terms.\n" +
     "Rules to be aware about when it comes to searching for a 'phrase' instead of 'terms':\n" +
     "Say we want to search for 'Shape of you' (famous song title), then:\n" +
