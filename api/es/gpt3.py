@@ -30,9 +30,6 @@ class GPT3Request(object):
         else:
             # Response OK?
             if self.res.ok:
-                # Log out response
-                self.logger.msg = str(self.res.content)
-                self.logger.info()
                 # Decode response
                 self.results = self.res.content.decode('utf-8')
                 # Check response content and type
