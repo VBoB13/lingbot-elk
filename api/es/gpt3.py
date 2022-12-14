@@ -50,7 +50,7 @@ class GPT3Request(object):
                     str(self.res.status_code)))
                 raise self.logger
             end = time.time()
-            finish = int(end - start)
+            finish = str(int(end - start))
             self.logger.msg = "GPT-3 algorithm took {} seconds".format(
                 Fore.LIGHTCYAN_EX + finish + Fore.RESET)
             self.logger.info()
