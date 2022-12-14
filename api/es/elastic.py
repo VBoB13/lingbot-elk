@@ -244,7 +244,8 @@ class LingtelliElastic(Elasticsearch):
             else:
                 break
 
-        gpt3 = GPT3Request(self.doc.match.search_term, context)
+        gpt3 = GPT3Request(self.doc.match.search_term,
+                           context, self.doc.vendor_id)
 
         return gpt3.results
 
