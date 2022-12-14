@@ -244,6 +244,13 @@ class LingtelliElastic(Elasticsearch):
             else:
                 break
 
+        self.logger.msg = "Querying GPT-3..."
+        self.logger.info()
+        self.logger.msg = "Question: {}".format(self.doc.match.search_term)
+        self.logger.info()
+        self.logger.msg = "Context: {}".format(context)
+        self.logger.info()
+        self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
         gpt3 = GPT3Request(self.doc.match.search_term,
                            context, self.doc.vendor_id)
 
