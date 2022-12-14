@@ -241,6 +241,8 @@ class LingtelliElastic(Elasticsearch):
         for hit in resp["hits"]:
             if len(context) + len(hit["source"]["context"]) <= 1500:
                 context += hit["source"]["context"]
+                if '"' in context:
+                    context = context.replace('"', '')
             else:
                 break
 
