@@ -232,14 +232,15 @@ class LingtelliElastic(Elasticsearch):
 
     def search_gpt(self, doc: SearchDocument):
         """
-        This method is the standard 'search' method for most searches.
+        This method is the standard 'search' method combined with GPT-3 DaVinci AI model
+        to generate full-fledged answers to almost every question.
         """
         resp = self.search(doc, gpt=True)
 
         # Throw another request to GPT-3 service to get answer from there.
         context = ""
         for hit in resp["hits"]:
-            if len(context) + len(hit["source"]["context"]) <= 1300:
+            if len(context) + len(hit["source"]["context"]) <= 1300 and hit["score"] >= 10:
                 context += hit["source"]["context"]
                 if '"' in context:
                     context = context.replace('"', '')
