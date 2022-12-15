@@ -4,7 +4,7 @@ import time
 from pprint import pprint
 from colorama import Fore
 from datetime import datetime
-from typing import Any
+from typing import Any, List, Dict
 
 import requests
 from elasticsearch import Elasticsearch
@@ -33,22 +33,51 @@ class LingtelliElastic(Elasticsearch):
         self.logger.info("Success!")
         self.docs_found = True
 
-    def _get_context(self, hits: list, gpt: bool) -> dict[str, Any]:
+    def _get_context(self, hits) -> dict[str, Any]:
         # If we're not currently using the GPT-3 part of the application,
         # we raise an error if there are no hits.
-        if not gpt and len(hits) == 0:
-            self.logger.msg = "Could not get any documents!"
-            self.logger.error()
-            self.docs_found = False
-            raise self.logger
+        if isinstance(hits, list):
+            if len(hits) == 0:
+                self.logger.msg = "Could not get any documents!"
+                self.logger.error()
+                self.docs_found = False
+                raise self.logger
 
-        for hit in hits:
-            if isinstance(hit, dict) and hit.get("source", False)\
-                    and hit["source"].get(KNOWN_INDEXES[self.doc.vendor_id]["context"], False):
-                hit["source"] = {
-                    "context": hit["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
-                }
+            for hit in hits:
+                if isinstance(hit, dict) and hit.get("source", False)\
+                        and hit["source"].get(KNOWN_INDEXES[self.doc.vendor_id]["context"], False):
+                    hit["source"] = {
+                        "context": hit["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
+                    }
+
+        if isinstance(hits, dict) and hits.get("source", False) and hits["source"].get(KNOWN_INDEXES[self.doc.vendor_id]["context"], False):
+            hits["source"] = {
+                "context": hit["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
+            }
+
         return hits
+
+    def _get_gpt_context(self, hits: List | Dict) -> str:
+        """
+        Method for extracting context for GPT service.
+        """
+        context = ""
+        if isinstance(hits, list):
+            for hit in hits:
+                if (len(context) + len(hit["source"]["context"]) <= 1300) and (hit.get('score', None)):
+                    if hit['score'] >= 10:
+                        context += hit["source"]["context"]
+                    if '"' in context:
+                        context = context.replace('"', '')
+                else:
+                    break
+
+        if isinstance(hits, dict):
+            if (len(context) + len(hits["source"]["context"]) <= 1300) and (hit.get('score', None)):
+                if hit['score'] >= 10:
+                    context += hit["source"]["context"]
+                if '"' in context:
+                    context = context.replace('"', '')
 
     def _get_query(self) -> dict:
         queryObj = QueryMaker()
@@ -209,7 +238,7 @@ class LingtelliElastic(Elasticsearch):
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
         self.logger.info()
 
-    def search(self, doc: SearchDocument, gpt: bool = False):
+    def search(self, doc: SearchDocument):
         """
         This method is the standard 'search' method for most searches.
         """
@@ -224,7 +253,7 @@ class LingtelliElastic(Elasticsearch):
             resp = super().search(index=self.doc.vendor_id, query=query)
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
-            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"], gpt)
+            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
         except Exception as err:
             self.logger.error(str(err), orgErr=err)
             if self.docs_found:
@@ -245,24 +274,17 @@ class LingtelliElastic(Elasticsearch):
             resp = self.search(doc, gpt=True)
         except ElasticError as err:
             self.logger.error(extra_msg="No hits from ELK!", orgErr=err)
-            raise self.logger
+            raise self.logger from err
         except Exception as err:
             self.logger.msg = "Error occurred!"
             self.logger.error(extra_msg=str(err), orgErr=err)
             if self.docs_found:
                 self.docs_found = False
-            raise self.logger
+            raise self.logger from err
 
         # Throw another request to GPT-3 service to get answer from there.
         context = ""
-        for hit in resp["hits"]:
-            if len(context) + len(hit["source"]["context"]) <= 1300 and hit.get('score', None):
-                if hit['score'] >= 10:
-                    context += hit["source"]["context"]
-                if '"' in context:
-                    context = context.replace('"', '')
-            else:
-                break
+        context += self._get_gpt_context(resp["hits"])
 
         if len(context) == 0:
             self.logger.msg = "No context found!"
