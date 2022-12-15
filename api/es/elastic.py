@@ -230,6 +230,9 @@ class LingtelliElastic(Elasticsearch):
             if self.docs_found:
                 self.docs_found = False
             raise self.logger from err
+        else:
+            self.logger.msg = "Hits:\n" + str(resp["hits"])
+            self.logger.info()
 
         return resp["hits"]
 
