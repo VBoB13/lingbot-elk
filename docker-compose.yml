@@ -55,7 +55,7 @@ services:
 volumes:
   elk-service-data:
   elk-service-csv:
-  gpt3-service-log:
+  gpt-service-log:
 
 networks:
   es_net:
