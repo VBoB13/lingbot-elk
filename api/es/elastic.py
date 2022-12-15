@@ -256,7 +256,7 @@ class LingtelliElastic(Elasticsearch):
         # Throw another request to GPT-3 service to get answer from there.
         context = ""
         for hit in resp["hits"]:
-            if len(context) + len(hit["source"]["context"]) <= 1300 and hit["score"] >= 10:
+            if len(context) + len(hit["source"]["context"]) <= 1300 and hit.get('score', None) and hit['score'] >= 10:
                 context += hit["source"]["context"]
                 if '"' in context:
                     context = context.replace('"', '')
