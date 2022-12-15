@@ -15,7 +15,7 @@ from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES
+from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, TIIP_INDEX
 
 
 class LingtelliElastic(Elasticsearch):
@@ -288,7 +288,7 @@ class LingtelliElastic(Elasticsearch):
         context = ""
         context += self._get_gpt_context(resp["hits"])
 
-        if len(context) == 0:
+        if self.doc.vendor_id == TIIP_INDEX and len(context) == 0:
             self.logger.msg = "No context found!"
             self.logger.error()
             self.docs_found = False
@@ -298,7 +298,8 @@ class LingtelliElastic(Elasticsearch):
         self.logger.info()
         self.logger.msg = "Question: {}".format(self.doc.match.search_term)
         self.logger.info()
-        self.logger.msg = "Context: {}".format(context)
+        self.logger.msg = "Context: {}".format(
+            context if len(context) > 0 else "N/A")
         self.logger.info()
         self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
         gpt3 = GPT3Request(self.doc.match.search_term,
