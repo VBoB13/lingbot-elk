@@ -31,6 +31,7 @@ class LingtelliElastic(Elasticsearch):
             raise self.logger from err
 
         self.logger.info("Success!")
+        self.docs_found = True
 
     def _get_context(self, hits: list, gpt: bool) -> dict[str, Any]:
         # If we're not currently using the GPT-3 part of the application,
@@ -38,6 +39,7 @@ class LingtelliElastic(Elasticsearch):
         if not gpt and len(hits) == 0:
             self.logger.msg = "Could not get any documents!"
             self.logger.error()
+            self.docs_found = False
             raise self.logger
 
         for hit in hits:
@@ -220,13 +222,14 @@ class LingtelliElastic(Elasticsearch):
                 raise self.logger
             query = self._get_query()
             resp = super().search(index=self.doc.vendor_id, query=query)
+            resp["hits"]["hits"] = self._remove_underlines(
+                resp["hits"]["hits"])
+            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"], gpt)
         except Exception as err:
             self.logger.error(str(err), orgErr=err)
+            if self.docs_found:
+                self.docs_found = False
             raise self.logger from err
-
-        resp["hits"]["hits"] = self._remove_underlines(resp["hits"]["hits"])
-
-        resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"], gpt)
 
         return resp["hits"]
 
@@ -235,7 +238,17 @@ class LingtelliElastic(Elasticsearch):
         This method is the standard 'search' method combined with GPT-3 DaVinci AI model
         to generate full-fledged answers to almost every question.
         """
-        resp = self.search(doc, gpt=True)
+        try:
+            resp = self.search(doc, gpt=True)
+        except ElasticError as err:
+            self.logger.error(extra_msg="No hits from ELK!", orgErr=err)
+            raise self.logger
+        except Exception as err:
+            self.logger.msg = "Error occurred!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            if self.docs_found:
+                self.docs_found = False
+            raise self.logger
 
         # Throw another request to GPT-3 service to get answer from there.
         context = ""
@@ -246,6 +259,12 @@ class LingtelliElastic(Elasticsearch):
                     context = context.replace('"', '')
             else:
                 break
+
+        if len(context) == 0:
+            self.logger.msg = "No context found!"
+            self.logger.error()
+            self.docs_found = False
+            raise self.logger
 
         self.logger.msg = "Querying GPT-3..."
         self.logger.info()
