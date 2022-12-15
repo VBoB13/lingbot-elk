@@ -79,6 +79,8 @@ class LingtelliElastic(Elasticsearch):
                 if '"' in context:
                     context = context.replace('"', '')
 
+        return context
+
     def _get_query(self) -> dict:
         queryObj = QueryMaker()
         if isinstance(self.doc, SearchDocTimeRange):
