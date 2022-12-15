@@ -26,6 +26,8 @@ services:
       context: ./gpt3-davinci/
     env_file:
       - .env
+    volumes:
+      - gpt-service-log:/opt/gpt3/api/log
     ports:
       - 4200:4200
     expose:
@@ -53,6 +55,7 @@ services:
 volumes:
   elk-service-data:
   elk-service-csv:
+  gpt3-service-log:
 
 networks:
   es_net:
