@@ -271,7 +271,7 @@ class LingtelliElastic(Elasticsearch):
         to generate full-fledged answers to almost every question.
         """
         try:
-            resp = self.search(doc, gpt=True)
+            resp = self.search(doc)
         except ElasticError as err:
             self.logger.error(extra_msg="No hits from ELK!", orgErr=err)
             raise self.logger from err
