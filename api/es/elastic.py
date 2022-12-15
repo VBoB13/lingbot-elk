@@ -73,9 +73,9 @@ class LingtelliElastic(Elasticsearch):
                     break
 
         if isinstance(hits, dict):
-            if (len(context) + len(hits["source"]["context"]) <= 1300) and (hit.get('score', None)):
-                if hit['score'] >= 10:
-                    context += hit["source"]["context"]
+            if (len(context) + len(hits["source"]["context"]) <= 1300) and (hits.get('score', None)):
+                if hits['score'] >= 10:
+                    context += hits["source"]["context"]
                 if '"' in context:
                     context = context.replace('"', '')
 
