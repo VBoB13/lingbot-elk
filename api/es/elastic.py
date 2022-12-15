@@ -10,7 +10,7 @@ import requests
 from elasticsearch import Elasticsearch
 
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
-    Vendor, Vendors, DocID_Must, SearchPhraseDoc
+    Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
@@ -240,7 +240,7 @@ class LingtelliElastic(Elasticsearch):
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
         self.logger.info()
 
-    def search(self, doc: SearchDocument):
+    def search(self, doc: SearchDocument | SearchGPT):
         """
         This method is the standard 'search' method for most searches.
         """
@@ -267,7 +267,7 @@ class LingtelliElastic(Elasticsearch):
 
         return resp["hits"]
 
-    def search_gpt(self, doc: SearchDocument):
+    def search_gpt(self, doc: SearchGPT):
         """
         This method is the standard 'search' method combined with GPT-3 DaVinci AI model
         to generate full-fledged answers to almost every question.
@@ -288,7 +288,7 @@ class LingtelliElastic(Elasticsearch):
         context = ""
         context += self._get_gpt_context(resp["hits"])
 
-        if self.doc.vendor_id == TIIP_INDEX and len(context) == 0:
+        if self.doc.strict and len(context) == 0:
             self.logger.msg = "No context found!"
             self.logger.error()
             self.docs_found = False

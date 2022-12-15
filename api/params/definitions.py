@@ -75,6 +75,10 @@ class SearchDocument(Vendor):
     match: SearchField
 
 
+class SearchGPT(SearchDocument):
+    strict: bool = False
+
+
 class SearchPhraseDoc(Vendor):
     match_phrase: str
 
