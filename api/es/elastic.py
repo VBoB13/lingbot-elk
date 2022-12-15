@@ -52,7 +52,7 @@ class LingtelliElastic(Elasticsearch):
 
         if isinstance(hits, dict) and hits.get("source", False) and hits["source"].get(KNOWN_INDEXES[self.doc.vendor_id]["context"], False):
             hits["source"] = {
-                "context": hit["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
+                "context": hits["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
             }
 
         return hits
