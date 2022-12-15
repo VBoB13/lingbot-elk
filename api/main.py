@@ -6,7 +6,7 @@ from fastapi import FastAPI, status, BackgroundTasks, UploadFile
 from params import DESCRIPTIONS
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     DocID_Must, BasicResponse, SearchResponse, \
-    SearchPhraseDoc
+    SearchPhraseDoc, SearchGPT
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 from data.importer import TIIPCSVLoader
@@ -59,7 +59,7 @@ async def search_doc(doc: SearchDocument):
 
 
 @app.post("/search-gpt", description=DESCRIPTIONS["/search-gpt"])
-async def search_doc_gpt(doc: SearchDocument):
+async def search_doc_gpt(doc: SearchGPT):
     try:
         es = LingtelliElastic()
         result = es.search_gpt(doc)
