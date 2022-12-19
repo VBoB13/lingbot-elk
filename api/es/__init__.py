@@ -7,7 +7,7 @@ TIIP_INDEX = os.environ["TIIP_INDEX"]
 KNOWN_INDEXES = {
     "tiip-test": {"context": "a"},
     TIIP_INDEX: {"context": "content"},
-    TIIP_INDEX + "QA": {"context": "q"}
+    TIIP_INDEX + "-qa": {"context": "q"}
 }
 
 DEFAULT_ANALYZER = 'ik_max_word'
