@@ -281,7 +281,6 @@ class LingtelliElastic(Elasticsearch):
         try:
             resp = self.search_qa(qa_doc)
         except ElasticError as err:
-            self.logger.error(extra_msg="No hits from ELK!", orgErr=err)
             try:
                 resp = self.search(doc)
             except ElasticError as err:
@@ -397,6 +396,10 @@ class LingtelliElastic(Elasticsearch):
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
             resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
+        except ElasticError as err:
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+
         except Exception as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
