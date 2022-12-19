@@ -288,7 +288,7 @@ class LingtelliElastic(Elasticsearch):
         context = ""
         context += self._get_gpt_context(resp["hits"])
 
-        if self.doc.strict and len(context) == 0:
+        if self.doc.strict or len(context) == 0:
             self.logger.msg = "No context found!"
             self.logger.error()
             self.docs_found = False
