@@ -15,7 +15,7 @@ from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, TIIP_INDEX
+from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, TIIP_INDEX, DEFAULT_ANALYZER
 
 
 class LingtelliElastic(Elasticsearch):
@@ -220,6 +220,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(
                 str(err), err)
             raise self.logger from err
+
         return resp['result']
 
     def save_bulk(self, docs: list):
@@ -272,11 +273,68 @@ class LingtelliElastic(Elasticsearch):
         This method is the standard 'search' method combined with GPT-3 DaVinci AI model
         to generate full-fledged answers to almost every question.
         """
+        # Save 'QA' vendor_id within another variable
+        qa_doc = doc
+        qa_doc.vendor_id += "QA"
+        qa_doc = SearchPhraseDoc(
+            vendor_id=qa_doc.vendor_id, match_phrase=qa_doc.match.search_term)
         try:
-            resp = self.search(doc)
+            resp = self.search_qa(qa_doc)
         except ElasticError as err:
             self.logger.error(extra_msg="No hits from ELK!", orgErr=err)
-            raise self.logger from err
+            try:
+                resp = self.search(doc)
+            except ElasticError as err:
+                self.logger.error(extra_msg="No hits from ELK!", orgErr=err)
+                raise self.logger from err
+            except Exception as err:
+                self.logger.msg = "Error occurred!"
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                if self.docs_found:
+                    self.docs_found = False
+                raise self.logger from err
+            else:
+                # Throw another request to GPT-3 service to get answer from there.
+                context = ""
+                context += self._get_gpt_context(resp["hits"])
+
+                if (self.doc.strict and len(context) == 0) or len(context) == 0:
+                    self.logger.msg = "No context found!"
+                    self.logger.error()
+                    self.docs_found = False
+                    raise self.logger
+
+                self.logger.msg = "Querying GPT-3..."
+                self.logger.info()
+                self.logger.msg = "Question: {}".format(
+                    self.doc.match.search_term)
+                self.logger.info()
+                self.logger.msg = "Context: {}".format(
+                    context if len(context) > 0 else "N/A")
+                self.logger.info()
+                self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
+
+                gpt3 = GPT3Request(self.doc.match.search_term,
+                                   context, self.doc.vendor_id)
+
+                qa_data = {
+                    'vendor_id': qa_doc.vendor_id,
+                    'fields': [{
+                        'name': 'q',
+                        'value': qa_doc.match_phrase,
+                        'type': 'string'
+                    },
+                        {
+                        'name': 'a',
+                        'value': gpt3.results,
+                        'type': 'string'
+                    }]
+                }
+
+                self.save(qa_data)
+
+                return gpt3.results
+
         except Exception as err:
             self.logger.msg = "Error occurred!"
             self.logger.error(extra_msg=str(err), orgErr=err)
@@ -284,33 +342,11 @@ class LingtelliElastic(Elasticsearch):
                 self.docs_found = False
             raise self.logger from err
 
-        # Throw another request to GPT-3 service to get answer from there.
-        context = ""
-        context += self._get_gpt_context(resp["hits"])
-
-        if (self.doc.strict and len(context) == 0) or len(context) == 0:
-            self.logger.msg = "No context found!"
-            self.logger.error()
-            self.docs_found = False
-            raise self.logger
-
-        self.logger.msg = "Querying GPT-3..."
-        self.logger.info()
-        self.logger.msg = "Question: {}".format(self.doc.match.search_term)
-        self.logger.info()
-        self.logger.msg = "Context: {}".format(
-            context if len(context) > 0 else "N/A")
-        self.logger.info()
-        self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
-        gpt3 = GPT3Request(self.doc.match.search_term,
-                           context, self.doc.vendor_id)
-
-        return gpt3.results
+        return resp
 
     def search_phrase(self, doc: SearchPhraseDoc):
         """
-        This method is the go-to search method for most use cases for our
-        Lingtelli services.
+        This method is a more specific/precise version of the /search endpoint in Lingtelli services.
         """
         self.doc = doc
 
@@ -332,6 +368,31 @@ class LingtelliElastic(Elasticsearch):
             raise self.logger from err
 
         return dict(resp["hits"])
+
+    def search_qa(self, doc: SearchPhraseDoc):
+        """
+        This method is the go-to search method for most use cases for our
+        Lingtelli services.
+        """
+        self.doc = doc
+
+        try:
+            if not self._index_exists():
+                self.indices.create(index=self.doc.vendor_id, mappings={"properties": {"q": {
+                                    "type": "text", "analyzer": DEFAULT_ANALYZER}, "a": {"type": "text", "index": "false"}}})
+                self.logger.msg = "Index created: {}".format(doc.vendor_id)
+                self.logger.info()
+                raise self.logger
+            query = self._get_query()
+            resp = super().search(index=self.doc.vendor_id, query=query)
+            resp["hits"]["hits"] = self._remove_underlines(
+                resp["hits"]["hits"])
+            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
+        except Exception as err:
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+
+        return resp["hits"]["hits"][0]["source"]["a"]
 
     def search_timerange(self, doc: SearchDocTimeRange, *args, **kwargs):
         """

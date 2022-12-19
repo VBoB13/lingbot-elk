@@ -6,5 +6,8 @@ TIIP_INDEX = os.environ["TIIP_INDEX"]
 
 KNOWN_INDEXES = {
     "tiip-test": {"context": "a"},
-    TIIP_INDEX: {"context": "content"}
+    TIIP_INDEX: {"context": "content"},
+    TIIP_INDEX + "QA": {"context": "q"}
 }
+
+DEFAULT_ANALYZER = 'ik-smart'
