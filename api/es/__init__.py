@@ -10,4 +10,5 @@ KNOWN_INDEXES = {
     TIIP_INDEX + "QA": {"context": "q"}
 }
 
-DEFAULT_ANALYZER = 'ik-smart'
+DEFAULT_ANALYZER = 'ik_max_word'
+DEFAULT_SEARCH_ANALYZER = 'ik_smart'

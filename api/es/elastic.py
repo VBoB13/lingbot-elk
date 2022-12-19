@@ -15,7 +15,7 @@ from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, TIIP_INDEX, DEFAULT_ANALYZER
+from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, TIIP_INDEX, DEFAULT_ANALYZER, DEFAULT_SEARCH_ANALYZER
 
 
 class LingtelliElastic(Elasticsearch):
@@ -378,8 +378,17 @@ class LingtelliElastic(Elasticsearch):
 
         try:
             if not self._index_exists():
-                self.indices.create(index=self.doc.vendor_id, mappings={"properties": {"q": {
-                                    "type": "text", "analyzer": DEFAULT_ANALYZER}, "a": {"type": "text", "index": "false"}}})
+                self.indices.create(index=self.doc.vendor_id, mappings={
+                                    "properties": {
+                                        "q": {
+                                            "type": "text",
+                                            "analyzer": DEFAULT_ANALYZER,
+                                            "search_analyzer": DEFAULT_SEARCH_ANALYZER
+                                        },
+                                        "a": {
+                                            "type": "text",
+                                            "index": "false"
+                                        }}})
                 self.logger.msg = "Index created: {}".format(doc.vendor_id)
                 self.logger.info()
                 raise self.logger
