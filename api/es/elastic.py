@@ -275,7 +275,7 @@ class LingtelliElastic(Elasticsearch):
         """
         # Save 'QA' vendor_id within another variable
         qa_doc = doc
-        qa_doc.vendor_id += "QA"
+        qa_doc.vendor_id += "-qa"
         qa_doc = SearchPhraseDoc(
             vendor_id=qa_doc.vendor_id, match_phrase=qa_doc.match.search_term)
         try:
