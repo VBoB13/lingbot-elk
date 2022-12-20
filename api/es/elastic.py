@@ -278,10 +278,8 @@ class LingtelliElastic(Elasticsearch):
         """
         # Save 'QA' vendor_id within another variable
         # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
-        qa_doc = doc.copy()
-        qa_doc.vendor_id += "-qa"
         qa_doc = SearchPhraseDoc(
-            vendor_id=qa_doc.vendor_id, match_phrase=qa_doc.match.search_term)
+            vendor_id=doc.vendor_id + "-qa", match_phrase=doc.match.search_term)
 
         try:
             resp = self.search_qa(qa_doc)
@@ -398,6 +396,7 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.info()
                 raise self.logger
             query = self._get_query()
+
             resp = super().search(index=self.doc.vendor_id, query=query)
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
