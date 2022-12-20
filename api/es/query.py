@@ -65,6 +65,7 @@ class QueryMaker(object):
                                           "minimum_should_match": doc.match.min_should_match, "operator": doc.match.operator}})
         self.query.update({"match": subquery})
         self.logger.msg = "Query object: {}".format(str(self.query))
+        self.logger.info()
 
     def create_query_from_timestamps(self, start: str, end: str) -> None:
         """
