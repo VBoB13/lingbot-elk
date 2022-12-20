@@ -275,8 +275,8 @@ class LingtelliElastic(Elasticsearch):
         """
         # Save 'QA' vendor_id within another variable
         # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
-        qa_doc = SearchPhraseDoc(
-            vendor_id=doc.vendor_id + "-qa", match_phrase=doc.match.search_term)
+        qa_doc = doc.copy()
+        qa_doc.vendor_id += "-qa"
 
         try:
             resp = self.search_qa(qa_doc)
@@ -319,7 +319,7 @@ class LingtelliElastic(Elasticsearch):
                     'vendor_id': qa_doc.vendor_id,
                     'fields': [{
                         'name': 'q',
-                        'value': qa_doc.match_phrase,
+                        'value': qa_doc.match.search_term,
                         'type': 'string'
                     },
                         {
@@ -405,7 +405,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
 
-        return resp["hits"]["hits"][0]["source"]["a"]
+        return resp["hits"]["hits"][0]["source"]["context"]
 
     def search_timerange(self, doc: SearchDocTimeRange, *args, **kwargs):
         """
