@@ -392,12 +392,10 @@ class LingtelliElastic(Elasticsearch):
                     self.doc.vendor_id)
                 self.logger.info()
                 raise self.logger
-            query = self._get_query()
-
-            resp = super().search(index=self.doc.vendor_id, query=query)
-            resp["hits"]["hits"] = self._remove_underlines(
-                resp["hits"]["hits"])
-            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
+            resp = self.search(doc)
+            resp["hits"] = self._remove_underlines(
+                resp["hits"])
+            resp["hits"] = self._get_context(resp["hits"])
         except ElasticError as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
@@ -406,7 +404,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
 
-        return resp["hits"]["hits"][0]["source"]["context"]
+        return resp["hits"][0]["source"]["context"]
 
     def search_timerange(self, doc: SearchDocTimeRange, *args, **kwargs):
         """
