@@ -277,7 +277,7 @@ class LingtelliElastic(Elasticsearch):
         # Save 'QA' vendor_id within another variable
         # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
         self.doc = doc
-        qa_doc = doc.copy(exclude={'strict', })
+        qa_doc = doc.copy(exclude={'strict', }, deep=True)
         qa_doc.vendor_id += "-qa"
         qa_doc = SearchDocument(vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
@@ -395,6 +395,8 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.info()
                 raise self.logger
             resp = self.search(doc)
+            self.logger.msg = "QA search:"
+            self.logger.info(extra_msg=str(str(resp)))
         except ElasticError as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
