@@ -39,7 +39,8 @@ class LingtelliElastic(Elasticsearch):
         if isinstance(hits, list):
             if len(hits) == 0:
                 self.logger.msg = "Could not get any documents!"
-                self.logger.error()
+                self.logger.error(
+                    extra_msg="'hits' list: {}".format(str(hits)))
                 self.docs_found = False
                 raise self.logger
 
