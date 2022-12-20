@@ -10,7 +10,7 @@ import requests
 from elasticsearch import Elasticsearch
 
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
-    Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT, SearchPhraseFieldDoc
+    Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from es.query import QueryMaker
@@ -88,7 +88,7 @@ class LingtelliElastic(Elasticsearch):
             queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
         elif isinstance(self.doc, SearchDocument):
             queryObj.create_query(self.doc)
-        elif isinstance(self.doc, (SearchPhraseDoc, SearchPhraseFieldDoc)):
+        elif isinstance(self.doc, (SearchPhraseDoc)):
             queryObj.create_phrase_query(self.doc)
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
@@ -280,8 +280,8 @@ class LingtelliElastic(Elasticsearch):
         qa_doc = doc.copy(exclude={'strict', }, deep=True)
         qa_doc.vendor_id += "-qa"
         qa_doc.match.name = "q"
-        qa_doc = SearchPhraseFieldDoc(
-            vendor_id=qa_doc.vendor_id, match_phrase=qa_doc.match.search_term, field=qa_doc.match.name)
+        qa_doc = SearchDocument(
+            vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
         try:
             resp = self.search_qa(qa_doc)
@@ -396,7 +396,7 @@ class LingtelliElastic(Elasticsearch):
                     self.doc.vendor_id)
                 self.logger.info()
                 raise self.logger
-            resp = self.search_phrase(doc)
+            resp = self.search(doc)
             # self.logger.msg = "QA search:"
             # self.logger.info(extra_msg=str(str(resp)))
         except ElasticError as err:
@@ -406,6 +406,9 @@ class LingtelliElastic(Elasticsearch):
         except Exception as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
+
+        if isinstance(resp["hits"], dict) and resp["hits"]["score"] > 5:
+            return resp["hits"]["source"]["context"]
 
         return resp["hits"][0]["source"]["context"]
 

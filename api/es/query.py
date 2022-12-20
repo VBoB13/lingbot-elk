@@ -1,6 +1,6 @@
 # This file contains code related to [search]query making for Elasticsearch.
 
-from params.definitions import SearchDocument, SearchPhraseDoc, SearchPhraseFieldDoc
+from params.definitions import SearchDocument, SearchPhraseDoc
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp
 
@@ -23,7 +23,7 @@ class QueryMaker(object):
         for key, value in self.query.items():
             yield f"{key}", value
 
-    def create_phrase_query(self, doc: SearchPhraseDoc | SearchPhraseFieldDoc):
+    def create_phrase_query(self, doc: SearchPhraseDoc):
         """
         Method that creates a query object based on Elasticsearch's
         'match_phrase' query structure as below:\n
@@ -43,12 +43,8 @@ class QueryMaker(object):
         3. The terms must appear next to each other.
         """
         subquery = {}
-        if isinstance(doc, SearchPhraseDoc):
-            subquery.update({KNOWN_INDEXES[doc.vendor_id]["context"]: {
-                            "query": doc.match_phrase}})
-        elif isinstance(doc, SearchPhraseFieldDoc):
-            subquery.update({doc.field: {
-                            "query": doc.match_phrase}})
+        subquery.update({KNOWN_INDEXES[doc.vendor_id]["context"]: {
+            "query": doc.match_phrase}})
         self.query.update({"match_phrase": subquery})
 
     def create_query(self, doc: SearchDocument):
