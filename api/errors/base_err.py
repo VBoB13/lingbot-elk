@@ -112,7 +112,6 @@ class BaseError(Exception):
 
         self._get_full_msg('ERROR', extra_msg)
         self.logger.error(self._full_msg)
-        print_tb(self.__traceback__)
 
         if orgErr:
             print_tb(orgErr.__traceback__)
