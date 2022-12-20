@@ -279,6 +279,7 @@ class LingtelliElastic(Elasticsearch):
         self.doc = doc
         qa_doc = doc.copy(exclude={'strict', }, deep=True)
         qa_doc.vendor_id += "-qa"
+        qa_doc.match.name = "q"
         qa_doc = SearchDocument(vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
         try:
