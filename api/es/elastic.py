@@ -394,9 +394,6 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.info()
                 raise self.logger
             resp = self.search(doc)
-            resp["hits"] = self._remove_underlines(
-                resp["hits"])
-            resp["hits"] = self._get_context(resp["hits"])
         except ElasticError as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
