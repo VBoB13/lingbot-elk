@@ -276,8 +276,9 @@ class LingtelliElastic(Elasticsearch):
         # Save 'QA' vendor_id within another variable
         # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
         self.doc = doc
-        qa_doc = SearchDocument(doc.copy(exclude={'strict', }))
+        qa_doc = doc.copy(exclude={'strict', })
         qa_doc.vendor_id += "-qa"
+        qa_doc = SearchDocument(vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
         try:
             resp = self.search_qa(qa_doc)
