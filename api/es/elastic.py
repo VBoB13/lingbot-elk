@@ -394,6 +394,8 @@ class LingtelliElastic(Elasticsearch):
                 raise self.logger
             query = self._get_query()
             resp = super().search(index=self.doc.vendor_id, query=query)
+            self.logger.msg = "Results from search_qa:\n{}".format(str(resp))
+            self.logger.info()
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
             resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
