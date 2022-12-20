@@ -254,9 +254,14 @@ class LingtelliElastic(Elasticsearch):
                 raise self.logger
             query = self._get_query()
             resp = super().search(index=self.doc.vendor_id, query=query)
+            self.logger.msg = "Results from search():\n{}".format(str(resp))
+            self.logger.info()
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
             resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
+        except ElasticError as err:
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
         except Exception as err:
             self.logger.error(str(err), orgErr=err)
             if self.docs_found:
