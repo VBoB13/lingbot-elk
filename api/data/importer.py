@@ -562,8 +562,11 @@ class TIIPCSVLoader(object):
 
 
 if __name__ == "__main__":
-    # CSV IMPORT
+    # TODO: Write code that implements FTP to check for new
+    #       files, then downloads and parses new files to
+    #       its content into ELK.
 
+    # CSV IMPORT
     try:
         csv_obj = TIIPCSVLoader()
         csv_obj.save_bulk()
