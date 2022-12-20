@@ -265,9 +265,6 @@ class LingtelliElastic(Elasticsearch):
             if self.docs_found:
                 self.docs_found = False
             raise self.logger from err
-        else:
-            self.logger.msg = "Hits:\n" + str(resp["hits"])
-            self.logger.info()
 
         return resp["hits"]
 
@@ -306,15 +303,14 @@ class LingtelliElastic(Elasticsearch):
                     self.docs_found = False
                     raise self.logger
 
-                self.logger.msg = "Querying GPT-3..."
-                self.logger.info()
-                self.logger.msg = "Question: {}".format(
-                    self.doc.match.search_term)
-                self.logger.info()
-                self.logger.msg = "Context: {}".format(
-                    context if len(context) > 0 else "N/A")
-                self.logger.info()
-                self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
+                # self.logger.msg = "Querying GPT-3..."
+                # self.logger.info()
+                # self.logger.msg = "Question: {}".format(
+                #     self.doc.match.search_term)
+                # self.logger.info()
+                # self.logger.msg = "Context: {}".format(context)
+                # self.logger.info()
+                # self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
 
                 gpt3 = GPT3Request(self.doc.match.search_term,
                                    context, self.doc.vendor_id)
