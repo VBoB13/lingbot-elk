@@ -324,7 +324,7 @@ class LingtelliElastic(Elasticsearch):
                     'vendor_id': qa_doc.vendor_id,
                     'fields': [{
                         'name': 'q',
-                        'value': qa_doc.match_phrase,
+                        'value': qa_doc.match.search_term,
                         'type': 'string'
                     },
                         {
