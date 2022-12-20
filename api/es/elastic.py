@@ -396,8 +396,8 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.info()
                 raise self.logger
             resp = self.search(doc)
-            self.logger.msg = "QA search:"
-            self.logger.info(extra_msg=str(str(resp)))
+            # self.logger.msg = "QA search:"
+            # self.logger.info(extra_msg=str(str(resp)))
         except ElasticError as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err

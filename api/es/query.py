@@ -11,6 +11,8 @@ class QueryMaker(object):
     def __init__(self):
         self.query = dict({})
         self.logger = ElasticError(__file__, self.__class__.__name__)
+        # self.logger.msg = "Query object: {}".format(str(self.query))
+        # self.logger.info()
 
     def __iter__(self):
         if len(self.query.keys()) == 0:
@@ -64,8 +66,6 @@ class QueryMaker(object):
         subquery.update({doc.match.name: {"query": doc.match.search_term,
                                           "minimum_should_match": doc.match.min_should_match, "operator": doc.match.operator}})
         self.query.update({"match": subquery})
-        self.logger.msg = "Query object: {}".format(str(self.query))
-        self.logger.info()
 
     def create_query_from_timestamps(self, start: str, end: str) -> None:
         """
