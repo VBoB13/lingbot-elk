@@ -276,7 +276,7 @@ class LingtelliElastic(Elasticsearch):
         # Save 'QA' vendor_id within another variable
         # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
         self.doc = doc
-        qa_doc = doc.copy(exclude={'strict', })
+        qa_doc = SearchDocument(doc.copy(exclude={'strict', }))
         qa_doc.vendor_id += "-qa"
 
         try:
@@ -368,7 +368,7 @@ class LingtelliElastic(Elasticsearch):
 
         return dict(resp["hits"])
 
-    def search_qa(self, doc: SearchPhraseDoc):
+    def search_qa(self, doc: SearchDocument):
         """
         This method is the go-to search method for most use cases for our
         Lingtelli services.
