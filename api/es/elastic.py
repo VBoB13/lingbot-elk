@@ -407,10 +407,18 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
 
-        if isinstance(resp["hits"], dict) and resp["hits"]["score"] > 5:
+        if isinstance(resp["hits"], dict):
+            if resp["hits"]["score"] < 5:
+                self.logger.msg = "Hits found with less than confident score (<5)!"
+                self.logger.error()
+                raise self.logger
             return resp["hits"]["source"]["context"]
-
-        return resp["hits"][0]["source"]["context"]
+        else:
+            if resp["hits"][0]["score"] < 5:
+                self.logger.msg = "Hits found with less than confident score (<5)!"
+                self.logger.error()
+                raise self.logger
+            return resp["hits"][0]["source"]["context"]
 
     def search_timerange(self, doc: SearchDocTimeRange, *args, **kwargs):
         """
