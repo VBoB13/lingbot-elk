@@ -279,10 +279,17 @@ class LingtelliElastic(Elasticsearch):
         to generate full-fledged answers to almost every question.
         """
         # Save 'QA' vendor_id within another variable
-        qa_doc = doc
+        qa_doc = doc.copy()
         qa_doc.vendor_id += "-qa"
         qa_doc = SearchPhraseDoc(
             vendor_id=qa_doc.vendor_id, match_phrase=qa_doc.match.search_term)
+
+        self.logger.msg = Fore.LIGHTRED_EX + "doc: " + \
+            Fore.RESET + "{}".format(str(doc))
+        self.logger.info()
+        self.logger.msg = Fore.LIGHTRED_EX + "qa_doc: " + \
+            Fore.RESET + "{}".format(str(qa_doc))
+        self.logger.info()
         try:
             resp = self.search_qa(qa_doc)
         except ElasticError as err:
