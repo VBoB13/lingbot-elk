@@ -88,7 +88,7 @@ class LingtelliElastic(Elasticsearch):
             queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
         elif isinstance(self.doc, SearchDocument):
             queryObj.create_query(self.doc)
-        elif isinstance(self.doc, SearchPhraseDoc, SearchPhraseFieldDoc):
+        elif isinstance(self.doc, (SearchPhraseDoc, SearchPhraseFieldDoc)):
             queryObj.create_phrase_query(self.doc)
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
@@ -324,7 +324,7 @@ class LingtelliElastic(Elasticsearch):
                     'vendor_id': qa_doc.vendor_id,
                     'fields': [{
                         'name': 'q',
-                        'value': qa_doc.match.search_term,
+                        'value': qa_doc.match_phrase,
                         'type': 'string'
                     },
                         {
