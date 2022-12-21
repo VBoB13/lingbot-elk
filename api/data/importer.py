@@ -572,7 +572,7 @@ class TIIPFTPReader(object):
         self.ftp = FTP(TIIP_FTP_SERVER)
         self.ftp.set_debuglevel(1)
         self.ftp.set_pasv(0)
-        self.ftp.connect()
+        self.ftp.connect(TIIP_FTP_SERVER, 21)
         self.ftp.encoding = 'utf-8'
         self.ftp.login(user=TIIP_FTP_ACC,
                        passwd=TIIP_FTP_PASS.replace('\x08', ''))
