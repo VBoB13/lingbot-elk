@@ -6,20 +6,23 @@
 import glob
 import os
 import json
-from ftplib import FTP
 from typing import Iterator, List
+from datetime import datetime, timedelta
 
 from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
+from ftplib import FTP
+from docx import Document
 
 from errors.data_err import DataError
-from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR
+from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR
 from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH, TIIP_FTP_SERVER, TIIP_FTP_ACC, TIIP_FTP_PASS
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
 from es import TIIP_INDEX
 from helpers.interactive import question_check
+from helpers import TODAY, YESTERDAY
 
 
 class PDFImporter(PdfReader):
@@ -570,18 +573,163 @@ class TIIPFTPReader(object):
         self.logger = DataError(__file__, self.__class__.__name__)
         self.client = LingtelliElastic()
         self.ftp = FTP(TIIP_FTP_SERVER)
-        self.ftp.set_debuglevel(1)
-        self.ftp.set_pasv(0)
-        self.ftp.connect(TIIP_FTP_SERVER, 21)
+        self.ftp.set_debuglevel(0)
+        # self.ftp.set_pasv(0)
+        self.bufsize = 4096
         self.ftp.encoding = 'utf-8'
+        self.ftp.connect(TIIP_FTP_SERVER, 21)
         self.ftp.login(user=TIIP_FTP_ACC,
                        passwd=TIIP_FTP_PASS.replace('\x08', ''))
         self._list_dirs()
 
-    def _list_dirs(self):
+    def _list_dirs(self) -> None:
         if self.ftp:
-            self.logger.msg = self.ftp.pwd()
+            self.logger.msg = "Current directory: %s" % self.ftp.pwd()
             self.logger.info()
+            files = self.ftp.nlst()
+            self.logger.msg = "Files & dirs: %s" % files
+            self.logger.info()
+        else:
+            self.logger.msg = "No FTP client initialized!"
+            self.logger.warn()
+
+    def check_new_content(self, dir: str = "docs"):
+        """
+        As the name of the method suggests; it checks for files that are
+        added since yesterday.
+        :params:
+        `dir: Optional[str]` Remote directory to check for content. Defaults
+        to 'docs'.
+        """
+        self.cwd(dir)
+        # Check what dirs and files exist in current directory
+        doc_files = self.ftp.nlst()
+        if len(doc_files) > 0:
+            self.logger.msg = f"Found {len(doc_files)} documents."
+            self.logger.info()
+            # Iterate through results
+            for file in doc_files:
+                # No '.'? That's a folder; remove.
+                if '.' not in file:
+                    doc_files.remove(file)
+                    continue
+                # Extract FTP server timestamp for file
+                results = self.ftp.voidcmd(
+                    "MDTM %s" % "/docs/" + file)[4:].strip()
+                # Convert to datetime
+                result_date = (datetime.strptime(
+                    results, "%Y%m%d%H%M%S") + timedelta(hours=8))
+                # Log and download file
+                if result_date > YESTERDAY and file.endswith('.docx'):
+                    self.logger.msg = f"/docs/{file} timestamp: " + \
+                        result_date.strftime("%Y-%m-%d %H:%M:%S")
+                    self.logger.info()
+                    self.download_file(
+                        TIIP_DOC_DIR + f"/{file}", f"/{dir}/{file}")
+                    self.save_to_elk(TIIP_DOC_DIR + f"/{file}")
+        else:
+            self.logger.msg = "No files in directory '/docs'!"
+            self.logger.warn()
+
+    def cwd(self, dir: str) -> None:
+        """
+        Changes directory within the FTP realm.
+        """
+        try:
+            self.ftp.cwd(dir)
+        except Exception as err:
+            try:
+                if question_check("Create directory '%s'?" % dir):
+                    self.ftp.mkd(dir)
+                    self.ftp.cwd(dir)
+                    self.logger.msg = "Created & entered directory %s" % dir + \
+                        Fore.LIGHTGREEN_EX + " successfully" + Fore.RESET + "."
+                    self.logger.info()
+            except Exception as err:
+                self.logger.msg = "Could not create directory '%s'" % dir
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger from err
+
+        self.logger.msg = "Changed directory to: '%s'" % self.ftp.pwd()
+        self.logger.info()
+
+    def download_file(self, local_file: str, remote_file: str) -> None:
+        """
+        Attempts to download a file from FTP server.
+        :params:
+        `local_file: str` What the name of the file will be on the local system.
+        `remote_file: str` The file to download from FTP server.
+        """
+        if not os.path.isfile(local_file):
+            try:
+                with open(local_file, 'wb') as file_handler:
+                    self.ftp.retrbinary("RETR %s" %
+                                        remote_file, file_handler.write)
+            except Exception as err:
+                self.logger.msg = "Unable to download %s from FTP server!" % remote_file
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger from err
+            else:
+                self.logger.msg = "Downloaded %s" % remote_file + \
+                    Fore.LIGHTGREEN_EX + " successfully" + Fore.RESET + "."
+                self.logger.info()
+        else:
+            self.logger.msg = "%s already exists!" % local_file
+            self.logger.warn()
+
+    def extract_text(self, file: str) -> List[str]:
+        """
+        Method that extract the text from a .docx file.
+        """
+        chunks = []
+        doc = Document(file)
+        for par in doc.paragraphs:
+            chunks.append(par.text)
+
+        all_text = []
+        last_pos = 0
+        for index, chunk in enumerate(chunks):
+            if index < (len(chunks) - 1):
+                if chunk != '':
+                    continue
+                all_text.append("".join(chunks[last_pos:index]))
+                last_pos = index
+            elif index == (len(chunks) - 1) and chunk != '':
+                all_text.append("".join(chunks[last_pos + 1:]))
+
+        return all_text
+
+    def upload_file(self, local_file: str, remote_file: str) -> None:
+        """
+        Attempts to upload a file to FTP server.
+        :params:
+        `local_file: str` What the name of the file is on the local system.
+        `remote_file: str` What the filename will be when uploaded to FTP server.
+        """
+        if os.path.isfile(local_file) is False:
+            raise Exception('Not exists such a path')
+        with open(local_file, "rb") as file_handler:
+            self.ftp.storbinary('STOR %s' % remote_file,
+                                file_handler, self.bufsize)
+
+    def save_to_elk(self, file: str):
+        """
+        Method that extracts content from the downloaded '.docx'
+        files and saves it into ELK.
+        """
+        # 1. Extract text
+        txt_list = self.extract_text(file)
+        self.logger.msg = "Text in file %s:" % file
+        self.logger.info()
+        for text in txt_list:
+            self.logger.msg = "Text length: " + str(len(text))
+            self.logger.info(extra_msg=text)
+        # 2. Put text into TIIP documents
+        tiip = TIIPDocumentList(txt_list)
+
+        # # 3. doc.save_bulk()
+        docs = tiip.to_json(TIIP_INDEX)
+        self.client.save_bulk(docs)
 
 
 if __name__ == "__main__":
@@ -590,6 +738,7 @@ if __name__ == "__main__":
     #       its content into ELK.
 
     ftp = TIIPFTPReader()
+    ftp.check_new_content()
 
     # CSV IMPORT
     # try:

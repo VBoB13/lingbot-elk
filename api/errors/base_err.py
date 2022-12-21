@@ -99,7 +99,6 @@ class BaseError(Exception):
         Log a message (.msg attribute) to console preceded with a | WARN | tag.
         """
         self._get_full_msg('WARN', extra_msg)
-        print(self._full_msg)
         self.logger.warn(self._full_msg)
 
     def error(self, extra_msg: str = None, orgErr: Exception = None, save: bool = False) -> None:

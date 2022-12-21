@@ -1,3 +1,8 @@
+from datetime import datetime, timedelta
+
+TODAY = datetime.today()
+YESTERDAY = TODAY - timedelta(days=1)
+
 INTERACTIVE_ANSWERS = ['Y', 'y', 'YES',
                        'Yes', 'yes', 'N', 'n', 'NO', 'No', 'no']
 

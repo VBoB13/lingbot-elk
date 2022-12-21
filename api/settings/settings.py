@@ -10,6 +10,7 @@ CSV_DIR = os.path.join(DATA_DIR, 'csv')
 CSV_FINISHED_DIR = os.path.join(CSV_DIR, 'finished')
 TIIP_PDF_DIR = os.path.join(DATA_DIR, "tiip", "pdf")
 TIIP_CSV_DIR = os.path.join(DATA_DIR, "tiip", "csv")
+TIIP_DOC_DIR = os.path.join(DATA_DIR, "tiip", "docs")
 
 # OpenAI stuff
 GPT3_SERVER = os.environ.get("GPT3_SERVER", "192.168.112.3")
