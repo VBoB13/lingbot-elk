@@ -570,11 +570,14 @@ class TIIPFTPReader(object):
         self.logger = DataError(__file__, self.__class__.__name__)
         self.ftp = FTP(TIIP_FTP_SERVER, user=TIIP_FTP_ACC,
                        passwd=TIIP_FTP_PASS)
+        self.ftp.login()
         self.client = LingtelliElastic()
         self._list_dirs()
 
     def _list_dirs(self):
         if self.ftp:
+            self.logger.msg = "Current dir.: {}".format(self.ftp.cwd())
+            self.logger.info()
             self.logger.msg = self.ftp.retrlines('NLIST')
             self.logger.info()
 
