@@ -24,3 +24,7 @@ DOC_SEP_LIST_3 = [re.compile(r"\([一二三四五六七八九十]{1,2}\)", re.MU
 DOC_SEP_LIST_4 = [re.compile(r"[0-9]+\. ", re.MULTILINE)]
 
 DOC_LENGTH = int(7)
+
+TIIP_FTP_SERVER = os.environ.get('FTP_SERVER')
+TIIP_FTP_ACC = os.environ.get('TIIP_FTP_ACC')
+TIIP_FTP_PASS = os.environ.get('TIIP_FTP_PASS')

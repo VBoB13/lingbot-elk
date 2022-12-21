@@ -6,7 +6,7 @@
 import glob
 import os
 import json
-import csv
+from ftplib import FTP
 from typing import Iterator, List
 
 from colorama import Fore, Back, Style
@@ -14,7 +14,7 @@ from PyPDF2 import PdfReader
 
 from errors.data_err import DataError
 from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR
-from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH
+from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH, TIIP_FTP_SERVER, TIIP_FTP_ACC, TIIP_FTP_PASS
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
@@ -559,6 +559,22 @@ class TIIPCSVLoader(object):
         self.logger.msg = "Saved {} document(s) ".format(
             len(self.output)) + Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
         self.logger.info()
+
+
+class TIIPFTPReader(object):
+    """
+    Class meant to parse, read and save .doc(x) file content into ELK.
+    """
+
+    def __init__(self):
+        self.logger = DataError(__file__, self.__class__.__name__)
+        self.ftp = FTP(TIIP_FTP_SERVER, user=TIIP_FTP_ACC,
+                       passwd=TIIP_FTP_PASS)
+        self.client = LingtelliElastic()
+
+    def _list_dirs(self):
+        if self.ftp:
+            self.logger.msg = (self.ftp.retrlines('NLIST'))
 
 
 if __name__ == "__main__":
