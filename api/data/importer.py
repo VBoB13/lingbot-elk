@@ -580,7 +580,7 @@ class TIIPFTPReader(object):
 
     def _list_dirs(self):
         if self.ftp:
-            self.logger.msg = self.ftp.retrlines('NLIST')
+            self.logger.msg = self.ftp.retrlines('LIST')
             self.logger.info()
 
 
