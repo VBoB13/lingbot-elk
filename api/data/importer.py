@@ -568,9 +568,8 @@ class TIIPFTPReader(object):
 
     def __init__(self):
         self.logger = DataError(__file__, self.__class__.__name__)
-        self.ftp = FTP(TIIP_FTP_SERVER, user=TIIP_FTP_ACC,
-                       passwd=TIIP_FTP_PASS)
-        self.ftp.login()
+        self.ftp = FTP(TIIP_FTP_SERVER)
+        self.ftp.login(user=TIIP_FTP_ACC, passwd=TIIP_FTP_PASS)
         self.client = LingtelliElastic()
         self._list_dirs()
 
