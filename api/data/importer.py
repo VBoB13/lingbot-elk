@@ -571,10 +571,12 @@ class TIIPFTPReader(object):
         self.ftp = FTP(TIIP_FTP_SERVER, user=TIIP_FTP_ACC,
                        passwd=TIIP_FTP_PASS)
         self.client = LingtelliElastic()
+        self._list_dirs()
 
     def _list_dirs(self):
         if self.ftp:
-            self.logger.msg = (self.ftp.retrlines('NLIST'))
+            self.logger.msg = self.ftp.retrlines('NLIST')
+            self.logger.info()
 
 
 if __name__ == "__main__":
@@ -582,20 +584,22 @@ if __name__ == "__main__":
     #       files, then downloads and parses new files to
     #       its content into ELK.
 
+    ftp = TIIPFTPReader()
+
     # CSV IMPORT
-    try:
-        csv_obj = TIIPCSVLoader()
-        csv_obj.save_bulk()
-    except Exception as err:
-        errObj = DataError(__file__, "importer:main",
-                           "Unable to extract content from .csv file(s)!")
-        errObj.error(extra_msg=str(err), orgErr=err)
-        raise errObj from err
-    else:
-        errObj = DataError(__file__, "importer:main")
-        errObj.msg = "Imported content from .csv files " + \
-            Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
-        errObj.info()
+    # try:
+    #     csv_obj = TIIPCSVLoader()
+    #     csv_obj.save_bulk()
+    # except Exception as err:
+    #     errObj = DataError(__file__, "importer:main",
+    #                        "Unable to extract content from .csv file(s)!")
+    #     errObj.error(extra_msg=str(err), orgErr=err)
+    #     raise errObj from err
+    # else:
+    #     errObj = DataError(__file__, "importer:main")
+    #     errObj.msg = "Imported content from .csv files " + \
+    #         Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
+    #     errObj.info()
     # PDF IMPORT
     # try:
     #     # file_dir = TIIP_PDF_DIR + "/TIIP_QA_110-9-24.pdf"
