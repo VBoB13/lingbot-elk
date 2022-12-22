@@ -11,6 +11,9 @@ This is a containerized version of the ELK service intended as a searching tool 
 - While in the `./.env` file, make sure the `API_SERVER` and `API_PORT` matches your intended host IP and port.
 - Now launch the API with `sudo docker-compose build api && sudo docker-compose up -d api`.
 - View the endpoints as well as each payload schema through this URL: `$API_SERVER:$API_PORT/docs`.
+- With these 2 services also come a GPT-3 service that we call 'gpt3-davinci' and exists as a separate project by `cd`-ing into the `lingbot-elk`
+  project and then using `git clone`.
+- Once done, you can launch it the same way; `sudo docker compose build gpt3 && sudo docker-compose up -d gpt3`.
 
 ## Additional Details & Config
 
@@ -25,7 +28,9 @@ PUT <YOUR_INDEX_HERE>
   "mappings": {
     "properties": {
       "content": {
-        "type": "text"
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart"
       }
     }
   },

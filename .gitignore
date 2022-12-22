@@ -3,5 +3,8 @@
 
 **/*.DS_Store
 *.DS_Store
+.DS_Store
+
+gpt3-davinci/*
 
 **/data/*.json
