@@ -751,9 +751,13 @@ if __name__ == "__main__":
     #       files, then downloads and parses new files to
     #       its content into ELK.
 
-    ftp = CSVLoader("7caed8a9-9c02-3b4e-a8eb-94ed959b9b6e",
-                    "/opt/api/data/tiip/csv/工業局文件分段 - 111產創平台計畫宣導說明會簡報.csv")
-    ftp.save_bulk()
+    ftp = TIIPFTPReader()
+    ftp.check_new_content()
+
+    ### Load CSV and save into ELK ###
+    # csv = CSVLoader("7caed8a9-9c02-3b4e-a8eb-94ed959b9b6e",
+    #                 "/opt/api/data/tiip/csv/工業局文件分段 - 111產創平台計畫宣導說明會簡報.csv")
+    # csv.save_bulk()
 
     # CSV IMPORT
     # try:
