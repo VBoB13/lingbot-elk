@@ -615,13 +615,13 @@ class TIIPFTPReader(object):
                     continue
                 # Extract FTP server timestamp for file
                 results = self.ftp.voidcmd(
-                    "MDTM %s" % "/docs/" + file)[4:].strip()
+                    "MDTM %s" % "/" + dir + "/" + file)[4:].strip()
                 # Convert to datetime
                 result_date = (datetime.strptime(
                     results, "%Y%m%d%H%M%S") + timedelta(hours=8))
                 # Log and download file
                 if result_date > YESTERDAY and file.endswith('.docx'):
-                    self.logger.msg = f"/docs/{file} timestamp: " + \
+                    self.logger.msg = "/" + dir + "/" + file + " timestamp: " + \
                         result_date.strftime("%Y-%m-%d %H:%M:%S")
                     self.logger.info()
                     self.download_file(
@@ -727,7 +727,7 @@ class TIIPFTPReader(object):
         # 2. Put text into TIIP documents
         tiip = TIIPDocumentList(txt_list)
 
-        # # 3. doc.save_bulk()
+        # 3. docs.save_bulk()
         docs = tiip.to_json(TIIP_INDEX)
         self.client.save_bulk(docs)
 
