@@ -477,7 +477,7 @@ class TIIPDocImporterMulti(list):
             doc.save_json(index)
 
 
-class TIIPCSVLoader(object):
+class CSVLoader(object):
     """
     Class meant to parse CSV files and save its contents into
     Elasticsearch for later use in Lingbot services.\n
@@ -485,9 +485,10 @@ class TIIPCSVLoader(object):
     `file:<str>` : Filepath to .csv file to be loaded.
     """
 
-    def __init__(self, file: str = None) -> None:
+    def __init__(self, index: str, file: str = None) -> None:
         """Takes a filename/path as string to load its content into TIIPDocument objects."""
         self.logger = DataError(__file__, self.__class__.__name__)
+        self.index = index
         self.client = LingtelliElastic()
         self.contents = TIIPDocumentList()
         try:
@@ -497,6 +498,9 @@ class TIIPCSVLoader(object):
             self.logger.warn(extra_msg=str(err))
             if question_check("Want to load files from {}?".format(TIIP_CSV_DIR)):
                 try:
+                    self.index = TIIP_INDEX
+                    self.logger.msg = f"Switched index to: {TIIP_INDEX}"
+                    self.logger.info()
                     filepaths = glob.glob(os.path.join(TIIP_CSV_DIR, "*.csv"))
                     if len(filepaths) == 0:
                         self.logger.msg = "Could not find any .csv files in {}".format(
@@ -522,11 +526,12 @@ class TIIPCSVLoader(object):
             self.logger.error(extra_msg="No content loaded.")
             raise self.logger
 
-        print(Fore.LIGHTCYAN_EX + "CSV content type:" +
-              Fore.RESET, type(self.contents).__name__)
-        print(Fore.RED + "CSV contents:\n" + Fore.RESET + str(self.contents))
+        self.logger.msg = Fore.LIGHTCYAN_EX + "CSV content type:" + \
+            Fore.RESET, type(self.contents).__name__
+        self.logger.info(extra_msg=Fore.RED + "CSV contents:\n" +
+                         Fore.RESET + str(self.contents))
 
-        self.output = self.contents.to_json(TIIP_INDEX)
+        self.output = self.contents.to_json(self.index)
 
     def _load_csv(self, file: str) -> TIIPDocumentList[TIIPDocument]:
         """
@@ -562,6 +567,15 @@ class TIIPCSVLoader(object):
         self.logger.msg = "Saved {} document(s) ".format(
             len(self.output)) + Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
         self.logger.info()
+
+
+class TIIPCSVLoader(CSVLoader):
+    """
+    Extended class of CSVLoader.
+    """
+
+    def __init__(self, file: str = None):
+        super().__init__(TIIP_INDEX, file)
 
 
 class TIIPFTPReader(object):
@@ -737,8 +751,9 @@ if __name__ == "__main__":
     #       files, then downloads and parses new files to
     #       its content into ELK.
 
-    ftp = TIIPFTPReader()
-    ftp.check_new_content()
+    ftp = CSVLoader("7caed8a9-9c02-3b4e-a8eb-94ed959b9b6e",
+                    "/Users/riversoft/workspace/lingbot-elk/api/data/tiip/csv/工業局文件分段 - 111產創平台計畫宣導說明會簡報.csv")
+    ftp.save_bulk()
 
     # CSV IMPORT
     # try:
