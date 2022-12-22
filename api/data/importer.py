@@ -527,7 +527,7 @@ class CSVLoader(object):
             raise self.logger
 
         self.logger.msg = Fore.LIGHTCYAN_EX + "CSV content type:" + \
-            Fore.RESET, type(self.contents).__name__
+            Fore.RESET + type(self.contents).__name__
         self.logger.info(extra_msg=Fore.RED + "CSV contents:\n" +
                          Fore.RESET + str(self.contents))
 
