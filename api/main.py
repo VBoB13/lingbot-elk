@@ -46,7 +46,7 @@ async def get_doc(doc: DocID_Must):
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@app.post("/search", description=DESCRIPTIONS["/search"])
+@app.post("/search", response_model=BasicResponse, description=DESCRIPTIONS["/search"])
 async def search_doc(doc: SearchDocument):
     try:
         es = LingtelliElastic()
@@ -59,7 +59,7 @@ async def search_doc(doc: SearchDocument):
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@app.post("/search-gpt", description=DESCRIPTIONS["/search-gpt"])
+@app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])
 async def search_doc_gpt(doc: SearchGPT):
     logger.cls += ":search_doc_gpt"
     logger.msg = "Content of doc:"
