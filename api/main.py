@@ -14,6 +14,7 @@ from errors.base_err import BaseError
 
 
 app = FastAPI()
+logger = BaseError(__file__, "main")
 
 
 @app.get("/")
@@ -60,6 +61,9 @@ async def search_doc(doc: SearchDocument):
 
 @app.post("/search-gpt", description=DESCRIPTIONS["/search-gpt"])
 async def search_doc_gpt(doc: SearchGPT):
+    logger.cls += ":search_doc_gpt"
+    logger.msg = "Content of doc:"
+    logger.info(extra_msg=str(doc))
     try:
         es = LingtelliElastic()
         result = es.search_gpt(doc)
