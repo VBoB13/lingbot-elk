@@ -73,7 +73,7 @@ class LingtelliElastic(Elasticsearch):
                 else:
                     break
 
-        if isinstance(hits, dict):
+        elif isinstance(hits, dict):
             if (len(context) + len(hits["source"]["context"]) <= 1300) and (hits.get('score', None)):
                 if hits['score'] >= 10:
                     context += hits["source"]["context"]
@@ -289,7 +289,9 @@ class LingtelliElastic(Elasticsearch):
             try:
                 resp = self.search(doc)
             except ElasticError as err:
-                self.logger.error(extra_msg="No hits from ELK!", orgErr=err)
+                self.logger.error(extra_msg="No hits from ELK!")
+                if self.docs_found:
+                    self.docs_found = False
                 raise self.logger from err
             except Exception as err:
                 self.logger.msg = "Error occurred!"
@@ -400,11 +402,11 @@ class LingtelliElastic(Elasticsearch):
             # self.logger.msg = "QA search:"
             # self.logger.info(extra_msg=str(str(resp)))
         except ElasticError as err:
-            self.logger.error(extra_msg=str(err), orgErr=err)
+            self.logger.error(extra_msg=str(err))
             raise self.logger from err
 
         except Exception as err:
-            self.logger.error(extra_msg=str(err), orgErr=err)
+            self.logger.error(extra_msg=str(err))
             raise self.logger from err
 
         if isinstance(resp["hits"], dict):
