@@ -130,7 +130,7 @@ async def upload_docx(index, file: UploadFile, bg_tasks: BackgroundTasks):
             client = LingtelliElastic()
             client.save_bulk(elk_doc_list)
         except Exception as err:
-            logger.msg = "main.py:upload_docx", "Unable to save {}'s content into ELK!".format(
+            logger.msg = "Unable to save {}'s content into ELK!".format(
                 file.filename)
             logger.error(orgErr=err)
             logger.save_log(index, str(logger))
