@@ -22,6 +22,7 @@ from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorLi
 from es.elastic import LingtelliElastic
 from es import TIIP_INDEX
 from helpers.interactive import question_check
+from helpers.times import date_to_str
 from helpers import TODAY, YESTERDAY
 
 

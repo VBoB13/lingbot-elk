@@ -3,8 +3,7 @@
 # Documentation on datetime patterns in Python: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
 
 import os
-import time
-from datetime import datetime, timedelta, timezone, tzinfo
+from datetime import datetime, timedelta, timezone
 
 from errors.helper_err import HelperError
 
