@@ -15,6 +15,7 @@ from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
 from ftplib import FTP
 from docx import Document
+from docx.package import Package
 
 from errors.data_err import DataError
 from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR
@@ -751,7 +752,7 @@ class WordDocumentReader(object):
         all_text = []
         last_pos = 0
 
-        if isinstance(doc, Document):
+        if isinstance(doc, Package):
             for par in doc.paragraphs:
                 chunks.append(par.text)
 
