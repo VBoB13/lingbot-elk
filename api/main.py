@@ -61,7 +61,7 @@ async def search_doc(doc: SearchDocument):
 
 @app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])
 async def search_doc_gpt(doc: SearchGPT):
-    logger.cls += ":search_doc_gpt"
+    logger.cls = "main:search_doc_gpt"
     logger.msg = "Content of doc:"
     logger.info(extra_msg=str(doc))
     try:
