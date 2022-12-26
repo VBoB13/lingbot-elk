@@ -6,6 +6,7 @@
 import glob
 import os
 import json
+from tempfile import TemporaryFile
 from typing import Iterator, List
 from datetime import datetime, timedelta
 from fastapi import UploadFile
@@ -739,7 +740,7 @@ class WordDocumentReader(object):
         Method that extract the text from a .docx file.
         """
         chunks = []
-        doc = Document(file)
+        doc = Document(TemporaryFile(file.read()))
         for par in doc.paragraphs:
             chunks.append(par.text)
 
