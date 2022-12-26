@@ -13,9 +13,11 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
     Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
+from helpers import TODAY
+from settings.settings import LOG_DIR
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, TIIP_INDEX, DEFAULT_ANALYZER, DEFAULT_SEARCH_ANALYZER
+from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, DEFAULT_ANALYZER, DEFAULT_SEARCH_ANALYZER
 
 
 class LingtelliElastic(Elasticsearch):
@@ -237,7 +239,9 @@ class LingtelliElastic(Elasticsearch):
         into Elasticsearch.
         """
         update_index = None
+        total_length = 0
         for i, doc in enumerate(docs):
+            total_length += len(doc["field"]["value"])
             if i == 0:
                 update_index = doc["vendor_id"]
             self.save(doc)
@@ -245,6 +249,9 @@ class LingtelliElastic(Elasticsearch):
         time.sleep(1)
         if update_index is not None:
             self.update_index({"vendor_id": update_index})
+            with open(f"{LOG_DIR}/{date_to_str(TODAY)}_{update_index}.log", "a+") as logfile:
+                logfile.write(
+                    f"{date_to_str(TODAY)} [{update_index}] : {len(self.docs)} documents with {total_length} characters in total.")
         self.logger.msg = "Saved {} documents ".format(
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
         self.logger.info()
