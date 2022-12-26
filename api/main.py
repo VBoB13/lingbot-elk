@@ -121,7 +121,7 @@ async def upload_docx(index, file: UploadFile, bg_tasks: BackgroundTasks):
     if file.filename.endswith(".docx"):
         try:
             # Receive and parse the .docx file
-            content_list = WordDocumentReader().extract_text(file.file)
+            content_list = WordDocumentReader().extract_text(file)
             # Convert into document list
             doc_list = TIIPDocumentList(content_list)
             # Convert into ELK format
