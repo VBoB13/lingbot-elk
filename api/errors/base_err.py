@@ -117,7 +117,10 @@ class BaseError(Exception):
         """
         if orgErr:
             self.tb_list = format_tb(orgErr.__traceback__)
-            extra_msg += "\n" + "".join(msg for msg in self.tb_list)
+            if extra_msg:
+                extra_msg += "\n" + "".join(msg for msg in self.tb_list)
+            else:
+                extra_msg = "\n" + "".join(msg for msg in self.tb_list)
 
         self._get_full_msg('ERROR', extra_msg)
         self.logger.error(self._full_msg)
