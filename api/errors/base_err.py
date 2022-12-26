@@ -53,15 +53,25 @@ class BaseError(Exception):
         else:
             self._full_msg = full_msg + f"\nDetails:\n{extra_msg}"
 
-    def _save_log(self):
+    def _save_log(self, index: str = None, data: str = None):
         """
         Log a message (.msg attribute) to a log file and save onto system.
-        This method is meant to be called from within the 'info', 'warn' or 'error' methods.
+        This method is meant to be called from within any of the class methods.
         """
-        file_name = LOG_DIR + f"/{datetime.now().strftime('%Y-%m-%d')}.log"
+        if index is not None:
+            file_name = LOG_DIR + \
+                f"/{index}/{datetime.now().strftime('%Y-%m-%d')}.log"
+        else:
+            file_name = LOG_DIR + f"/{datetime.now().strftime('%Y-%m-%d')}.log"
         try:
-            with open(file_name, 'a+') as log_file:
-                log_file.write(self._full_msg)
+            if data is not None:
+                self.msg = "Found data: {}".format(data)
+                self.info()
+                with open(file_name, 'a+') as log_file:
+                    log_file.write(data)
+            else:
+                with open(file_name, 'a+') as log_file:
+                    log_file.write(self._full_msg)
         except Exception as err:
             self.msg = "Could not save log into .log file!"
             self.error(extra_msg=str(err), orgErr=err, save=True)
@@ -116,3 +126,12 @@ class BaseError(Exception):
             print_tb(orgErr.__traceback__)
         if save:
             self._save_log()
+
+    def save_log(self, index: str, data: str):
+        """
+        Save data into a .log file for later reference.
+        `index: str` Which index to store data under.
+        This will save the log file within './log/<index>/<date>.log'
+        `data: str` What data (text) to save into log file.
+        """
+        self._save_log(index, data)
