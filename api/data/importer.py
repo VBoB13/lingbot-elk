@@ -531,6 +531,12 @@ class CSVLoader(object):
         self.logger.info(extra_msg=Fore.RED + "CSV contents:\n" +
                          Fore.RESET + str(self.contents))
 
+        if not self.client.index_exists(self.index):
+            self.logger.msg = "Index does not exist!"
+            self.logger.error(
+                extra_msg="Cannot save data into ELK without proper index.")
+            raise self.logger
+
         self.output = self.contents.to_json(self.index)
 
     def _load_csv(self, file: str) -> TIIPDocumentList[TIIPDocument]:
@@ -747,17 +753,13 @@ class TIIPFTPReader(object):
 
 
 if __name__ == "__main__":
-    # TODO: Write code that implements FTP to check for new
-    #       files, then downloads and parses new files to
-    #       its content into ELK.
+    ftp = TIIPFTPReader()
+    ftp.check_new_content()
 
-    # ftp = TIIPFTPReader()
-    # ftp.check_new_content()
-
-    ## Load CSV and save into ELK ###
-    csv = CSVLoader("7caed8a9-9c02-3b4e-a8eb-94ed959b9b6e",
-                    "/opt/api/data/tiip/csv/EBR.csv")
-    csv.save_bulk()
+    # ## Load CSV and save into ELK ###
+    # csv = CSVLoader("7caed8a9-9c02-3b4e-a8eb-94ed959b9b6e",
+    #                 "/opt/api/data/tiip/csv/EBR.csv")
+    # csv.save_bulk()
 
     # CSV IMPORT
     # try:

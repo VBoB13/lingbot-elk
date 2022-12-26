@@ -206,6 +206,13 @@ class LingtelliElastic(Elasticsearch):
 
         return dict(resp)
 
+    def index_exists(self, index: str) -> bool:
+        """
+        Method that takes an index as argument parameter to check
+        whether that index exists already within the ELK or not.
+        """
+        return self.indices.exists(index=index).body
+
     def save(self, doc: ElasticDoc, refresh: bool = False):
         """
         This method attempts to safely save document into Elasticsearch.

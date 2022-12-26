@@ -9,7 +9,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     SearchPhraseDoc, SearchGPT
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
-from data.importer import TIIPCSVLoader
+from data.importer import CSVLoader
 from errors.base_err import BaseError
 
 
@@ -100,11 +100,11 @@ async def search_doc_timerange(doc: SearchDocTimeRange):
 
 
 @app.post("/upload/csv", description=DESCRIPTIONS["/upload/csv"])
-async def upload_csv(file: UploadFile, bg_tasks: BackgroundTasks):
+async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
     try:
         # Recieve and parse the csv file
         if file:
-            csv_obj = TIIPCSVLoader(file.file)
+            csv_obj = CSVLoader(index, file.file)
             bg_tasks.add_task(csv_obj.save_bulk)
     except Exception as err:
         logger = BaseError(__file__, "main.py:upload_csv",
