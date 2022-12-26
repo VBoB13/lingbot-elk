@@ -735,29 +735,34 @@ class TIIPFTPReader(object):
 
 class WordDocumentReader(object):
     @staticmethod
-    def extract_text(file: UploadFile) -> List[str]:
+    def extract_text(file: UploadFile | str) -> List[str]:
         """
         Method that extract the text from a .docx file.
         """
         chunks = []
+
+        doc = None
+
         with TemporaryFile() as temp:
-            temp.write(file.read())
+            temp.write(file.file.read())
             temp.seek(0)
-            temp.read()
-            doc = Document(temp.name)
-            for par in doc.paragraphs:
-                chunks.append(par.text)
+            doc = Document(temp)
 
         all_text = []
         last_pos = 0
-        for index, chunk in enumerate(chunks):
-            if index < (len(chunks) - 1):
-                if chunk != '':
-                    continue
-                all_text.append("".join(chunks[last_pos:index]))
-                last_pos = index
-            elif index == (len(chunks) - 1) and chunk != '':
-                all_text.append("".join(chunks[last_pos + 1:]))
+
+        if isinstance(doc, Document):
+            for par in doc.paragraphs:
+                chunks.append(par.text)
+
+            for index, chunk in enumerate(chunks):
+                if index < (len(chunks) - 1):
+                    if chunk != '':
+                        continue
+                    all_text.append("".join(chunks[last_pos:index]))
+                    last_pos = index
+                elif index == (len(chunks) - 1) and chunk != '':
+                    all_text.append("".join(chunks[last_pos + 1:]))
 
         return all_text
 
