@@ -740,9 +740,13 @@ class WordDocumentReader(object):
         Method that extract the text from a .docx file.
         """
         chunks = []
-        doc = Document(TemporaryFile(file.read()))
-        for par in doc.paragraphs:
-            chunks.append(par.text)
+        with TemporaryFile() as temp:
+            temp.write(file.read())
+            temp.seek(0)
+            temp.read()
+            doc = Document(temp.name)
+            for par in doc.paragraphs:
+                chunks.append(par.text)
 
         all_text = []
         last_pos = 0
