@@ -735,6 +735,8 @@ class TIIPFTPReader(object):
 
 
 class WordDocumentReader(object):
+    logger = DataError(__file__, "WordDocumentReader")
+
     @staticmethod
     def extract_text(file: UploadFile | str) -> List[str]:
         """
@@ -754,6 +756,8 @@ class WordDocumentReader(object):
 
         if isinstance(doc, Package):
             for par in doc.paragraphs:
+                WordDocumentReader.logger.msg = "Reading paragraph:"
+                WordDocumentReader.logger.info(extra_msg=par.text)
                 chunks.append(par.text)
 
             for index, chunk in enumerate(chunks):
