@@ -8,6 +8,7 @@ import os
 import json
 from typing import Iterator, List
 from datetime import datetime, timedelta
+from fastapi import UploadFile
 
 from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
@@ -733,7 +734,7 @@ class TIIPFTPReader(object):
 
 class WordDocumentReader(object):
     @staticmethod
-    def extract_text(file: str) -> List[str]:
+    def extract_text(file: UploadFile) -> List[str]:
         """
         Method that extract the text from a .docx file.
         """
