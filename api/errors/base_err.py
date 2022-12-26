@@ -67,6 +67,8 @@ class BaseError(Exception):
             if data is not None:
                 self.msg = "Found data: {}".format(data)
                 self.info()
+                if not os.path.isdir(LOG_DIR + "/" + index):
+                    os.mkdir(LOG_DIR + "/" + index)
                 with open(file_name, 'a+') as log_file:
                     log_file.write(data)
             else:
