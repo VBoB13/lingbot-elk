@@ -74,7 +74,7 @@ class BaseError(Exception):
                     log_file.write(self._full_msg)
         except Exception as err:
             self.msg = "Could not save log into .log file!"
-            self.error(extra_msg=str(err), orgErr=err, save=True)
+            self.error(extra_msg=str(err), orgErr=err)
             raise self
         else:
             self.msg = "Saved file {}".format(
