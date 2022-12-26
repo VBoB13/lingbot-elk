@@ -80,7 +80,7 @@ class BaseError(Exception):
             raise self
         else:
             self.msg = "Saved file {}".format(
-                os.path.split(file_name)[1]) + Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
+                os.path.split(file_name)[1]) + Fore.LIGHTGREEN_EX + " successfully" + Fore.RESET + "!"
             self.info(extra_msg="Saved in path: {}".format(file_name))
 
     @property

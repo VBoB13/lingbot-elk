@@ -116,7 +116,7 @@ async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
 
 
 @app.post("/upload/docx", description=DESCRIPTIONS["/upload/docx"])
-async def upload_docx(index, file: UploadFile, bg_tasks: BackgroundTasks):
+async def upload_docx(index, file: UploadFile):
     logger = BaseError(__file__, "main.py:upload_docx")
     if file.filename.endswith(".docx"):
         try:
