@@ -9,7 +9,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     SearchPhraseDoc, SearchGPT
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
-from data.importer import CSVLoader
+from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
 from errors.base_err import BaseError
 
 
@@ -110,12 +110,38 @@ async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
         logger = BaseError(__file__, "main.py:upload_csv",
                            "Could not save CSV content into Elasticsearch!")
         logger.error(orgErr=err)
-        logger.log()
-        # Print out error message to console
-        # Log a complete message about the error in a logfile
-        # TODO: create volume in Docker for generated log files
-        pass
-    return
+        logger.save_log(index, str(logger))
+        raise logger from err
+    return ElkServiceResponse(content={"msg": "Documents successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_202_ACCEPTED)
+
+
+@app.post("/upload/docx", description=DESCRIPTIONS["/upload/docx"])
+async def upload_docx(index, file: UploadFile, bg_tasks: BackgroundTasks):
+    logger = BaseError(__file__, "main.py:upload_docx")
+    if file.filename.endswith(".docx"):
+        try:
+            # Receive and parse the .docx file
+            content_list = WordDocumentReader(file.file)
+            # Convert into document list
+            doc_list = TIIPDocumentList(content_list)
+            # Convert into ELK format
+            elk_doc_list = doc_list.to_json(index)
+            # Create client instance and save documents
+            client = LingtelliElastic()
+            client.save_bulk(elk_doc_list)
+        except Exception as err:
+            logger.msg = "main.py:upload_docx", "Unable to save {}'s content into ELK!".format(
+                file.filename)
+            logger.error(orgErr=err)
+            logger.save_log(index, str(logger))
+            raise logger from err
+        else:
+            logger.msg = "Content from {} saved into ELK!".format(
+                file.filename)
+            logger.info(
+                extra_msg="{} documents were saved!".format(len(doc_list)))
+
+        return ElkServiceResponse(content={"msg": "Document successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_202_ACCEPTED)
 
 
 if __name__ == "__main__":

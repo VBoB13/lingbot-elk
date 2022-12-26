@@ -698,7 +698,42 @@ class TIIPFTPReader(object):
             self.logger.msg = "%s already exists!" % local_file
             self.logger.warn()
 
-    def extract_text(self, file: str) -> List[str]:
+    def upload_file(self, local_file: str, remote_file: str) -> None:
+        """
+        Attempts to upload a file to FTP server.
+        :params:
+        `local_file: str` What the name of the file is on the local system.
+        `remote_file: str` What the filename will be when uploaded to FTP server.
+        """
+        if os.path.isfile(local_file) is False:
+            raise Exception('Not exists such a path')
+        with open(local_file, "rb") as file_handler:
+            self.ftp.storbinary('STOR %s' % remote_file,
+                                file_handler, self.bufsize)
+
+    def save_to_elk(self, file: str):
+        """
+        Method that extracts content from the downloaded '.docx'
+        files and saves it into ELK.
+        """
+        # 1. Extract text
+        txt_list = WordDocumentReader.extract_text(file)
+        self.logger.msg = "Text in file %s:" % file
+        self.logger.info()
+        for text in txt_list:
+            self.logger.msg = "Text length: " + str(len(text))
+            self.logger.info(extra_msg=text)
+        # 2. Put text into TIIP documents
+        tiip = TIIPDocumentList(txt_list)
+
+        # 3. docs.save_bulk()
+        docs = tiip.to_json(TIIP_INDEX)
+        self.client.save_bulk(docs)
+
+
+class WordDocumentReader(object):
+    @staticmethod
+    def extract_text(file: str) -> List[str]:
         """
         Method that extract the text from a .docx file.
         """
@@ -719,38 +754,6 @@ class TIIPFTPReader(object):
                 all_text.append("".join(chunks[last_pos + 1:]))
 
         return all_text
-
-    def upload_file(self, local_file: str, remote_file: str) -> None:
-        """
-        Attempts to upload a file to FTP server.
-        :params:
-        `local_file: str` What the name of the file is on the local system.
-        `remote_file: str` What the filename will be when uploaded to FTP server.
-        """
-        if os.path.isfile(local_file) is False:
-            raise Exception('Not exists such a path')
-        with open(local_file, "rb") as file_handler:
-            self.ftp.storbinary('STOR %s' % remote_file,
-                                file_handler, self.bufsize)
-
-    def save_to_elk(self, file: str):
-        """
-        Method that extracts content from the downloaded '.docx'
-        files and saves it into ELK.
-        """
-        # 1. Extract text
-        txt_list = self.extract_text(file)
-        self.logger.msg = "Text in file %s:" % file
-        self.logger.info()
-        for text in txt_list:
-            self.logger.msg = "Text length: " + str(len(text))
-            self.logger.info(extra_msg=text)
-        # 2. Put text into TIIP documents
-        tiip = TIIPDocumentList(txt_list)
-
-        # 3. docs.save_bulk()
-        docs = tiip.to_json(TIIP_INDEX)
-        self.client.save_bulk(docs)
 
 
 if __name__ == "__main__":
