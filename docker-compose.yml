@@ -45,6 +45,7 @@ services:
       - .env
     volumes:
       - elk-service-csv:/opt/api/data/csv/finished
+      - elk-api-log:/opt/api/log
     ports:
       - 420:420
     expose:
@@ -55,6 +56,7 @@ services:
 volumes:
   elk-service-data:
   elk-service-csv:
+  elk-api-log:
   gpt-service-log:
 
 networks:
