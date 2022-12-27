@@ -116,12 +116,12 @@ async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
 
 
 @app.post("/upload/docx", description=DESCRIPTIONS["/upload/docx"])
-async def upload_docx(index: Vendor, file: UploadFile):
+async def upload_docx(index: str, file: UploadFile):
     logger = BaseError(__file__, "main.py:upload_docx")
     if file.filename.endswith(".docx"):
         try:
             # Receive and parse the .docx file
-            content_list = WordDocumentReader().extract_text(index.vendor_id, file)
+            content_list = WordDocumentReader().extract_text(index, file)
             # Convert into document list
             doc_list = TIIPDocumentList(content_list)
             # Convert into ELK format
