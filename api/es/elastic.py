@@ -233,7 +233,7 @@ class LingtelliElastic(Elasticsearch):
 
         return resp['result']
 
-    def save_bulk(self, docs: list[ElasticDoc]):
+    def save_bulk(self, docs: list[ElasticDoc | dict]):
         """
         This method attempts to safely save a list of documents
         into Elasticsearch.
