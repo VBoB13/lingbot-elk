@@ -18,7 +18,7 @@ from docx import Document
 from docx.package import Package
 
 from errors.data_err import DataError
-from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR
+from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR, TEMP_DIR
 from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH, TIIP_FTP_SERVER, TIIP_FTP_ACC, TIIP_FTP_PASS
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
@@ -738,7 +738,7 @@ class WordDocumentReader(object):
     logger = DataError(__file__, "WordDocumentReader")
 
     @staticmethod
-    def extract_text(file: UploadFile | str) -> List[str]:
+    def extract_text(index: str, file: UploadFile | str) -> List[str]:
         """
         Method that extract the text from a .docx file.
         """
@@ -746,7 +746,14 @@ class WordDocumentReader(object):
 
         doc = None
 
-        with TemporaryFile() as temp:
+        # TODO: Solve the File -> temp. file -> parsing execution
+        # HINT: Probably a good idea to actually temporarily save
+        #       the file locally, parse it and then delete / move it.
+
+        if not os.path.isdir(TEMP_DIR + f"/{index}"):
+            os.mkdir(TEMP_DIR + f"/{index}")
+
+        with open(TEMP_DIR + f"/{index}/{file.filename}", "w+b") as temp:
             temp.write(file.file.read())
             temp.seek(0)
             doc = Document(temp)
@@ -754,20 +761,19 @@ class WordDocumentReader(object):
         all_text = []
         last_pos = 0
 
-        if isinstance(doc, Package):
-            for par in doc.paragraphs:
-                WordDocumentReader.logger.msg = "Reading paragraph:"
-                WordDocumentReader.logger.info(extra_msg=par.text)
-                chunks.append(par.text)
+        for par in doc.paragraphs:
+            WordDocumentReader.logger.msg = "Reading paragraph:"
+            WordDocumentReader.logger.info(extra_msg=par.text)
+            chunks.append(par.text)
 
-            for index, chunk in enumerate(chunks):
-                if index < (len(chunks) - 1):
-                    if chunk != '':
-                        continue
-                    all_text.append("".join(chunks[last_pos:index]))
-                    last_pos = index
-                elif index == (len(chunks) - 1) and chunk != '':
-                    all_text.append("".join(chunks[last_pos + 1:]))
+        for index, chunk in enumerate(chunks):
+            if index < (len(chunks) - 1):
+                if chunk != '':
+                    continue
+                all_text.append("".join(chunks[last_pos:index]))
+                last_pos = index
+            elif index == (len(chunks) - 1) and chunk != '':
+                all_text.append("".join(chunks[last_pos + 1:]))
 
         return all_text
 
