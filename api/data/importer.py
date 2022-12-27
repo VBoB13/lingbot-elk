@@ -489,7 +489,7 @@ class CSVLoader(object):
     `file:<str>` : Filepath to .csv file to be loaded.
     """
 
-    def __init__(self, index: str, file: str = None) -> None:
+    def __init__(self, index: str, file: str | UploadFile = None) -> None:
         """Takes a filename/path as string to load its content into TIIPDocument objects."""
         self.logger = DataError(__file__, self.__class__.__name__)
         self.index = index
@@ -543,12 +543,17 @@ class CSVLoader(object):
 
         self.output = self.contents.to_json(self.index)
 
-    def _load_csv(self, file: str) -> TIIPDocumentList[TIIPDocument]:
+    def _load_csv(self, file: str | UploadFile) -> TIIPDocumentList[TIIPDocument]:
         """
         Method that loads the content of a .csv file into the attribute
         `self.contents`
         """
         content = []
+        temp_name = TEMP_DIR + f"/{self.index}/" + f"{file.filename}"
+        if isinstance(file, UploadFile):
+            with open(temp_name, "w+b") as tempfile:
+                tempfile.write(file.file.read())
+            file = temp_name
         try:
             with open(file) as fileObj:
                 for row in fileObj.readlines():

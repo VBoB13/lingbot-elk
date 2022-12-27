@@ -24,17 +24,21 @@ async def root():
 
 @app.post("/save", response_model=BasicResponse, description=DESCRIPTIONS["/save"])
 async def save_doc(doc: ElasticDoc):
+    global logger
+    logger.cls = "main.py:save_doc"
     try:
         es = LingtelliElastic()
         result = es.save(doc)
         return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
     except Exception as err:
-        es.logger.error(extra_msg=str(err), orgErr=err)
+        logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/get", description=DESCRIPTIONS["/get"])
 async def get_doc(doc: DocID_Must):
+    global logger
+    logger.cls = "main.py:get_doc"
     try:
         es = LingtelliElastic()
         result = es.get(doc)
@@ -42,12 +46,14 @@ async def get_doc(doc: DocID_Must):
     except Exception as err:
         if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
             return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_204_NO_CONTENT)
-        es.logger.error(extra_msg=str(err), orgErr=err)
+        logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/search", response_model=BasicResponse, description=DESCRIPTIONS["/search"])
 async def search_doc(doc: SearchDocument):
+    global logger
+    logger.cls = "main.py:search_doc"
     try:
         es = LingtelliElastic()
         result = es.search(doc)
@@ -55,12 +61,14 @@ async def search_doc(doc: SearchDocument):
     except Exception as err:
         if hasattr(err, 'msg') and not es.docs_found:
             return ElkServiceResponse(content={"error": "{}".format(err.msg)}, status_code=status.HTTP_204_NO_CONTENT)
-        es.logger.error(extra_msg=str(err), orgErr=err)
+        logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])
 async def search_doc_gpt(doc: SearchGPT):
+    global logger
+    logger.cls = "main.py:search_doc_gpt"
     try:
         es = LingtelliElastic()
         result = es.search_gpt(doc)
@@ -68,12 +76,14 @@ async def search_doc_gpt(doc: SearchGPT):
     except Exception as err:
         if hasattr(err, 'msg') and not es.docs_found:
             return ElkServiceResponse(content={"msg": f"{err.msg}", "data": {"error": str(err)}}, status_code=status.HTTP_204_NO_CONTENT)
-        es.logger.error(extra_msg=str(err), orgErr=err)
+        logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/search/phrase", description=DESCRIPTIONS["/search/phrase"])
 async def search_phrase(doc: SearchPhraseDoc):
+    global logger
+    logger.cls = "main.py:search_phrase"
     try:
         es = LingtelliElastic()
         result = es.search_phrase(doc)
@@ -81,31 +91,39 @@ async def search_phrase(doc: SearchPhraseDoc):
     except Exception as err:
         if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
             return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_204_NO_CONTENT)
-        es.logger.error(extra_msg=str(err), orgErr=err)
+        logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/search/timespan", response_model=SearchResponse, description=DESCRIPTIONS["/search/timespan"])
 async def search_doc_timerange(doc: SearchDocTimeRange):
+    global logger
+    logger.cls = "main.py:search_doc_timerange"
     try:
         es = LingtelliElastic()
         result = es.search_timerange(doc)
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
-        es.logger.error(extra_msg=str(err), orgErr=err)
+        logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/upload/csv", description=DESCRIPTIONS["/upload/csv"])
 async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
+    global logger
+    logger.cls = "main.py:upload_csv"
     try:
         # Recieve and parse the csv file
-        if file:
-            csv_obj = CSVLoader(index, file.file)
+        if file and file.filename.endswith(".csv"):
+            csv_obj = CSVLoader(index, file)
             bg_tasks.add_task(csv_obj.save_bulk)
+        else:
+            logger.msg = "File must be of type '.csv'; not '.{}'!".format(
+                file.filename.split(".")[1])
+            logger.error()
+            raise logger
     except Exception as err:
-        logger = BaseError(__file__, "main.py:upload_csv",
-                           "Could not save CSV content into Elasticsearch!")
+        logger.msg = "Could not save CSV content into Elasticsearch!"
         logger.error(orgErr=err)
         logger.save_log(index, str(logger))
         raise logger from err
@@ -114,7 +132,8 @@ async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
 
 @app.post("/upload/docx", description=DESCRIPTIONS["/upload/docx"])
 async def upload_docx(index: str, file: UploadFile):
-    logger = BaseError(__file__, "main.py:upload_docx")
+    global logger
+    logger.cls = "main.py:upload_docx"
     if file.filename.endswith(".docx"):
         try:
             # Receive and parse the .docx file
