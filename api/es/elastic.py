@@ -5,6 +5,7 @@ from pprint import pprint
 from colorama import Fore
 from datetime import datetime
 from typing import Any, List, Dict
+from itertools import dropwhile
 
 import requests
 from elasticsearch import Elasticsearch
@@ -64,12 +65,18 @@ class LingtelliElastic(Elasticsearch):
         """
         Method for extracting context for GPT service.
         """
+        def filter_context(doc):
+            if doc["score"] >= MIN_DOC_SCORE:
+                return doc
         context = ""
         if isinstance(hits, list):
+            # Turning the irrelevant (low score) documents into 'None'.
+            hits = map(filter_context, hits)
+            # Then we remove those 'None' values, leaving only relevant documents.
+            hits = [hit for hit in hits if hit]
             for hit in hits:
-                if (len(context) + len(hit["source"]["context"]) <= 1300) and (hit.get('score', None)):
-                    if hit['score'] >= MIN_DOC_SCORE:
-                        context += hit["source"]["context"]
+                if (len(context) + len(hit["source"]["context"])) <= 1300:
+                    context += hit["source"]["context"]
                     if '"' in context:
                         context = context.replace('"', '')
                 else:
