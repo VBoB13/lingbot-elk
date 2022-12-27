@@ -249,7 +249,7 @@ class LingtelliElastic(Elasticsearch):
         time.sleep(1)
         if update_index is not None:
             self.update_index({"vendor_id": update_index})
-            log_data = f"{date_to_str(TODAY)} [{update_index}] : {len(self.docs)} documents with {total_length} characters in total."
+            log_data = f"{date_to_str(TODAY)} [{update_index}] : {len(docs)} documents with {total_length} characters in total."
             self.logger.save_log(update_index, log_data)
         self.logger.msg = "Saved {} documents ".format(
             len(docs)) + Fore.GREEN + "successfully!" + Fore.RESET
