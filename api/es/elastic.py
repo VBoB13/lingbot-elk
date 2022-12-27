@@ -241,7 +241,7 @@ class LingtelliElastic(Elasticsearch):
         update_index = None
         total_length = 0
         for i, doc in enumerate(docs):
-            total_length += len(doc.fields[0].value)
+            total_length += len(doc["fields"][0]["value"])
             if i == 0:
                 update_index = doc["vendor_id"]
             self.save(doc)
