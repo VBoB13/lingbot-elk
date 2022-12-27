@@ -17,7 +17,7 @@ from helpers import TODAY
 from settings.settings import LOG_DIR
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, DEFAULT_ANALYZER, DEFAULT_SEARCH_ANALYZER
+from . import ELASTIC_IP, ELASTIC_PORT, KNOWN_INDEXES, DEFAULT_ANALYZER, DEFAULT_SEARCH_ANALYZER, MIN_DOC_SCORE
 
 
 class LingtelliElastic(Elasticsearch):
@@ -68,7 +68,7 @@ class LingtelliElastic(Elasticsearch):
         if isinstance(hits, list):
             for hit in hits:
                 if (len(context) + len(hit["source"]["context"]) <= 1300) and (hit.get('score', None)):
-                    if hit['score'] >= 10:
+                    if hit['score'] >= MIN_DOC_SCORE:
                         context += hit["source"]["context"]
                     if '"' in context:
                         context = context.replace('"', '')
@@ -77,7 +77,7 @@ class LingtelliElastic(Elasticsearch):
 
         elif isinstance(hits, dict):
             if (len(context) + len(hits["source"]["context"]) <= 1300) and (hits.get('score', None)):
-                if hits['score'] >= 10:
+                if hits['score'] >= MIN_DOC_SCORE:
                     context += hits["source"]["context"]
                 if '"' in context:
                     context = context.replace('"', '')
