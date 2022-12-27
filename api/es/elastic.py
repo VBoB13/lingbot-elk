@@ -233,7 +233,7 @@ class LingtelliElastic(Elasticsearch):
 
         return resp['result']
 
-    def save_bulk(self, docs: list):
+    def save_bulk(self, docs: list[ElasticDoc]):
         """
         This method attempts to safely save a list of documents
         into Elasticsearch.
@@ -241,7 +241,7 @@ class LingtelliElastic(Elasticsearch):
         update_index = None
         total_length = 0
         for i, doc in enumerate(docs):
-            total_length += len(doc["field"]["value"])
+            total_length += len(doc.fields[0].value)
             if i == 0:
                 update_index = doc["vendor_id"]
             self.save(doc)

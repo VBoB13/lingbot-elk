@@ -762,8 +762,6 @@ class WordDocumentReader(object):
         last_pos = 0
 
         for par in doc.paragraphs:
-            WordDocumentReader.logger.msg = "Reading paragraph:"
-            WordDocumentReader.logger.info(extra_msg=par.text)
             chunks.append(par.text)
 
         for index, chunk in enumerate(chunks):
