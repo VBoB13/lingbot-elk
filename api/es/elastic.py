@@ -6,7 +6,6 @@ from pprint import pprint
 from colorama import Fore
 from datetime import datetime
 from typing import Any, List, Dict
-from multipledispatch import dispatch
 
 import requests
 from elasticsearch import Elasticsearch
@@ -42,41 +41,42 @@ class LingtelliElastic(Elasticsearch):
         Method for creating an index when it doesn't exist.
         """
         settings = {}
-        if language == "CH":
-            settings.update({
-                "mappings": {
-                    "properties": {
-                        "content": {
-                            "type": "text",
-                            "analyzer": "ik_max_word",
-                            "search_analyzer": "ik_smart"
-                        }
-                    }
-                },
-                "settings": {
-                    "index": {
-                        "number_of_shards": 3,
-                        "number_of_replicas": 1
-                    }
-                }
-            })
-        else:
-            settings.update({
-                "mappings": {
-                    "properties": {
-                        "content": {
-                            "type": "text"
-                        }
-                    }
-                },
-                "settings": {
-                    "index": {
-                        "number_of_shards": 3,
-                        "number_of_replicas": 1
-                    }
-                }
-            })
         if not self._index_exists(index):
+            if language == "CH":
+                settings.update({
+                    "mappings": {
+                        "properties": {
+                            "content": {
+                                "type": "text",
+                                "analyzer": "ik_max_word",
+                                "search_analyzer": "ik_smart"
+                            }
+                        }
+                    },
+                    "settings": {
+                        "index": {
+                            "number_of_shards": 3,
+                            "number_of_replicas": 1
+                        }
+                    }
+                })
+            else:
+                settings.update({
+                    "mappings": {
+                        "properties": {
+                            "content": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "settings": {
+                        "index": {
+                            "number_of_shards": 3,
+                            "number_of_replicas": 1
+                        }
+                    }
+                })
+
             try:
                 response = requests.post(
                     ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=settings)
