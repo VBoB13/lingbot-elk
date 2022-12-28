@@ -1,9 +1,10 @@
-*pycache*
-*/api_venv/*
+**pycache*
+**api_venv
 
-**/.DS_Store
-.DS_Store
+**.DS_Store
 
-gpt3-davinci/*
+**gpt3-davinci
+api/data/tiip/docs
+
 
 **/data/*.json
