@@ -1,11 +1,12 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
 import time
+import re
 from pprint import pprint
 from colorama import Fore
 from datetime import datetime
 from typing import Any, List, Dict
-from itertools import dropwhile
+from multipledispatch import dispatch
 
 import requests
 from elasticsearch import Elasticsearch
@@ -35,6 +36,69 @@ class LingtelliElastic(Elasticsearch):
 
         self.logger.info("Success!")
         self.docs_found = True
+
+    def _create_index(self, index: str, language: str = "CH"):
+        """
+        Method for creating an index when it doesn't exist.
+        """
+        settings = {}
+        if language == "CH":
+            settings.update({
+                "mappings": {
+                    "properties": {
+                        "content": {
+                            "type": "text",
+                            "analyzer": "ik_max_word",
+                            "search_analyzer": "ik_smart"
+                        }
+                    }
+                },
+                "settings": {
+                    "index": {
+                        "number_of_shards": 3,
+                        "number_of_replicas": 1
+                    }
+                }
+            })
+        else:
+            settings.update({
+                "mappings": {
+                    "properties": {
+                        "content": {
+                            "type": "text"
+                        }
+                    }
+                },
+                "settings": {
+                    "index": {
+                        "number_of_shards": 3,
+                        "number_of_replicas": 1
+                    }
+                }
+            })
+        if not self._index_exists(index):
+            try:
+                response = requests.post(
+                    ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=settings)
+
+            except Exception as err:
+                self.logger.msg = "Could not create a new index (%s)!" % index
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger from err
+            else:
+                if response.ok:
+                    self.logger.msg = "Successfully created index: " + Fore.LIGHTCYAN_EX + \
+                        index + Fore.RESET + "!"
+                    if language == "CH":
+                        self.logger.info(
+                            extra_msg="Language: Traditional Chinese.")
+                    else:
+                        self.logger.info(
+                            extra_msg="Language: English.")
+                return
+
+        self.logger.msg = "Index %s already exists!" % index
+        self.logger.info()
 
     def _get_context(self, hits) -> dict[str, Any]:
         # If we're not currently using the GPT-3 part of the application,
@@ -102,9 +166,14 @@ class LingtelliElastic(Elasticsearch):
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
 
+    @dispatch()
     def _index_exists(self) -> bool:
         # Check what indexes exist
         return self.indices.exists(index=self.doc.vendor_id).body
+
+    @dispatch(str)
+    def _index_exists(self, index: str):
+        return self.indices.exists(index=index).body
 
     def _level_docs(self, doc: ElasticDoc) -> ElasticDoc:
         """
@@ -250,7 +319,11 @@ class LingtelliElastic(Elasticsearch):
         for i, doc in enumerate(docs):
             total_length += len(doc["fields"][0]["value"])
             if i == 0:
+                lang = "CH"
+                if (len(re.findall(r'[\u4e00-\u9fff]', doc["fields"][0]["value"])) / len(doc["fields"][0]["value"])) < 0.5:
+                    lang = "EN"
                 update_index = doc["vendor_id"]
+                self._create_index(update_index, language=lang)
             self.save(doc)
             time.sleep(0.1)
         time.sleep(1)
@@ -358,6 +431,15 @@ class LingtelliElastic(Elasticsearch):
 
                 self.save(qa_data)
 
+                stats = {
+                    "timestamp": date_to_str(datetime.now().astimezone()),
+                    "vendor_id": self.doc.vendor_id,
+                    "QA": False,
+                    "GPT": True
+                }
+
+                self.logger.save_stats(stats)
+
                 return gpt3.results
 
         except Exception as err:
@@ -366,6 +448,15 @@ class LingtelliElastic(Elasticsearch):
             if self.docs_found:
                 self.docs_found = False
             raise self.logger from err
+
+        stats = {
+            "timestamp": date_to_str(datetime.now().astimezone()),
+            "vendor_id": qa_doc.vendor_id,
+            "QA": True,
+            "GPT": False
+        }
+
+        self.logger.save_stats(stats)
 
         return resp
 
