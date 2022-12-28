@@ -497,6 +497,10 @@ class CSVLoader(object):
         self.contents = TIIPDocumentList()
         try:
             self.contents = self._load_csv(file)
+        except DataError as err:
+            self.logger.msg = "Unable to load .csv file!"
+            self.logger.error()
+            raise self.logger from err
         except Exception as err:
             self.logger.msg = "Unable to load .csv file!"
             self.logger.warn(extra_msg=str(err))
@@ -549,16 +553,19 @@ class CSVLoader(object):
         `self.contents`
         """
         content = []
-        temp_name = TEMP_DIR + f"/{self.index}/" + f"{file.filename}"
         if isinstance(file, UploadFile):
-            with open(temp_name, "w+b") as tempfile:
-                tempfile.write(file.file.read())
-            file = temp_name
+            temp_name = TEMP_DIR + f"/{self.index}/" + f"{file.filename}"
+        else:
+            temp_name = TEMP_DIR + f"/{self.index}/" + f"{file}"
+
+        with open(temp_name, "w+b") as tempfile:
+            tempfile.write(file.file.read())
+        file = temp_name
+
         try:
             with open(file) as fileObj:
                 for row in fileObj.readlines():
                     content.append(str(row))
-
         except Exception as err:
             self.logger.msg = "Could not create string contents from CSV file!"
             self.logger.error(extra_msg=str(err), orgErr=err)
