@@ -431,13 +431,13 @@ class LingtelliElastic(Elasticsearch):
 
         if isinstance(resp["hits"], dict):
             if resp["hits"]["score"] < MIN_DOC_SCORE:
-                self.logger.msg = "Hits found with less than confident score (<5)!"
+                self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_DOC_SCORE
                 self.logger.error()
                 raise self.logger
             return resp["hits"]["source"]["context"]
         else:
             if resp["hits"][0]["score"] < MIN_DOC_SCORE:
-                self.logger.msg = "Hits found with less than confident score (<5)!"
+                self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_DOC_SCORE
                 self.logger.error()
                 raise self.logger
             return resp["hits"][0]["source"]["context"]
