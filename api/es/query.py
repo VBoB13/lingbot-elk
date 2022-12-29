@@ -4,13 +4,12 @@ from params.definitions import SearchDocument, SearchPhraseDoc
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp
 
-from . import KNOWN_INDEXES
-
 
 class QueryMaker(object):
-    def __init__(self):
+    def __init__(self, mappings: dict):
         self.query = dict({})
         self.logger = ElasticError(__file__, self.__class__.__name__)
+        self.known_indices = mappings
         # self.logger.msg = "Query object: {}".format(str(self.query))
         # self.logger.info()
 
@@ -43,7 +42,7 @@ class QueryMaker(object):
         3. The terms must appear next to each other.
         """
         subquery = {}
-        subquery.update({KNOWN_INDEXES[doc.vendor_id]["context"]: {
+        subquery.update({self.known_indices[doc.vendor_id]["context"]: {
             "query": doc.match_phrase}})
         self.query.update({"match_phrase": subquery})
 

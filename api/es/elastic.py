@@ -197,7 +197,7 @@ class LingtelliElastic(Elasticsearch):
         return final_mapping
 
     def _get_query(self) -> dict:
-        queryObj = QueryMaker()
+        queryObj = QueryMaker(self.known_indices)
         if isinstance(self.doc, SearchDocTimeRange):
             queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
         elif isinstance(self.doc, SearchDocument):
