@@ -34,7 +34,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
 
-        self.known_indices = self.get_mappings()
+        self.known_indices = self._get_mappings()
         self.logger.info("Success!")
         self.docs_found = True
 
@@ -159,6 +159,43 @@ class LingtelliElastic(Elasticsearch):
 
         return context
 
+    def _get_mappings(self) -> dict:
+        """
+        Method that simply makes a request to 'elastic_server:9200/_mapping'
+        and organizes the response into a dict.
+        """
+        try:
+            address = "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/_mapping"
+            resp = requests.get(address)
+        except ConnectionRefusedError as err:
+            self.logger.msg = "Connection refused when trying to get [%s]!" % address
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+        except Exception as err:
+            self.logger.msg = "Unknown error when trying to get [%s]!" % address
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+        else:
+            if not resp.ok:
+                self.logger.msg = "ELK server responded with code" + \
+                    Fore.LIGHTRED_EX + resp.status_code + Fore.RESET + "!"
+                self.logger.error()
+                raise self.logger
+
+            mappings = json.loads((resp.content.decode('utf-8')))
+
+            self.logger.msg = "Got mappings from ELK server:\n %s" % mappings
+            self.logger.info()
+
+        final_mapping = {}
+        for index in mappings.keys():
+            for field in mappings[index]["mappings"]["properties"].keys():
+                if mappings[index]["mappings"]["properties"][field]["type"] == "text" \
+                        and not mappings[index]["mappings"]["properties"][field].get('index', None):
+                    final_mapping.update({index: {"context": field}})
+
+        return final_mapping
+
     def _get_query(self) -> dict:
         queryObj = QueryMaker()
         if isinstance(self.doc, SearchDocTimeRange):
@@ -281,43 +318,6 @@ class LingtelliElastic(Elasticsearch):
         resp = self._remove_underlines([resp])
 
         return dict(resp)
-
-    def get_mappings(self) -> dict:
-        """
-        Method that simply makes a request to 'elastic_server:9200/_mapping'
-        and organizes the response into a dict.
-        """
-        try:
-            address = "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/_mapping"
-            resp = requests.get(address)
-        except ConnectionRefusedError as err:
-            self.logger.msg = "Connection refused when trying to get [%s]!" % address
-            self.logger.error(extra_msg=str(err), orgErr=err)
-            raise self.logger from err
-        except Exception as err:
-            self.logger.msg = "Unknown error when trying to get [%s]!" % address
-            self.logger.error(extra_msg=str(err), orgErr=err)
-            raise self.logger from err
-        else:
-            if not resp.ok:
-                self.logger.msg = "ELK server responded with code" + \
-                    Fore.LIGHTRED_EX + resp.status_code + Fore.RESET + "!"
-                self.logger.error()
-                raise self.logger
-
-            mappings = json.loads((resp.content.decode('utf-8')))
-
-            self.logger.msg = "Got mappings from ELK server:\n %s" % mappings
-            self.logger.info()
-
-        final_mapping = {}
-        for index in mappings.keys():
-            for field in mappings[index]["mappings"]["properties"].keys():
-                if mappings[index]["mappings"]["properties"][field]["type"] == "text" \
-                        and not mappings[index]["mappings"]["properties"][field].get('index', None):
-                    final_mapping.update({index: {"context": field}})
-
-        return final_mapping
 
     def index_exists(self, index: str) -> bool:
         """
