@@ -24,7 +24,7 @@ def get_mapping() -> dict:
     detect and work with the correct field.
     """
     logger.cls = ":get_mapping()"
-    address = "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/_mapping"
+    address = "http://" + ELASTIC_IP + ":" + str(ELASTIC_PORT) + "/_mapping"
     try:
         resp = requests.get(address)
     except ConnectionRefusedError as err:
