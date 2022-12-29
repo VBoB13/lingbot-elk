@@ -199,8 +199,8 @@ class LingtelliElastic(Elasticsearch):
                     elif field == "content":
                         final_mapping.update({index: {"context": field}})
 
-        self.logger.msg = "Final mapping:\n%s" % final_mapping
-        self.logger.info()
+        # self.logger.msg = "Final mapping:\n%s" % final_mapping
+        # self.logger.info()
 
         return final_mapping
 
