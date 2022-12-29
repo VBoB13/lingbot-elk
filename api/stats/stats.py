@@ -15,7 +15,10 @@ class StatsCalc(object):
     def __str__(self):
         return self.df.to_string()
 
+    def calc_ratio(self):
+        print(self.df.groupby("vendor_id"))
+
 
 if __name__ == "__main__":
     stats = StatsCalc()
-    print(stats)
+    print(stats.calc_ratio())
