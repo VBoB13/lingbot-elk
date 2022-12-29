@@ -164,8 +164,9 @@ class LingtelliElastic(Elasticsearch):
         Method that simply makes a request to 'elastic_server:9200/_mapping'
         and organizes the response into a dict.
         """
+        address = "http://" + ELASTIC_IP + \
+            ":" + str(ELASTIC_PORT) + "/_mapping"
         try:
-            address = "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/_mapping"
             resp = requests.get(address)
         except ConnectionRefusedError as err:
             self.logger.msg = "Connection refused when trying to get [%s]!" % address
