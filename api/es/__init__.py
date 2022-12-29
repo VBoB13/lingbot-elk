@@ -42,7 +42,11 @@ def get_mapping() -> dict:
             logger.error()
             raise logger
 
-        mappings = json.loads((resp.content.decode('utf-8')))
+        content = resp.content.decode('utf-8')
+        mappings = json.loads(content)
+
+        logger.msg = "Got content in response: %s" % mappings
+        logger.info()
 
     final_mapping = {}
     for index in mappings.keys():
