@@ -19,7 +19,7 @@ from helpers import TODAY
 from settings.settings import LOG_DIR
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, DEFAULT_SEARCH_ANALYZER, MIN_DOC_SCORE, KNOWN_INDEXES
+from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, DEFAULT_SEARCH_ANALYZER, MIN_DOC_SCORE
 
 
 class LingtelliElastic(Elasticsearch):
@@ -34,6 +34,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
 
+        self.known_indices = self.get_mappings()
         self.logger.info("Success!")
         self.docs_found = True
 
@@ -114,14 +115,14 @@ class LingtelliElastic(Elasticsearch):
 
             for hit in hits:
                 if isinstance(hit, dict) and hit.get("source", False)\
-                        and hit["source"].get(KNOWN_INDEXES[self.doc.vendor_id]["context"], False):
+                        and hit["source"].get(self.known_indices[self.doc.vendor_id]["context"], False):
                     hit["source"] = {
-                        "context": hit["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
+                        "context": hit["source"][self.known_indices[self.doc.vendor_id]["context"]]
                     }
 
-        if isinstance(hits, dict) and hits.get("source", False) and hits["source"].get(KNOWN_INDEXES[self.doc.vendor_id]["context"], False):
+        if isinstance(hits, dict) and hits.get("source", False) and hits["source"].get(self.known_indices[self.doc.vendor_id]["context"], False):
             hits["source"] = {
-                "context": hits["source"][KNOWN_INDEXES[self.doc.vendor_id]["context"]]
+                "context": hits["source"][self.known_indices[self.doc.vendor_id]["context"]]
             }
 
         return hits
@@ -284,7 +285,7 @@ class LingtelliElastic(Elasticsearch):
     def get_mappings(self) -> dict:
         """
         Method that simply makes a request to 'elastic_server:9200/_mapping'
-        and returns the response.
+        and organizes the response into a dict.
         """
         try:
             address = "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/_mapping"
@@ -304,12 +305,19 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.error()
                 raise self.logger
 
-            content = json.loads((resp.content.decode('utf-8')))
+            mappings = json.loads((resp.content.decode('utf-8')))
 
-            self.logger.msg = "Got mappings from ELK server."
-            self.logger.info(extra_msg=content)
+            self.logger.msg = "Got mappings from ELK server:\n %s" % mappings
+            self.logger.info()
 
-            return content
+        final_mapping = {}
+        for index in mappings.keys():
+            for field in mappings[index]["mappings"]["properties"].keys():
+                if mappings[index]["mappings"]["properties"][field]["type"] == "text" \
+                        and not mappings[index]["mappings"]["properties"][field].get('index', None):
+                    final_mapping.update({index: {"context": field}})
+
+        return final_mapping
 
     def index_exists(self, index: str) -> bool:
         """
