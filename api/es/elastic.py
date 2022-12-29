@@ -469,7 +469,7 @@ class LingtelliElastic(Elasticsearch):
 
                 stats = {
                     "timestamp": date_to_str(datetime.now().astimezone()),
-                    "vendor_id": self.doc.vendor_id,
+                    "vendor_id": doc.vendor_id,
                     "QA": False,
                     "GPT": True
                 }
