@@ -25,8 +25,7 @@ class ElasticError(BaseError):
         entry_strings = []
         for key, value in data.items():
             if key in COLUMN_NAMES:
-                if isinstance(value, str):
-                    entry_strings.append(value)
+                entry_strings.append(value)
 
         if len(entry_strings) > 0:
             return ",".join(entry_strings)
@@ -39,7 +38,7 @@ class ElasticError(BaseError):
         Processes and saves data that tells which index the context was derived from (QA / GPT).
         """
         try:
-            full_string = self._build_stats_str(data)
+            full_string = "\n" + self._build_stats_str(data)
             with open(LOG_DIR + '/stats.csv', "a+") as stats_file:
                 stats_file.write(full_string)
         except ElasticError as err:
