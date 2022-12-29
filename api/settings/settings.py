@@ -1,9 +1,5 @@
 import os
 from pathlib import Path
-from . import get_mapping
-
-
-KNOWN_INDEXES = get_mapping()
 
 BASE_DIR = os.getcwd()
 
