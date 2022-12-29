@@ -1,7 +1,7 @@
 # This is the file that handles most of the logic directly related to
 # managing the data flow between API and Elasticsearch server.
 import time
-import re
+import json
 from pprint import pprint
 from colorama import Fore
 from datetime import datetime
@@ -14,6 +14,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
     Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT
 from errors.elastic_err import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
+from helpers.helpers import get_language
 from helpers import TODAY
 from settings.settings import LOG_DIR
 from es.query import QueryMaker
@@ -48,8 +49,8 @@ class LingtelliElastic(Elasticsearch):
                         "properties": {
                             "content": {
                                 "type": "text",
-                                "analyzer": "ik_max_word",
-                                "search_analyzer": "ik_smart"
+                                "analyzer": DEFAULT_ANALYZER,
+                                "search_analyzer": DEFAULT_SEARCH_ANALYZER
                             }
                         }
                     },
@@ -129,6 +130,8 @@ class LingtelliElastic(Elasticsearch):
         """
         Method for extracting context for GPT service.
         """
+        # Here we create a temporary function that we use
+        # to filter low score documents out.
         def filter_context(doc):
             if doc["score"] >= MIN_DOC_SCORE:
                 return doc
@@ -166,12 +169,6 @@ class LingtelliElastic(Elasticsearch):
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
 
-    @dispatch()
-    def _index_exists(self) -> bool:
-        # Check what indexes exist
-        return self.indices.exists(index=self.doc.vendor_id).body
-
-    @dispatch(str)
     def _index_exists(self, index: str):
         return self.indices.exists(index=index).body
 
@@ -268,7 +265,7 @@ class LingtelliElastic(Elasticsearch):
             doc = DocID_Must(vendor_id=doc["vendor_id"], doc_id=doc["doc_id"])
         try:
             self.doc = doc
-            if not self._index_exists():
+            if not self._index_exists(self.doc.vendor_id):
                 self.logger.msg = "Could not search for documents!"
                 self.logger.error("Index {} does NOT exist!".format(
                     self.doc.vendor_id))
@@ -283,6 +280,36 @@ class LingtelliElastic(Elasticsearch):
         resp = self._remove_underlines([resp])
 
         return dict(resp)
+
+    def get_mappings(self) -> dict:
+        """
+        Method that simply makes a request to 'elastic_server:9200/_mapping'
+        and returns the response.
+        """
+        try:
+            address = "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/_mapping"
+            resp = requests.get(address)
+        except ConnectionRefusedError as err:
+            self.logger.msg = "Connection refused when trying to get [%s]!" % address
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+        except Exception as err:
+            self.logger.msg = "Unknown error when trying to get [%s]!" % address
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+        else:
+            if not resp.ok:
+                self.logger.msg = "ELK server responded with code" + \
+                    Fore.LIGHTRED_EX + resp.status_code + Fore.RESET + "!"
+                self.logger.error()
+                raise self.logger
+
+            content = json.loads((resp.content.decode('utf-8')))
+
+            self.logger.msg = "Got mappings from ELK server."
+            self.logger.info(extra_msg=content)
+
+            return content
 
     def index_exists(self, index: str) -> bool:
         """
@@ -319,9 +346,7 @@ class LingtelliElastic(Elasticsearch):
         for i, doc in enumerate(docs):
             total_length += len(doc["fields"][0]["value"])
             if i == 0:
-                lang = "CH"
-                if (len(re.findall(r'[\u4e00-\u9fff]', doc["fields"][0]["value"])) / len(doc["fields"][0]["value"])) < 0.5:
-                    lang = "EN"
+                lang = get_language(doc["fields"][0]["value"])
                 update_index = doc["vendor_id"]
                 self._create_index(update_index, language=lang)
             self.save(doc)
@@ -341,7 +366,7 @@ class LingtelliElastic(Elasticsearch):
         """
         self.doc = doc
         try:
-            if not self._index_exists():
+            if not self._index_exists(self.doc.vendor_id):
                 self.logger.msg = "Could not search for documents!"
                 self.logger.error("Index {} does NOT exist!".format(
                     self.doc.vendor_id))
@@ -467,7 +492,7 @@ class LingtelliElastic(Elasticsearch):
         self.doc = doc
 
         try:
-            if not self._index_exists():
+            if not self._index_exists(self.doc.vendor_id):
                 self.logger.msg = "Could not search for documents!"
                 self.logger.error(
                     extra_msg="Index {} does NOT exist!".format(self.doc.vendor_id))
@@ -493,18 +518,30 @@ class LingtelliElastic(Elasticsearch):
         self.doc = doc
 
         try:
-            if not self._index_exists():
-                self.indices.create(index=self.doc.vendor_id, mappings={
-                                    "properties": {
-                                        "q": {
-                                            "type": "text",
-                                            "analyzer": DEFAULT_ANALYZER,
-                                            "search_analyzer": DEFAULT_SEARCH_ANALYZER
-                                        },
-                                        "a": {
-                                            "type": "text",
-                                            "index": "false"
-                                        }}})
+            if not self._index_exists(self.doc.vendor_id):
+                lang = get_language(self.doc.match.search_term)
+                if lang == "CH":
+                    self.indices.create(index=self.doc.vendor_id, mappings={
+                                        "properties": {
+                                            "q": {
+                                                "type": "text",
+                                                "analyzer": DEFAULT_ANALYZER,
+                                                "search_analyzer": DEFAULT_SEARCH_ANALYZER
+                                            },
+                                            "a": {
+                                                "type": "text",
+                                                "index": "false"
+                                            }}})
+                elif lang == "EN":
+                    self.indices.create(index=self.doc.vendor_id, mappings={
+                                        "properties": {
+                                            "q": {
+                                                "type": "text"
+                                            },
+                                            "a": {
+                                                "type": "text",
+                                                "index": "false"
+                                            }}})
                 self.logger.msg = "Index created: {}".format(
                     self.doc.vendor_id)
                 self.logger.info()
