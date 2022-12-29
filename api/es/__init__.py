@@ -1,5 +1,5 @@
 import os
-from elastic import LingtelliElastic
+from es.elastic import LingtelliElastic
 
 ELASTIC_IP = os.environ["ELASTIC_SERVER"]
 ELASTIC_PORT = int(os.environ["ELASTIC_PORT"])
