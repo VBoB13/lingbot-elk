@@ -50,9 +50,9 @@ def get_mapping() -> dict:
 
     final_mapping = {}
     for index in mappings.keys():
-        for field in mappings["mappings"]["properties"].keys():
-            if mappings["mappings"]["properties"][field]["type"] == "text" \
-                    and not mappings["mappings"]["properties"][field].get('index', None):
+        for field in mappings[index]["mappings"]["properties"].keys():
+            if mappings[index]["mappings"]["properties"][field]["type"] == "text" \
+                    and not mappings[index]["mappings"]["properties"][field].get('index', None):
                 final_mapping.update({index: {"context": field}})
 
     return final_mapping
