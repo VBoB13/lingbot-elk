@@ -39,7 +39,7 @@ class ElasticError(BaseError):
         Processes and saves data that tells which index the context was derived from (QA / GPT).
         """
         try:
-            full_string = "\n" + self._build_stats_str(data)
+            full_string = self._build_stats_str(data) + "\n"
             with open(LOG_DIR + '/stats.csv', "a+") as stats_file:
                 stats_file.write(full_string)
         except ElasticError as err:
