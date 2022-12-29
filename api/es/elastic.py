@@ -185,7 +185,8 @@ class LingtelliElastic(Elasticsearch):
 
             mappings = json.loads((resp.content.decode('utf-8')))
 
-            self.logger.msg = "Got mappings from ELK server:\n %s" % mappings
+            self.logger.msg = "Mapping loading: " + \
+                Fore.LIGHTGREEN_EX + "SUCCESS" + Fore.RESET + "!"
             self.logger.info()
 
         final_mapping = {}
