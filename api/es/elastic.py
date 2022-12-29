@@ -196,7 +196,7 @@ class LingtelliElastic(Elasticsearch):
                         and mappings[index]["mappings"]["properties"][field]["type"] == "text":
                     if index.endswith('-qa') and field == "a":
                         final_mapping.update({index: {"context": field}})
-                    elif field != "timestamp":
+                    elif field == "content":
                         final_mapping.update({index: {"context": field}})
 
         self.logger.msg = "Final mapping:\n%s" % final_mapping
