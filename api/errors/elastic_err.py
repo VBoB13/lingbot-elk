@@ -25,7 +25,8 @@ class ElasticError(BaseError):
         entry_strings = []
         for key, value in data.items():
             if key in COLUMN_NAMES:
-                entry_strings.append(value)
+                entry_strings.append(value if isinstance(
+                    value, str) else str(value))
 
         if len(entry_strings) > 0:
             return ",".join(entry_strings)
