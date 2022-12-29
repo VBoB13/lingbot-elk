@@ -8,6 +8,14 @@ from errors.elastic_err import ElasticError
 
 logger = ElasticError(__file__, "")
 
+ELASTIC_IP = os.environ["ELASTIC_SERVER"]
+ELASTIC_PORT = int(os.environ["ELASTIC_PORT"])
+TIIP_INDEX = os.environ["TIIP_INDEX"]
+
+DEFAULT_ANALYZER = 'ik_max_word'
+DEFAULT_SEARCH_ANALYZER = 'ik_smart'
+MIN_DOC_SCORE = 10
+
 
 def get_mapping() -> dict:
     """
@@ -16,8 +24,8 @@ def get_mapping() -> dict:
     detect and work with the correct field.
     """
     logger.cls = ":get_mapping()"
+    address = "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/_mapping"
     try:
-        address = "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/_mapping"
         resp = requests.get(address)
     except ConnectionRefusedError as err:
         logger.msg = "Connection refused when trying to get [%s]!" % address
@@ -47,11 +55,3 @@ def get_mapping() -> dict:
 
 
 KNOWN_INDEXES = get_mapping()
-
-ELASTIC_IP = os.environ["ELASTIC_SERVER"]
-ELASTIC_PORT = int(os.environ["ELASTIC_PORT"])
-TIIP_INDEX = os.environ["TIIP_INDEX"]
-
-DEFAULT_ANALYZER = 'ik_max_word'
-DEFAULT_SEARCH_ANALYZER = 'ik_smart'
-MIN_DOC_SCORE = 10
