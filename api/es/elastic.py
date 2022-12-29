@@ -193,9 +193,11 @@ class LingtelliElastic(Elasticsearch):
         for index in mappings.keys():
             for field in mappings[index]["mappings"]["properties"].keys():
                 if mappings[index]["mappings"]["properties"][field].get('type', None) \
-                        and mappings[index]["mappings"]["properties"][field]["type"] == "text" \
-                        and not mappings[index]["mappings"]["properties"][field].get('index', None):
-                    final_mapping.update({index: {"context": field}})
+                        and mappings[index]["mappings"]["properties"][field]["type"] == "text":
+                    if index.endswith('-qa') and mappings[index]["mappings"]["properties"][field].get('index', None) == False:
+                        final_mapping.update({index: {"context": field}})
+                    else:
+                        final_mapping.update({index: {"context": field}})
 
         return final_mapping
 
