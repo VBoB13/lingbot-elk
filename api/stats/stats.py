@@ -16,6 +16,10 @@ class StatsCalc(object):
         return self.df.to_string()
 
     def calc_ratio(self):
+        # TODO:
+        # Figure out how to most efficiently bring
+        # out the ratio of QA / GPT
+        # Below will only print out <object...>
         print(self.df.groupby("vendor_id"))
 
 
