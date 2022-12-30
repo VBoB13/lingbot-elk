@@ -22,7 +22,7 @@ class StatsCalc(object):
         # Below will only print out <object...>
         self.df["QA"] = self.df["QA"].astype(int)
         self.df["GPT"] = self.df["GPT"].astype(int)
-        print(self.df)
+        print(self.df.groupby("vendor_id").agg({"QA": sum, "GPT": sum}))
 
 
 if __name__ == "__main__":
