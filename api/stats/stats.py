@@ -23,7 +23,7 @@ class StatsCalc(object):
         self.df["QA"] = self.df["QA"].astype(int)
         self.df["GPT"] = self.df["GPT"].astype(int)
         grouped = self.df.groupby("vendor_id").agg({"QA": sum, "GPT": sum})
-        grouped["ratio"] = (self.df["QA"] / self.df["GPT"])
+        grouped["ratio"] = float(self.df["QA"] / self.df["GPT"])
         return grouped
 
 
