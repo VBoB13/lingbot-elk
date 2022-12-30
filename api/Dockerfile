@@ -1,7 +1,7 @@
 FROM python:3.10.8-bullseye
 RUN mkdir -p /opt/api
 WORKDIR /opt/api
-USER 1000
+USER root
 RUN echo "151.101.0.223 pypi.org" >> /etc/hosts
 RUN echo "151.101.1.63 files.pythonhosted.org" >> /etc/hosts
 RUN sysctl -w net.ipv6.conf.all.disable_ipv6=1
