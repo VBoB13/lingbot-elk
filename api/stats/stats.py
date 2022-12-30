@@ -15,14 +15,16 @@ class StatsCalc(object):
     def __str__(self):
         return self.df.to_string()
 
-    def calc_ratio(self):
+    def calc_ratio(self) -> pd.DataFrame:
         # TODO:
         # Figure out how to most efficiently bring
         # out the ratio of QA / GPT
         # Below will only print out <object...>
         self.df["QA"] = self.df["QA"].astype(int)
         self.df["GPT"] = self.df["GPT"].astype(int)
-        print(self.df.groupby("vendor_id").agg({"QA": sum, "GPT": sum}))
+        self.df.groupby("vendor_id").agg({"QA": sum, "GPT": sum})
+        self.df["ratio"] = (self.df["QA"] / self.df["GPT"])
+        return self.df
 
 
 if __name__ == "__main__":
