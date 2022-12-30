@@ -20,7 +20,9 @@ class StatsCalc(object):
         # Figure out how to most efficiently bring
         # out the ratio of QA / GPT
         # Below will only print out <object...>
-        print(self.df.groupby("vendor_id"))
+        self.df["QA"] = self.df["QA"].astype(int)
+        self.df["GPT"] = self.df["GPT"].astype(int)
+        print(self.df)
 
 
 if __name__ == "__main__":
