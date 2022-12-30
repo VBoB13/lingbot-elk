@@ -22,9 +22,9 @@ class StatsCalc(object):
         # Below will only print out <object...>
         self.df["QA"] = self.df["QA"].astype(int)
         self.df["GPT"] = self.df["GPT"].astype(int)
-        self.df.groupby("vendor_id").agg({"QA": sum, "GPT": sum})
-        self.df["ratio"] = (self.df["QA"] / self.df["GPT"])
-        return self.df
+        grouped = self.df.groupby("vendor_id").agg({"QA": sum, "GPT": sum})
+        grouped["ratio"] = (self.df["QA"] / self.df["GPT"])
+        return grouped
 
 
 if __name__ == "__main__":
