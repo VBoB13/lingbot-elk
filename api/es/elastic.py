@@ -80,8 +80,8 @@ class LingtelliElastic(Elasticsearch):
                 })
 
             try:
-                response = requests.post(
-                    ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=settings)
+                response = requests.post('http://' +
+                                         ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=settings)
 
             except Exception as err:
                 self.logger.msg = "Could not create a new index (%s)!" % index
