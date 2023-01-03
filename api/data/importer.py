@@ -555,7 +555,7 @@ class CSVLoader(object):
         content = []
         if not os.path.isdir(TEMP_DIR):
             os.mkdir(TEMP_DIR)
-        if not os.path.isdir():
+        if not os.path.isdir(TEMP_DIR + f"/{self.index}"):
             os.mkdir(os.path.join(TEMP_DIR, f"{self.index}"))
         if isinstance(file, UploadFile):
             temp_name = TEMP_DIR + f"/{self.index}/" + f"{str(file.filename)}"
