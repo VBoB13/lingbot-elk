@@ -210,7 +210,7 @@ class LingtelliElastic(Elasticsearch):
             queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
         elif isinstance(self.doc, SearchDocument):
             queryObj.create_query(self.doc)
-        elif isinstance(self.doc, (SearchPhraseDoc)):
+        elif isinstance(self.doc, SearchPhraseDoc):
             queryObj.create_phrase_query(self.doc)
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
