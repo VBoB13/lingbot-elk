@@ -542,7 +542,8 @@ class CSVLoader(object):
 
         if not self.client.index_exists(self.index):
             try:
-                lang = get_language(self.contents)
+                lang = get_language(
+                    "\n".join(doc.content for doc in self.contents))
                 self.logger.msg = "Index does not exist!"
                 self.logger.info(
                     extra_msg="Creating index [%s] for you..." % self.index)
