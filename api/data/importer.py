@@ -24,6 +24,7 @@ from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
 from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
 from es.elastic import LingtelliElastic
 from es import TIIP_INDEX
+from helpers.helpers import get_language
 from helpers.interactive import question_check
 from helpers.times import date_to_str
 from helpers import TODAY, YESTERDAY
@@ -540,10 +541,16 @@ class CSVLoader(object):
                          Fore.RESET + str(self.contents))
 
         if not self.client.index_exists(self.index):
-            self.logger.msg = "Index does not exist!"
-            self.logger.error(
-                extra_msg="Cannot save data into ELK without proper index.")
-            raise self.logger
+            try:
+                lang = get_language(self.contents)
+                self.logger.msg = "Index does not exist!"
+                self.logger.info(
+                    extra_msg="Creating index [%s] for you..." % self.index)
+                self.client._create_index(self.index, language=lang)
+            except Exception as err:
+                self.logger.msg = "Could not create index 'on-the-fly'!"
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger from err
 
         self.output = self.contents.to_json(self.index)
 
