@@ -41,7 +41,7 @@ def get_local_ip(org_ip: str) -> str:
     platform = sys.platform
     if org_ip == '0.0.0.0' and platform.lower() == "linux":
         local_ip = check_output(
-            ["ifconfig", "|", "egrep", "192.168.[0-9]{1,3}.[0-9]{1,3}", "|", "gawk", "'{print $2}'"])
+            ["su", "ubuntu", "&&", "ifconfig", "|", "egrep", "'192.168.[0-9]{1,3}.[0-9]{1,3}'", "|", "gawk", "'{print $2}'"])
         logger.info("Platform: " + Fore.LIGHTCYAN_EX + platform + Fore.RESET)
         logger.info("Local IP: " + Fore.LIGHTGREEN_EX + local_ip + Fore.RESET)
         return local_ip
