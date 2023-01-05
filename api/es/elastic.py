@@ -12,7 +12,7 @@ from elasticsearch import Elasticsearch
 
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
     Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT
-from errors.elastic_err import ElasticError
+from errors.errors import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from helpers.helpers import get_language
 from helpers import TODAY

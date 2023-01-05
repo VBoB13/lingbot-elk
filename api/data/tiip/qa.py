@@ -5,7 +5,7 @@ from typing import List, Iterator
 from colorama import Fore
 
 from params.definitions import ElasticDoc
-from errors.data_err import DataError
+from errors.errors import DataError
 
 
 class TIIP_QA_Pair(object):

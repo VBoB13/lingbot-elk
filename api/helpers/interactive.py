@@ -4,7 +4,7 @@ within the project (especially file loaders).
 """
 
 from helpers import INTERACTIVE_ANSWERS, YES_ANSWERS
-from errors.helper_err import HelperError
+from errors.errors import HelperError
 
 
 def question_check(question: str) -> bool:

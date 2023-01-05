@@ -1,7 +1,7 @@
 # This file contains code related to [search]query making for Elasticsearch.
 
 from params.definitions import SearchDocument, SearchPhraseDoc
-from errors.elastic_err import ElasticError
+from errors.errors import ElasticError
 from helpers.times import check_timestamp
 
 

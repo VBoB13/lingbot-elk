@@ -2,7 +2,7 @@ from typing import Iterator, Tuple
 from colorama import Fore
 
 from params.definitions import ElasticDoc
-from errors.data_err import DataError
+from errors.errors import DataError
 
 
 class DocumentPosSeparator(object):

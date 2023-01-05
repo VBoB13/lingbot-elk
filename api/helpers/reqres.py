@@ -1,6 +1,6 @@
 from fastapi.responses import JSONResponse
 
-from errors.helper_err import HelperError
+from errors.errors import HelperError
 
 
 class ElkServiceResponse(JSONResponse):

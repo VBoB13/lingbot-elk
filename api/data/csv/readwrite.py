@@ -5,7 +5,7 @@ from colorama import Fore
 
 from es.elastic import LingtelliElastic
 from settings.settings import CSV_DIR, CSV_FINISHED_DIR
-from errors.csv_err import CSVError
+from errors.errors import CSVError
 
 
 class CSVReader(object):

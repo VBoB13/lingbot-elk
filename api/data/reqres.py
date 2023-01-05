@@ -7,7 +7,7 @@ import os
 import requests
 
 from settings.settings import DATA_DIR
-from errors.data_err import DataError
+from errors.errors import DataError
 
 
 class DataRequest(object):

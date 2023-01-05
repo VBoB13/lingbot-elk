@@ -7,7 +7,7 @@ from colorama import Fore
 
 from data import CLAUDE_TEST_SERVER, OOV_PORT
 from data.reqres import DataRequest
-from errors.data_err import DataError
+from errors.errors import DataError
 from es.elastic import LingtelliElastic
 from helpers.interactive import question_check
 from settings.settings import DIC_DIR, DIC_FILE

@@ -17,7 +17,7 @@ from ftplib import FTP
 from docx import Document
 from docx.package import Package
 
-from errors.data_err import DataError
+from errors.errors import DataError
 from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR, TEMP_DIR
 from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH, TIIP_FTP_SERVER, TIIP_FTP_ACC, TIIP_FTP_PASS
 from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
