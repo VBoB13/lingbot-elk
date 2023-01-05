@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from helpers.helpers import get_local_ip
+
 BASE_DIR = os.getcwd()
 
 # API dir's
@@ -14,7 +16,7 @@ TIIP_CSV_DIR = os.path.join(DATA_DIR, "tiip", "csv")
 TIIP_DOC_DIR = os.path.join(DATA_DIR, "tiip", "docs")
 
 # OpenAI stuff
-GPT3_SERVER = os.environ.get("GPT3_SERVER", "192.168.112.3")
+GPT3_SERVER = get_local_ip(os.environ.get("GPT3_SERVER", "0.0.0.0"))
 GPT3_PORT = int(os.environ.get("GPT3_PORT", "4200"))
 
 # Dictionairy dir's (ELK)
