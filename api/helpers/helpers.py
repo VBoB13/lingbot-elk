@@ -9,9 +9,12 @@ from subprocess import check_output
 
 from colorama import Fore
 
-from errors.errors import HelperError
-
-logger = HelperError(__file__, "")
+try:
+    from errors.errors import HelperError
+except ImportError as err:
+    logger = HelperError(__file__, "")
+    logger.msg = str(err)
+    logger.warn()
 
 
 def get_language(content: str) -> str:
