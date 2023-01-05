@@ -1,4 +1,5 @@
-from errors.base_err import BaseError
+if 'BaseError' not in globals().keys():
+    from errors.base_err import BaseError
 
 
 class HelperError(BaseError):
