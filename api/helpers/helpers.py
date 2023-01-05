@@ -11,7 +11,6 @@ from logging import Logger
 from colorama import Fore
 
 logger = Logger(f"{__file__}: ")
-logger.warn("Cannot import HelperError!")
 
 
 def get_language(content: str) -> str:
