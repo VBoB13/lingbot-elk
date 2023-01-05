@@ -6,11 +6,11 @@ from fastapi import FastAPI, status, BackgroundTasks, UploadFile
 from params import DESCRIPTIONS
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     DocID_Must, BasicResponse, SearchResponse, \
-    SearchPhraseDoc, SearchGPT, Vendor
+    SearchPhraseDoc, SearchGPT
 from es.elastic import LingtelliElastic
 from helpers.reqres import ElkServiceResponse
 from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
-from errors.base_err import BaseError
+from errors.errors import BaseError
 
 
 app = FastAPI()
