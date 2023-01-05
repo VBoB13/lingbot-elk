@@ -38,10 +38,14 @@ def get_local_ip(org_ip: str) -> str:
     """
     global logger
     logger.name += "get_local_ip()"
-    platform = sys.platform
-    if org_ip == '0.0.0.0' and platform.lower() == "linux":
-        local_ip = socket.gethostbyname(socket.gethostname())
-        logger.info("Platform: " + Fore.LIGHTCYAN_EX + platform + Fore.RESET)
-        logger.info("Local IP: " + Fore.LIGHTGREEN_EX + local_ip + Fore.RESET)
-        return local_ip
-    return org_ip
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        # doesn't even have to be reachable
+        s.connect((org_ip, 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
