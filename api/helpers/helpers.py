@@ -6,15 +6,12 @@ they get put in this module.
 import re
 import sys
 from subprocess import check_output
+from logging import Logger
 
 from colorama import Fore
 
-try:
-    from errors.errors import HelperError
-except ImportError as err:
-    logger = HelperError(__file__, "")
-    logger.msg = str(err)
-    logger.warn()
+logger = Logger(f"{__file__}: ")
+logger.warn("Cannot import HelperError!")
 
 
 def get_language(content: str) -> str:
@@ -22,16 +19,14 @@ def get_language(content: str) -> str:
     Returns a string (`'CH'` or `'EN'`).
     """
     global logger
-    logger.cls = "get_language()"
-    logger.msg = "Resolved language to: "
+    logger.name += "get_language()"
+
     lang = "CH"
     if (len(re.findall(r'[\u4e00-\u9fff]', content)) / len(content)) < 0.5:
-        logger.msg += "English (EN)"
+        logger.info("Language: English (EN)")
         lang = "EN"
     else:
-        logger.msg += "Traditional Chinese (ZH-TW)"
-
-    logger.info()
+        logger.info("Language: Traditional Chinese (ZH-TW)")
 
     return lang
 
@@ -42,14 +37,12 @@ def get_local_ip(org_ip: str) -> str:
     Otherwise, the original value of `org_ip` is returned.
     """
     global logger
-    logger.cls += "get_local_ip()"
+    logger.name += "get_local_ip()"
     platform = sys.platform
     if org_ip == '0.0.0.0' and platform.lower() == "linux":
         local_ip = check_output(
             ["ifconfig", "|", "egrep", "192.168.[0-9]{1,3}.[0-9]{1,3}", "|", "gawk", "'{print $2}'"])
-        logger.msg = "Platform: " + Fore.LIGHTCYAN_EX + platform + Fore.RESET
-        logger.info()
-        logger.msg = "Local IP: " + Fore.LIGHTGREEN_EX + local_ip + Fore.RESET
-        logger.info()
+        logger.info("Platform: " + Fore.LIGHTCYAN_EX + platform + Fore.RESET)
+        logger.info("Local IP: " + Fore.LIGHTGREEN_EX + local_ip + Fore.RESET)
         return local_ip
     return org_ip
