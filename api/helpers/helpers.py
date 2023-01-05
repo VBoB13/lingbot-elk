@@ -5,7 +5,7 @@ they get put in this module.
 
 import re
 import sys
-from subprocess import check_output
+import socket
 from logging import Logger
 
 from colorama import Fore
@@ -40,8 +40,7 @@ def get_local_ip(org_ip: str) -> str:
     logger.name += "get_local_ip()"
     platform = sys.platform
     if org_ip == '0.0.0.0' and platform.lower() == "linux":
-        local_ip = check_output(
-            ["su", "ubuntu", "&&", "ifconfig", "|", "egrep", "'192.168.[0-9]{1,3}.[0-9]{1,3}'", "|", "gawk", "'{print $2}'"])
+        local_ip = socket.gethostbyname(socket.gethostname())
         logger.info("Platform: " + Fore.LIGHTCYAN_EX + platform + Fore.RESET)
         logger.info("Local IP: " + Fore.LIGHTGREEN_EX + local_ip + Fore.RESET)
         return local_ip
