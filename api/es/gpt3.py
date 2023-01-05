@@ -8,7 +8,7 @@ import json
 import time
 from colorama import Fore
 
-from errors.elastic_err import ElasticError
+from errors.errors import ElasticError
 from settings.settings import GPT3_SERVER, GPT3_PORT
 
 

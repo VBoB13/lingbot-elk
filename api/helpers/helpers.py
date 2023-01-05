@@ -9,7 +9,7 @@ from subprocess import check_output
 
 from colorama import Fore
 
-from errors.helper_err import HelperError
+from errors.errors import HelperError
 
 logger = HelperError(__file__, "")
 
