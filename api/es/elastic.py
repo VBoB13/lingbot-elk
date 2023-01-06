@@ -103,7 +103,7 @@ class LingtelliElastic(Elasticsearch):
         self.logger.msg = "Index %s already exists!" % index
         self.logger.info()
 
-    def _get_context(self, hits) -> dict[str, Any]:
+    def _get_context(self, hits, doc: SearchDocument | SearchPhraseDoc) -> dict[str, Any]:
         # If we're not currently using the GPT-3 part of the application,
         # we raise an error if there are no hits.
         if isinstance(hits, list):
@@ -116,14 +116,14 @@ class LingtelliElastic(Elasticsearch):
 
             for hit in hits:
                 if isinstance(hit, dict) and hit.get("source", False)\
-                        and hit["source"].get(self.known_indices[self.doc.vendor_id]["context"], False):
+                        and hit["source"].get(self.known_indices[doc.vendor_id]["context"], False):
                     hit["source"] = {
-                        "context": hit["source"][self.known_indices[self.doc.vendor_id]["context"]]
+                        "context": hit["source"][self.known_indices[doc.vendor_id]["context"]]
                     }
 
-        if isinstance(hits, dict) and hits.get("source", False) and hits["source"].get(self.known_indices[self.doc.vendor_id]["context"], False):
+        if isinstance(hits, dict) and hits.get("source", False) and hits["source"].get(self.known_indices[doc.vendor_id]["context"], False):
             hits["source"] = {
-                "context": hits["source"][self.known_indices[self.doc.vendor_id]["context"]]
+                "context": hits["source"][self.known_indices[doc.vendor_id]["context"]]
             }
 
         return hits
@@ -311,13 +311,12 @@ class LingtelliElastic(Elasticsearch):
         if type(doc).__name__ == 'dict':
             doc = DocID_Must(vendor_id=doc["vendor_id"], doc_id=doc["doc_id"])
         try:
-            self.doc = doc
-            if not self._index_exists(self.doc.vendor_id):
+            if not self._index_exists(doc.vendor_id):
                 self.logger.msg = "Could not search for documents!"
                 self.logger.error("Index {} does NOT exist!".format(
-                    self.doc.vendor_id))
+                    doc.vendor_id))
                 raise self.logger
-            resp = super().get(index=self.doc.vendor_id, id=self.doc.doc_id)
+            resp = super().get(index=doc.vendor_id, id=doc.doc_id)
             print(Fore.LIGHTCYAN_EX + "GET Response:\n" + Fore.RESET)
             pprint(resp)
         except Exception as err:
@@ -381,18 +380,18 @@ class LingtelliElastic(Elasticsearch):
         """
         This method is the standard 'search' method for most searches.
         """
-        self.doc = doc
+
         try:
-            if not self._index_exists(self.doc.vendor_id):
+            if not self._index_exists(doc.vendor_id):
                 self.logger.msg = "Could not search for documents!"
                 self.logger.error("Index {} does NOT exist!".format(
-                    self.doc.vendor_id))
+                    doc.vendor_id))
                 raise self.logger
             query = self._get_query()
-            resp = super().search(index=self.doc.vendor_id, query=query)
+            resp = super().search(index=doc.vendor_id, query=query)
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
-            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
+            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"], doc)
         except ElasticError as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
@@ -510,19 +509,18 @@ class LingtelliElastic(Elasticsearch):
         """
         This method is a more specific/precise version of the /search endpoint in Lingtelli services.
         """
-        self.doc = doc
 
         try:
-            if not self._index_exists(self.doc.vendor_id):
+            if not self._index_exists(doc.vendor_id):
                 self.logger.msg = "Could not search for documents!"
                 self.logger.error(
-                    extra_msg="Index {} does NOT exist!".format(self.doc.vendor_id))
+                    extra_msg="Index {} does NOT exist!".format(doc.vendor_id))
                 raise self.logger
             query = self._get_query()
-            resp = super().search(index=self.doc.vendor_id, query=query)
+            resp = super().search(index=doc.vendor_id, query=query)
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
-            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"])
+            resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"], doc)
         except ElasticError as err:
             pass
         except Exception as err:
@@ -595,10 +593,9 @@ class LingtelliElastic(Elasticsearch):
         This method attempts to search for documents saved into the index of
         'doc.vendor_id'.
         """
-        self.doc = doc
         try:
             query = self._get_query()
-            resp = super().search(index=self.doc.vendor_id, query=query)
+            resp = super().search(index=doc.vendor_id, query=query)
         except Exception as err:
             self.logger.msg = "Could not search for documents!"
             self.logger.error(str(err))
