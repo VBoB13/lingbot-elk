@@ -410,7 +410,6 @@ class LingtelliElastic(Elasticsearch):
         """
         # Save 'QA' vendor_id within another variable
         # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
-        self.doc = doc
         qa_doc = doc.copy(exclude={'strict', }, deep=True)
         qa_doc.vendor_id += "-qa"
         qa_doc.match.name = "q"
@@ -438,7 +437,7 @@ class LingtelliElastic(Elasticsearch):
                 context = ""
                 context += self._get_gpt_context(resp["hits"])
 
-                if (self.doc.strict and len(context) == 0) or len(context) == 0:
+                if (doc.strict and len(context) == 0) or len(context) == 0:
                     self.logger.msg = "No context found!"
                     self.logger.error()
                     self.docs_found = False
@@ -453,8 +452,8 @@ class LingtelliElastic(Elasticsearch):
                 # self.logger.info()
                 # self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
 
-                gpt3 = GPT3Request(self.doc.match.search_term,
-                                   context, self.doc.vendor_id)
+                gpt3 = GPT3Request(doc.match.search_term,
+                                   context, doc.vendor_id)
 
                 qa_data = {
                     'vendor_id': qa_doc.vendor_id,
