@@ -531,13 +531,12 @@ class LingtelliElastic(Elasticsearch):
         This method is the go-to search method for most use cases for our
         Lingtelli services.
         """
-        self.doc = doc
 
         try:
-            if not self._index_exists(self.doc.vendor_id):
-                lang = get_language(self.doc.match.search_term)
+            if not self._index_exists(doc.vendor_id):
+                lang = get_language(doc.match.search_term)
                 if lang == "CH":
-                    self.indices.create(index=self.doc.vendor_id, mappings={
+                    self.indices.create(index=doc.vendor_id, mappings={
                                         "properties": {
                                             "q": {
                                                 "type": "text",
@@ -549,7 +548,7 @@ class LingtelliElastic(Elasticsearch):
                                                 "index": "false"
                                             }}})
                 elif lang == "EN":
-                    self.indices.create(index=self.doc.vendor_id, mappings={
+                    self.indices.create(index=doc.vendor_id, mappings={
                                         "properties": {
                                             "q": {
                                                 "type": "text"
@@ -559,7 +558,7 @@ class LingtelliElastic(Elasticsearch):
                                                 "index": "false"
                                             }}})
                 self.logger.msg = "Index created: {}".format(
-                    self.doc.vendor_id)
+                    doc.vendor_id)
                 self.logger.info()
                 raise self.logger
             resp = self.search(doc)
