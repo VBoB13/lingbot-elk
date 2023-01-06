@@ -417,6 +417,9 @@ class LingtelliElastic(Elasticsearch):
             vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
         try:
+            self.logger.msg = "Searching within %s with document: " % qa_doc.vendor_id + \
+                str(qa_doc)
+            self.logger.info()
             resp = self.search_qa(qa_doc)
         except ElasticError as err:
             try:
