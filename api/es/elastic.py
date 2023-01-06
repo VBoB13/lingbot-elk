@@ -6,6 +6,7 @@ from pprint import pprint
 from colorama import Fore
 from datetime import datetime
 from typing import Any, List, Dict
+from math import ceil
 
 import requests
 from elasticsearch import Elasticsearch
@@ -413,6 +414,8 @@ class LingtelliElastic(Elasticsearch):
         qa_doc = doc.copy(exclude={'strict', }, deep=True)
         qa_doc.vendor_id += "-qa"
         qa_doc.match.name = "q"
+        qa_doc.match.min_should_match = ceil(
+            (len(self.analyze(qa_doc.match.search_term)) / 2))
         qa_doc = SearchDocument(
             vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
