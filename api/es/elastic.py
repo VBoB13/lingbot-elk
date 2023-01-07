@@ -558,28 +558,7 @@ class LingtelliElastic(Elasticsearch):
         try:
             if not self._index_exists(doc.vendor_id):
                 lang = get_language(doc.match.search_term)
-                if lang == "CH":
-                    self.indices.create(index=doc.vendor_id, mappings={
-                                        "properties": {
-                                            "q": {
-                                                "type": "text",
-                                                "analyzer": DEFAULT_ANALYZER,
-                                                "search_analyzer": DEFAULT_ANALYZER
-                                            },
-                                            "a": {
-                                                "type": "text",
-                                                "index": "false"
-                                            }}})
-                elif lang == "EN":
-                    self.indices.create(index=doc.vendor_id, mappings={
-                                        "properties": {
-                                            "q": {
-                                                "type": "text"
-                                            },
-                                            "a": {
-                                                "type": "text",
-                                                "index": "false"
-                                            }}})
+                self._create_index(doc.vendor_id, language=lang)
                 self.logger.msg = "Index created: {}".format(
                     doc.vendor_id)
                 self.logger.info()
