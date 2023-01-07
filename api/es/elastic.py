@@ -287,8 +287,8 @@ class LingtelliElastic(Elasticsearch):
         Default analyzer: `ik_smart`
         """
         data = {
-            "text": text,
-            "analyzer": analyzer
+            "analyzer": analyzer,
+            "text": text
         }
         response = requests.get("http://" +
                                 ELASTIC_IP + ':' + str(ELASTIC_PORT) + '/_analyze', data=data, headers={"Content-Type": "application/json"})
