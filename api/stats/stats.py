@@ -13,7 +13,7 @@ class StatsCalc(object):
         self.df = pd.read_csv(LOG_DIR + "/stats.csv")
 
     def __str__(self):
-        return self.df.to_string()
+        return "\n" + self.df.to_string() + "\n"
 
     def calc_ratio(self) -> pd.DataFrame:
         # TODO:
