@@ -290,8 +290,8 @@ class LingtelliElastic(Elasticsearch):
             "analyzer": analyzer,
             "text": text
         }
-        response = requests.get("http://" +
-                                ELASTIC_IP + ':' + str(ELASTIC_PORT) + '/_analyze', data=data, headers={"Content-Type": "application/json"})
+        response = requests.post("http://" +
+                                 ELASTIC_IP + ':' + str(ELASTIC_PORT) + '/_analyze', data=data, headers={"Content-Type": "application/json"})
 
         if response.ok:
             json_resp = response.json()
