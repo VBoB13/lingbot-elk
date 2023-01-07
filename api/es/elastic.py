@@ -542,7 +542,7 @@ class LingtelliElastic(Elasticsearch):
                 resp["hits"]["hits"])
             resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"], doc)
         except ElasticError as err:
-            pass
+            raise self.logger from err
         except Exception as err:
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
@@ -573,6 +573,8 @@ class LingtelliElastic(Elasticsearch):
                 resp = self.search(doc)
             except ElasticError as err:
                 self.logger.error(extra_msg=str(err))
+                raise self.logger from err
+            except Exception as err:
                 raise self.logger from err
 
         except Exception as err:
