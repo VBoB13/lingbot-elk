@@ -30,4 +30,4 @@ class StatsCalc(object):
 
 if __name__ == "__main__":
     stats = StatsCalc()
-    print(stats.calc_ratio())
+    print(str(stats.calc_ratio()))
