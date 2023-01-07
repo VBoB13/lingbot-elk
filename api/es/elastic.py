@@ -297,7 +297,12 @@ class LingtelliElastic(Elasticsearch):
         if response.ok:
             json_resp = response.json()
             if json_resp.get('tokens', None):
-                return set([item['token'] for item in json_resp['tokens']])
+                tokens = list([item['token'] for item in json_resp['tokens']])
+                unique_tokens = set(tokens)
+                self.logger.msg = "Duplicate tokens: {}".format(
+                    str(tokens - unique_tokens))
+                self.logger.info()
+                return unique_tokens
 
         self.logger.msg = "Got a non-200 code from Elasticsearch!"
         self.logger.error(extra_msg="Got code: {} Reason: {} Content: {}".format(
