@@ -384,7 +384,7 @@ class LingtelliElastic(Elasticsearch):
         if doc.vendor_id.endswith("-qa") and hasattr(doc, 'match'):
             if hasattr(doc.match, 'min_should_match'):
                 doc.match.min_should_match = ceil(
-                    len(self.analyze(doc.match.search_term)))
+                    len(self.analyze(doc.match.search_term)) - 1)
 
         try:
             if not self._index_exists(doc.vendor_id):
