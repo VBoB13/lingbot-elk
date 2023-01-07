@@ -83,7 +83,7 @@ class LingtelliElastic(Elasticsearch):
 
             try:
                 response = requests.post('http://' +
-                                         ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=settings)
+                                         ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=json.dumps(settings), headers={"Content-Type": "application/json"})
 
             except Exception as err:
                 self.logger.msg = "Could not create a new index (%s)!" % index

@@ -8,3 +8,4 @@ ADD ./elasticsearch/load/ /data/elasticsearch/load/
 ENV ES_HOME /opt/elasticsearch
 WORKDIR ${ES_HOME}
 ADD ./elasticsearch-analysis-ik-8.3.3 ${ES_HOME}/plugins/elasticsearch-analysis-ik-8.3.3
+RUN sudo ${ES_HOME}/bin/elasticsearch-plugin install analysis-icu
