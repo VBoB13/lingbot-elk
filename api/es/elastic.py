@@ -554,7 +554,6 @@ class LingtelliElastic(Elasticsearch):
         This method is the go-to search method for most use cases for our
         Lingtelli services.
         """
-
         try:
             if not self._index_exists(doc.vendor_id):
                 lang = get_language(doc.match.search_term)
@@ -563,12 +562,18 @@ class LingtelliElastic(Elasticsearch):
                     doc.vendor_id)
                 self.logger.info()
                 raise self.logger
-            resp = self.search(doc)
+
+            phrase_doc = SearchPhraseDoc(
+                vendor_id=doc.vendor_id, match_phrase=doc.match.search_term)
+            resp = self.search_phrase(phrase_doc)
             # self.logger.msg = "QA search:"
             # self.logger.info(extra_msg=str(str(resp)))
         except ElasticError as err:
-            self.logger.error(extra_msg=str(err))
-            raise self.logger from err
+            try:
+                resp = self.search(doc)
+            except ElasticError as err:
+                self.logger.error(extra_msg=str(err))
+                raise self.logger from err
 
         except Exception as err:
             self.logger.error(extra_msg=str(err))
