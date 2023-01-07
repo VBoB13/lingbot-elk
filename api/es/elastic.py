@@ -299,8 +299,8 @@ class LingtelliElastic(Elasticsearch):
                 return set([item['token'] for item in json_resp['tokens']])
 
         self.logger.msg = "Got a non-200 code from Elasticsearch!"
-        self.logger.error(extra_msg="Got code: {}\nReason: {}".format(
-            Fore.LIGHTRED_EX + str(response.status_code) + Fore.RESET, response.reason))
+        self.logger.error(extra_msg="Got code: {} Reason: {} Content: {}".format(
+            Fore.LIGHTRED_EX + str(response.status_code) + Fore.RESET, response.reason, response.text))
         raise self.logger
 
     def get(self, doc: DocID_Must):
