@@ -42,8 +42,10 @@ class QueryMaker(object):
         3. The terms must appear next to each other.
         """
         subquery = {}
-        subquery.update({self.known_indices[doc.vendor_id]["context"]: {
-            "query": doc.match_phrase}})
+        context_field = self.known_indices[doc.vendor_id]["context"]
+        if doc.vendor_id.endswith("-qa"):
+            context_field = "q"
+        subquery.update({context_field: {"query": doc.match_phrase}})
         self.query.update({"match_phrase": subquery})
 
     def create_query(self, doc: SearchDocument):
