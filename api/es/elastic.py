@@ -414,7 +414,7 @@ class LingtelliElastic(Elasticsearch):
         qa_doc.vendor_id += "-qa"
         qa_doc.match.name = "q"
         qa_doc.match.min_should_match = ceil(
-            (len(self.analyze(qa_doc.match.search_term)) / 2))
+            len(self.analyze(qa_doc.match.search_term)))
         qa_doc = SearchDocument(
             vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
