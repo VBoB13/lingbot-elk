@@ -19,7 +19,7 @@ from helpers import TODAY
 from settings.settings import LOG_DIR
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, DEFAULT_SEARCH_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE
+from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE
 
 
 class LingtelliElastic(Elasticsearch):
@@ -564,7 +564,7 @@ class LingtelliElastic(Elasticsearch):
                                             "q": {
                                                 "type": "text",
                                                 "analyzer": DEFAULT_ANALYZER,
-                                                "search_analyzer": DEFAULT_SEARCH_ANALYZER
+                                                "search_analyzer": DEFAULT_ANALYZER
                                             },
                                             "a": {
                                                 "type": "text",
