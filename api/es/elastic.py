@@ -53,11 +53,25 @@ class LingtelliElastic(Elasticsearch):
                             "content": {
                                 "type": "text",
                                 "analyzer": DEFAULT_ANALYZER,
-                                "search_analyzer": DEFAULT_SEARCH_ANALYZER
+                                "search_analyzer": DEFAULT_ANALYZER
                             }
                         }
                     },
                     "settings": {
+                        "analysis": {
+                            "filter": {
+                                "nfkc_normalizer": {
+                                    "type": "icu_normalizer",
+                                    "name": "nfkc"
+                                }
+                            },
+                            "analyzer": {
+                                DEFAULT_ANALYZER: {
+                                    "tokenizer": "icu_tokenizer",
+                                    "filter":  ["nfkc_normalizer"]
+                                }
+                            }
+                        },
                         "index": {
                             "number_of_shards": 3,
                             "number_of_replicas": 1
