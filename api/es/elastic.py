@@ -408,21 +408,9 @@ class LingtelliElastic(Elasticsearch):
         This method is the standard 'search' method combined with GPT-3 DaVinci AI model
         to generate full-fledged answers to almost every question.
         """
-        # Save 'QA' vendor_id within another variable
-        # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
-        qa_doc = doc.copy(exclude={'strict', }, deep=True)
-        qa_doc.vendor_id += "-qa"
-        qa_doc.match.name = "q"
-        qa_doc.match.min_should_match = ceil(
-            len(self.analyze(qa_doc.match.search_term)))
-        qa_doc = SearchDocument(
-            vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
         try:
-            self.logger.msg = "Searching within %s with document: " % qa_doc.vendor_id + \
-                str(qa_doc)
-            self.logger.info()
-            resp = self.search_qa(qa_doc)
+            resp = self.search_qa(doc)
         except ElasticError as err:
             try:
                 resp = self.search(doc)
@@ -534,12 +522,26 @@ class LingtelliElastic(Elasticsearch):
         This method is the go-to search method for most use cases for our
         Lingtelli services.
         """
+        # Save 'QA' vendor_id within another variable
+        # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
+        qa_doc = doc.copy(exclude={'strict', }, deep=True)
+        del doc
+        qa_doc.vendor_id += "-qa"
+        qa_doc.match.name = "q"
+        qa_doc.match.min_should_match = ceil(
+            len(self.analyze(qa_doc.match.search_term)))
+        qa_doc = SearchDocument(
+            vendor_id=qa_doc.vendor_id, match=qa_doc.match)
+
+        self.logger.msg = "Searching within %s with document: " % qa_doc.vendor_id + \
+            str(qa_doc)
+        self.logger.info()
 
         try:
-            if not self._index_exists(doc.vendor_id):
-                lang = get_language(doc.match.search_term)
+            if not self._index_exists(qa_doc.vendor_id):
+                lang = get_language(qa_doc.match.search_term)
                 if lang == "CH":
-                    self.indices.create(index=doc.vendor_id, mappings={
+                    self.indices.create(index=qa_doc.vendor_id, mappings={
                                         "properties": {
                                             "q": {
                                                 "type": "text",
@@ -551,7 +553,7 @@ class LingtelliElastic(Elasticsearch):
                                                 "index": "false"
                                             }}})
                 elif lang == "EN":
-                    self.indices.create(index=doc.vendor_id, mappings={
+                    self.indices.create(index=qa_doc.vendor_id, mappings={
                                         "properties": {
                                             "q": {
                                                 "type": "text"
@@ -561,10 +563,10 @@ class LingtelliElastic(Elasticsearch):
                                                 "index": "false"
                                             }}})
                 self.logger.msg = "Index created: {}".format(
-                    doc.vendor_id)
+                    qa_doc.vendor_id)
                 self.logger.info()
                 raise self.logger
-            resp = self.search(doc)
+            resp = self.search(qa_doc)
             # self.logger.msg = "QA search:"
             # self.logger.info(extra_msg=str(str(resp)))
         except ElasticError as err:
