@@ -295,7 +295,7 @@ class LingtelliElastic(Elasticsearch):
             new_hits.append(new_hit)
         return new_hits
 
-    def analyze(self, text: str, analyzer: str = 'ik_smart') -> set:
+    def analyze(self, text: str, analyzer: str = DEFAULT_ANALYZER) -> set:
         """
         Method meant to be used as a shortcut for requesting
         segmented results from Elasticsearch analyzers.
