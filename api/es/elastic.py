@@ -35,7 +35,9 @@ class LingtelliElastic(Elasticsearch):
             raise self.logger from err
 
         self.known_indices = self._get_mappings()
-        self.logger.info("Success!")
+        self.logger.msg = "Elasticsearch client initialized " + \
+            Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
+        self.logger.info()
         self.docs_found = True
 
     def _create_index(self, index: str, language: str = "CH"):
@@ -178,7 +180,7 @@ class LingtelliElastic(Elasticsearch):
             raise self.logger from err
         else:
             if not resp.ok:
-                self.logger.msg = "ELK server responded with code" + \
+                self.logger.msg = "ELK server responded with code " + \
                     Fore.LIGHTRED_EX + resp.status_code + Fore.RESET + "!"
                 self.logger.error()
                 raise self.logger
@@ -296,13 +298,8 @@ class LingtelliElastic(Elasticsearch):
         if response.ok:
             json_resp = response.json()
             if json_resp.get('tokens', None):
-                tokens = list([item['token'] for item in json_resp['tokens']])
-                unique_tokens = set(tokens)
-                for token in unique_tokens:
-                    tokens.remove(token)
-                self.logger.msg = "Duplicate tokens: {}".format(str(tokens))
-                self.logger.info()
-                return unique_tokens
+                return set([item['token']
+                            for item in json_resp['tokens']])
 
         self.logger.msg = "Got a non-200 code from Elasticsearch!"
         self.logger.error(extra_msg="Got code: {} Reason: {} Content: {}".format(
