@@ -205,14 +205,14 @@ class LingtelliElastic(Elasticsearch):
 
         return final_mapping
 
-    def _get_query(self) -> dict:
+    def _get_query(self, doc) -> dict:
         queryObj = QueryMaker(self.known_indices)
-        if isinstance(self.doc, SearchDocTimeRange):
-            queryObj.create_query_from_timestamps(self.doc.start, self.doc.end)
-        elif isinstance(self.doc, SearchDocument):
-            queryObj.create_query(self.doc)
-        elif isinstance(self.doc, SearchPhraseDoc):
-            queryObj.create_phrase_query(self.doc)
+        if isinstance(doc, SearchDocTimeRange):
+            queryObj.create_query_from_timestamps(doc.start, doc.end)
+        elif isinstance(doc, SearchDocument):
+            queryObj.create_query(doc)
+        elif isinstance(doc, SearchPhraseDoc):
+            queryObj.create_phrase_query(doc)
         # TODO: Add more situations / contexts here.
         return dict(queryObj)
 
@@ -387,7 +387,7 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.error("Index {} does NOT exist!".format(
                     doc.vendor_id))
                 raise self.logger
-            query = self._get_query()
+            query = self._get_query(doc)
             resp = super().search(index=doc.vendor_id, query=query)
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
@@ -516,7 +516,7 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.error(
                     extra_msg="Index {} does NOT exist!".format(doc.vendor_id))
                 raise self.logger
-            query = self._get_query()
+            query = self._get_query(doc)
             resp = super().search(index=doc.vendor_id, query=query)
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
@@ -594,7 +594,7 @@ class LingtelliElastic(Elasticsearch):
         'doc.vendor_id'.
         """
         try:
-            query = self._get_query()
+            query = self._get_query(doc)
             resp = super().search(index=doc.vendor_id, query=query)
         except Exception as err:
             self.logger.msg = "Could not search for documents!"
