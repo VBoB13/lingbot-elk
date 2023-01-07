@@ -6,7 +6,6 @@ from pprint import pprint
 from colorama import Fore
 from datetime import datetime
 from typing import Any, List, Dict
-from math import ceil
 
 import requests
 from elasticsearch import Elasticsearch
@@ -299,8 +298,9 @@ class LingtelliElastic(Elasticsearch):
             if json_resp.get('tokens', None):
                 tokens = list([item['token'] for item in json_resp['tokens']])
                 unique_tokens = set(tokens)
-                self.logger.msg = "Duplicate tokens: {}".format(
-                    str(tokens - unique_tokens))
+                for token in unique_tokens:
+                    tokens.remove(token)
+                self.logger.msg = "Duplicate tokens: {}".format(str(tokens))
                 self.logger.info()
                 return unique_tokens
 
