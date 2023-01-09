@@ -48,15 +48,6 @@ class LingtelliElastic(Elasticsearch):
         if not self._index_exists(index):
             if language == "CH":
                 settings.update({
-                    "mappings": {
-                        "properties": {
-                            "content": {
-                                "type": "text",
-                                "analyzer": DEFAULT_ANALYZER,
-                                "search_analyzer": DEFAULT_ANALYZER
-                            }
-                        }
-                    },
                     "settings": {
                         "analysis": {
                             "filter": {
@@ -75,6 +66,15 @@ class LingtelliElastic(Elasticsearch):
                         "index": {
                             "number_of_shards": 3,
                             "number_of_replicas": 1
+                        }
+                    },
+                    "mappings": {
+                        "properties": {
+                            "content": {
+                                "type": "text",
+                                "analyzer": DEFAULT_ANALYZER,
+                                "search_analyzer": DEFAULT_ANALYZER
+                            }
                         }
                     }
                 })
