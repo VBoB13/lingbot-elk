@@ -320,6 +320,23 @@ class LingtelliElastic(Elasticsearch):
             Fore.LIGHTRED_EX + str(response.status_code) + Fore.RESET, response.reason, response.text))
         raise self.logger
 
+    def delete_index(self, index: str) -> None:
+        """
+        Method for deleting an index.
+        """
+        if self.index_exists(index):
+            try:
+                super().indices.delete(index=index)
+            except Exception as err:
+                self.logger.msg = "Something went wrong when trying to delete the index <%s>!" % index
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger
+            else:
+                self.logger.msg = Fore.LIGHTGREEN_EX + "Successfully" + \
+                    Fore.RESET + " deleted index: %s" % index
+                self.logger.info()
+                return
+
     def get(self, doc: DocID_Must):
         """
         This method attempts to retrieve a single document from Elasticsearch

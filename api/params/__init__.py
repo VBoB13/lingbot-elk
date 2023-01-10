@@ -2,6 +2,8 @@
 
 DESCRIPTIONS = {
     "/get": "Endpoint for getting single documents according to vendor_id & doc_id.",
+    # Delete
+    "/delete": "Endpoint for deleting whole indices.",
     # Save
     "/save": "Endpoint used for saving documents.",
     # Search
