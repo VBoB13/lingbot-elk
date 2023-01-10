@@ -35,7 +35,7 @@ def enter_values(separated: bool) -> SearchGPT:
 if __name__ == "__main__":
     more = True
     more = question_check("Test GPT3 session memory? (Y/N): ")
-    all_answers = []
+    all_qa = []
     while more:
         separately = question_check(
             "Want to enter the values separately? (Y/N): ")
@@ -49,12 +49,14 @@ if __name__ == "__main__":
             if more:
                 continue
             break
-        all_answers.append(response)
+        all_qa.append({"q": data.match.search_term, "a": response})
         # Ask if user wants to test more
         more = question_check("Want to do more tests? (Y/N): ")
     print_all = question_check("Print all results from all tests? (Y/N): ")
     if print_all:
-        for num, answer in enumerate(all_answers):
+        for num, answer in enumerate(all_qa):
+            logger.msg = "Question #%s: " % str(num+1) + answer["q"]
+            logger.info()
             logger.msg = "Answer #%s: " % str(
-                num+1) + Fore.LIGHTCYAN_EX + answer + Fore.RESET
+                num+1) + answer["a"]
             logger.info()
