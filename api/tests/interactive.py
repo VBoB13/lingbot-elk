@@ -40,7 +40,15 @@ if __name__ == "__main__":
         separately = question_check(
             "Want to enter the values separately? (Y/N): ")
         data = enter_values(separately)
-        response = es.search_gpt(data)
+        try:
+            response = es.search_gpt(data)
+        except Exception as err:
+            logger.msg = "Could NOT test GPT service!"
+            logger.error(extra_msg=str(err), orgErr=err)
+            more = question_check("Try again? (Y/N): ")
+            if more:
+                continue
+            break
         all_answers.append(response)
         # Ask if user wants to test more
         more = question_check("Want to do more tests? (Y/N): ")
