@@ -55,5 +55,6 @@ if __name__ == "__main__":
     print_all = question_check("Print all results from all tests? (Y/N): ")
     if print_all:
         for num, answer in enumerate(all_answers):
-            logger.msg = "Answer #%s: " % num+1 + Fore.LIGHTCYAN_EX + answer + Fore.RESET
+            logger.msg = "Answer #%s: " % str(
+                num+1) + Fore.LIGHTCYAN_EX + answer + Fore.RESET
             logger.info()
