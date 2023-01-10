@@ -326,16 +326,24 @@ class LingtelliElastic(Elasticsearch):
         """
         if self.index_exists(index):
             try:
-                super().indices.delete(index=index)
+                resp = requests.delete(
+                    "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/%s" % index)
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to delete the index <%s>!" % index
                 self.logger.error(extra_msg=str(err), orgErr=err)
                 raise self.logger
             else:
-                self.logger.msg = Fore.LIGHTGREEN_EX + "Successfully" + \
-                    Fore.RESET + " deleted index: %s" % index
-                self.logger.info()
-                return
+                if resp.ok:
+                    self.logger.msg = Fore.LIGHTGREEN_EX + "Successfully" + \
+                        Fore.RESET + " deleted index: %s" % index
+                    self.logger.info()
+                    return
+                else:
+                    code = Fore.LIGHTRED_EX + resp.status_code + Fore.RESET
+                    self.logger.msg = "Got a " + Fore.LIGHTRED_EX + "NOT-OK " + \
+                        Fore.RESET + "response code from Elasticsearch: %s" % code
+                    self.logger.error()
+                    raise self.logger
 
     def get(self, doc: DocID_Must):
         """
