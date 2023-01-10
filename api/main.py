@@ -29,7 +29,7 @@ async def delete_index(vendor: Vendor):
     try:
         es = LingtelliElastic()
         es.delete_index(vendor.vendor_id)
-        return ElkServiceResponse(content={"msg": "Index deleted.", "data": vendor.vendor_id}, status_code=status.HTTP_205_RESET_CONTENT)
+        return ElkServiceResponse(content={"msg": "Index deleted.", "data": vendor.vendor_id}, status_code=status.HTTP_200_OK)
     except Exception as err:
         logger.msg = "Could NOT delete index <%s>!" % vendor.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
