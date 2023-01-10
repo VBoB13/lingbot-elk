@@ -327,7 +327,7 @@ class LingtelliElastic(Elasticsearch):
         if self.index_exists(index):
             try:
                 resp = requests.delete(
-                    "http://" + ELASTIC_IP + ":" + ELASTIC_PORT + "/%s" % index)
+                    "http://" + ELASTIC_IP + ":" + str(ELASTIC_PORT) + "/%s" % index)
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to delete the index <%s>!" % index
                 self.logger.error(extra_msg=str(err), orgErr=err)
