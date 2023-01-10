@@ -767,7 +767,7 @@ class WordDocumentReader(object):
         Method that extract the text from a .docx file.
         """
         chunks = []
-
+        failed_chunks = []
         doc = None
 
         # TODO: Solve the File -> temp. file -> parsing execution
@@ -788,14 +788,29 @@ class WordDocumentReader(object):
         for par in doc.paragraphs:
             chunks.append(par.text)
 
+            failed_chunks.append(par.text)
+
         for index, chunk in enumerate(chunks):
             if index < (len(chunks) - 1):
                 if chunk != '':
                     continue
-                all_text.append("".join(chunks[last_pos:index]))
+                text_chunk = "".join(chunks[last_pos:index])
+                if 50 >= len(text_chunk) <= 500:
+                    all_text.append(text_chunk)
+                else:
+                    failed_chunks.append(text_chunk)
                 last_pos = index
             elif index == (len(chunks) - 1) and chunk != '':
                 all_text.append("".join(chunks[last_pos + 1:]))
+
+        WordDocumentReader.logger.msg = "Unable to add the following text chunks to ELK:"
+        WordDocumentReader.logger.warn(
+            extra_msg="Number of text chunks: %s" % str(len(failed_chunks)))
+
+        for chunk in failed_chunks:
+            WordDocumentReader.logger.msg = chunk
+            WordDocumentReader.logger.warn(
+                extra_msg="Limit: 50 >= content <= 500 || Got length: %s" % str(len(chunk)))
 
         return all_text
 
