@@ -40,13 +40,69 @@ class LingtelliElastic(Elasticsearch):
         self.logger.info()
         self.docs_found = True
 
-    def _create_index(self, index: str, language: str = "CH"):
+    def _check_mappings(self, mappings: dict, language: str = "CH") -> dict:
+        """
+        Method for simply checking so that the format of the custom 'mappings'
+        object has the correct formatting.
+        Not to be totally confused with the real 'mappings' object for ELK,
+        as I aim to make this part ONLY about the fields themselves.
+        \nIf you have 2 fields, for which a mappings object looks as follows:
+        `{`
+            `"<field_1_name>": {"type": "['text' | 'keyword' | 'integer']"},`\n
+            `"<field_2_name>": {"type": "['text' | 'keyword' | 'integer']"}`
+        `}`
+        """
+        final_mappings = {}
+        if not isinstance(mappings, dict):
+            self.logger.msg = "'mappings' parameter needs to be of type " + \
+                Fore.LIGHTYELLOW_EX + "dict" + Fore.RESET + "!"
+            self.logger.error(extra_msg="Got type: %s" %
+                              type(mappings).__name__)
+            raise self.logger
+
+        for key, value in mappings.items():
+            final_mappings[key] = value
+
+            if not isinstance(value, dict):
+                self.logger.msg = "'%s' value parameter needs to be of type " % key + \
+                    Fore.LIGHTYELLOW_EX + "dict" + Fore.RESET + "!"
+                self.logger.error(extra_msg="Got type: %s" %
+                                  type(value).__name__)
+
+            type_str = value.get('type', None)
+            if not type_str:
+                self.logger.msg = "'%s' missing parameter 'type'!" % key
+                self.logger.error()
+                raise self.logger
+
+            if language == "CH":
+                if type_str in ['text', 'keywords']:
+                    if not value.get('analyzer', None):
+                        final_mappings[key]['analyzer'] = DEFAULT_ANALYZER
+                        self.logger.msg = "Added 'analyzer' key with proper values to mappings."
+                        self.logger.warn()
+                    if not value.get('search_analyzer', None):
+                        final_mappings[key]['search_analyzer'] = DEFAULT_ANALYZER
+                        self.logger.msg = "Added 'search_analyzer' key with proper values to mappings."
+                        self.logger.warn()
+
+        return final_mappings
+
+    def _create_index(self, index: str, language: str = "CH", mappings: dict | None = None):
         """
         Method for creating an index when it doesn't exist.
         """
         settings = {}
         if not self._index_exists(index):
             if language == "CH":
+                final_mapping = {"content": {
+                    "type": "text",
+                    "analyzer": DEFAULT_ANALYZER,
+                    "search_analyzer": DEFAULT_ANALYZER
+                }}
+                if mappings is not None:
+                    final_mapping = self._check_mappings(
+                        mappings, language=language)
                 settings.update({
                     "settings": {
                         "analysis": {
@@ -69,23 +125,17 @@ class LingtelliElastic(Elasticsearch):
                         }
                     },
                     "mappings": {
-                        "properties": {
-                            "content": {
-                                "type": "text",
-                                "analyzer": DEFAULT_ANALYZER,
-                                "search_analyzer": DEFAULT_ANALYZER
-                            }
-                        }
+                        "properties": final_mapping
                     }
                 })
             else:
+                final_mapping = {"content": {"type": "text"}}
+                if mappings is not None:
+                    final_mapping = self._check_mappings(
+                        mappings, language=language)
                 settings.update({
                     "mappings": {
-                        "properties": {
-                            "content": {
-                                "type": "text"
-                            }
-                        }
+                        "properties": final_mapping
                     },
                     "settings": {
                         "index": {
