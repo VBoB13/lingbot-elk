@@ -141,11 +141,15 @@ Takes the content of the list and returns a doctionary formatted as:\n
                 "fields": [{
                     "name": "content",
                     "value": doc.content,
-                    "type": "string"
+                    "type": "text",
+                    "main": True,
+                    "searchable": True
                 }, {
                     "name": "source",
                     "value": self.source,
-                    "type": "string"
+                    "type": "keyword",
+                    "main": False,
+                    "searchable": True
                 }]})
 
         # pprint(final_list)

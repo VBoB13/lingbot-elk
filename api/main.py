@@ -49,6 +49,19 @@ async def save_doc(doc: ElasticDoc):
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@app.post("/save-bulk", response_model=BasicResponse, description=DESCRIPTIONS["/save-bulk"])
+async def save_bulk(docs: list[ElasticDoc]):
+    global logger
+    logger.cls = "main.py:save_bulk"
+    try:
+        es = LingtelliElastic()
+        result = es.save_bulk(docs)
+        return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
+    except Exception as err:
+        logger.error(extra_msg=str(err), orgErr=err)
+        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @app.post("/get", description=DESCRIPTIONS["/get"])
 async def get_doc(doc: DocID_Must):
     global logger

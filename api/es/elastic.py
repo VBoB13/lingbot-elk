@@ -16,10 +16,9 @@ from errors.errors import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
 from helpers.helpers import get_language
 from helpers import TODAY
-from settings.settings import LOG_DIR
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE
+from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE, TEXT_FIELD_TYPES, NUMBER_FIELD_TYPES
 
 
 class LingtelliElastic(Elasticsearch):
@@ -88,7 +87,7 @@ class LingtelliElastic(Elasticsearch):
 
         return final_mappings
 
-    def _create_index(self, index: str, language: str = "CH", mappings: dict | None = None):
+    def _create_index(self, index: str, main_field: str, language: str = "CH", mappings: dict | None = None):
         """
         Method for creating an index when it doesn't exist.
         """
@@ -125,6 +124,7 @@ class LingtelliElastic(Elasticsearch):
                         }
                     },
                     "mappings": {
+                        "_meta": {"main_field": main_field},
                         "properties": final_mapping
                     }
                 })
@@ -135,6 +135,7 @@ class LingtelliElastic(Elasticsearch):
                         mappings, language=language)
                 settings.update({
                     "mappings": {
+                        "_meta": {"main_field": main_field},
                         "properties": final_mapping
                     },
                     "settings": {
@@ -157,8 +158,9 @@ class LingtelliElastic(Elasticsearch):
                                          ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=json.dumps(settings), headers={"Content-Type": "application/json"})
 
             except Exception as err:
-                self.logger.msg = "Could not create a new index (%s)!" % index
-                self.logger.error(extra_msg=str(err), orgErr=err)
+                self.logger.msg = "Could not create a new index (%s)\nReason: %s!" % index, str(
+                    err)
+                self.logger.error(orgErr=err)
                 raise self.logger from err
             else:
                 if response.ok:
@@ -264,13 +266,17 @@ class LingtelliElastic(Elasticsearch):
 
         final_mapping = {}
         for index in mappings.keys():
-            for field in mappings[index]["mappings"]["properties"].keys():
-                if mappings[index]["mappings"]["properties"][field].get('type', None) \
-                        and mappings[index]["mappings"]["properties"][field]["type"] == "text":
-                    if index.endswith('-qa') and field == "a":
-                        final_mapping.update({index: {"context": field}})
-                    elif field == "content":
-                        final_mapping.update({index: {"context": field}})
+            if mappings[index]["mappings"].get('_meta', None):
+                final_mapping.update(
+                    {index: {"context": mappings[index]["mappings"]["_meta"]}})
+            else:
+                for field in mappings[index]["mappings"]["properties"].keys():
+                    if mappings[index]["mappings"]["properties"][field].get('type', None) \
+                            and mappings[index]["mappings"]["properties"][field]["type"] == "text":
+                        if index.endswith('-qa') and field == "a":
+                            final_mapping.update({index: {"context": field}})
+                        elif field == "content":
+                            final_mapping.update({index: {"context": field}})
 
         # self.logger.msg = "Final mapping:\n%s" % final_mapping
         # self.logger.info()
@@ -355,7 +361,6 @@ class LingtelliElastic(Elasticsearch):
         """
         Method meant to be used as a shortcut for requesting
         segmented results from Elasticsearch analyzers.
-        Default analyzer: `ik_smart`
         """
         data = {
             "analyzer": analyzer,
@@ -458,15 +463,19 @@ class LingtelliElastic(Elasticsearch):
         """
         update_index = None
         total_length = 0
+        mappings = {}
         for i, doc in enumerate(docs):
             total_length += len(doc["fields"][0]["value"])
             if i == 0:
                 lang = get_language(doc["fields"][0]["value"])
                 update_index = doc["vendor_id"]
-                self._create_index(update_index, language=lang)
+                for field in doc.fields:
+                    mappings.update({field.name: {"type": field.type}})
+                self._create_index(
+                    update_index, doc.main, language=lang, mappings=mappings)
             self.save(doc)
             time.sleep(0.05)
-        time.sleep(0.95)
+        time.sleep(1)
         if update_index is not None:
             self.update_index({"vendor_id": update_index})
             log_data = f"{date_to_str(TODAY)} [{update_index}] : {len(docs)} documents with {total_length} characters in total."
@@ -639,7 +648,7 @@ class LingtelliElastic(Elasticsearch):
         try:
             if not self._index_exists(doc.vendor_id):
                 lang = get_language(doc.match.search_term)
-                self._create_index(doc.vendor_id, language=lang)
+                self._create_index(doc.vendor_id, "a", language=lang)
                 self.logger.msg = "Index created: {}".format(
                     doc.vendor_id)
                 self.logger.info()

@@ -5,7 +5,8 @@ DESCRIPTIONS = {
     # Delete
     "/delete": "Endpoint for deleting whole indices.",
     # Save
-    "/save": "Endpoint used for saving documents.",
+    "/save": "Endpoint used for saving a single document.",
+    "/save-bulk": "Endpoint for saving multiple documents.",
     # Search
     "/search": "Endpoint used for searching for documents in Elasticsearch.",
     "/search-gpt": "Endpoint used for searching for documents in Elasticsearch, then providing results as context and retrieving answer from GPT-3 DaVinci AI model.",
