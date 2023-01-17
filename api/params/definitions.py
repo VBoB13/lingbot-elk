@@ -62,6 +62,7 @@ class Field(BaseModel):
 
 class ElasticDoc(Vendor):
     fields: list[Field]
+    source: str = ""
 
 
 class SearchField(BaseModel):

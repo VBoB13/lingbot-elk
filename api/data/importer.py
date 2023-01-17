@@ -566,16 +566,17 @@ class CSVLoader(object):
         if not os.path.isdir(TEMP_DIR + f"/{self.index}"):
             os.mkdir(os.path.join(TEMP_DIR, f"{self.index}"))
         if isinstance(file, UploadFile):
+            filename = file.filename
             temp_name = TEMP_DIR + f"/{self.index}/" + f"{str(file.filename)}"
         else:
+            filename = file
             temp_name = TEMP_DIR + f"/{self.index}/" + f"{file}"
 
         with open(temp_name, "w+b") as tempfile:
             tempfile.write(file.file.read())
-        file = temp_name
 
         try:
-            with open(file) as fileObj:
+            with open(temp_name) as fileObj:
                 for row in fileObj.readlines():
                     content.append(str(row))
         except Exception as err:
@@ -586,7 +587,7 @@ class CSVLoader(object):
             self.logger.msg = "Content loaded!"
             self.logger.info(extra_msg=str(content))
 
-        return TIIPDocumentList(content)
+        return TIIPDocumentList(content, source=filename)
 
     def save_bulk(self):
         self.logger.msg = "Attempting to save {} document(s)...".format(

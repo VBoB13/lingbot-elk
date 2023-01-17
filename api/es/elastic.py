@@ -95,6 +95,13 @@ class LingtelliElastic(Elasticsearch):
                     }
                 })
 
+            # Add 'source' field if we're not creating a '-qa' index
+            if not index.endswith("-qa"):
+                settings["mappings"]["properties"].update({
+                    "source": {"type": "keyword"}
+                })
+
+            # Make the HTTP request to create index
             try:
                 response = requests.post('http://' +
                                          ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=json.dumps(settings), headers={"Content-Type": "application/json"})
@@ -251,11 +258,10 @@ class LingtelliElastic(Elasticsearch):
         today = datetime.now(tz=get_tz())
         today_str = date_to_str(today)
         if not check_timestamp(today_str):
-            errObj = ElasticError(
-                __file__, self.__class__.__name__, "Timestamp is not in the correct format!")
-            errObj.error()
-            raise errObj
-        document.update({"timestamp": today_str})
+            self.logger.msg = "Timestamp is not in the correct format!"
+            self.logger.error()
+            raise self.logger
+        document.update({"timestamp": today_str, "source": doc.source})
 
         return document
 
@@ -381,7 +387,8 @@ class LingtelliElastic(Elasticsearch):
         This method attempts to safely save document into Elasticsearch.
         """
         if type(doc).__name__ == 'dict':
-            doc = ElasticDoc(vendor_id=doc["vendor_id"], fields=doc["fields"])
+            doc = ElasticDoc(
+                vendor_id=doc["vendor_id"], fields=doc["fields"], source=doc["source"])
         try:
             self.doc = self._level_docs(doc)
             resp = self.index(index=doc.vendor_id,
@@ -408,8 +415,8 @@ class LingtelliElastic(Elasticsearch):
                 update_index = doc["vendor_id"]
                 self._create_index(update_index, language=lang)
             self.save(doc)
-            time.sleep(0.1)
-        time.sleep(1)
+            time.sleep(0.05)
+        time.sleep(0.95)
         if update_index is not None:
             self.update_index({"vendor_id": update_index})
             log_data = f"{date_to_str(TODAY)} [{update_index}] : {len(docs)} documents with {total_length} characters in total."

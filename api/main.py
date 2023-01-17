@@ -153,7 +153,7 @@ async def upload_docx(index: str, file: UploadFile):
             # Receive and parse the .docx file
             content_list = WordDocumentReader().extract_text(index, file)
             # Convert into document list
-            doc_list = TIIPDocumentList(content_list)
+            doc_list = TIIPDocumentList(content_list, source=file.filename)
             # Convert into ELK format
             elk_doc_list = doc_list.to_json(index)
             # Create client instance and save documents
@@ -171,7 +171,7 @@ async def upload_docx(index: str, file: UploadFile):
             logger.info(
                 extra_msg="{} documents were saved!".format(len(doc_list)))
 
-        return ElkServiceResponse(content={"msg": "Document successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_202_ACCEPTED)
+        return ElkServiceResponse(content={"msg": "Document successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_200_OK)
 
 
 if __name__ == "__main__":

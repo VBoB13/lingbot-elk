@@ -81,11 +81,14 @@ class TIIPDocumentList(list):
     TIIP's different application information documents.
     """
 
-    def __init__(self, init_list: list = []):
+    def __init__(self, init_list: list = [], source: str = "N/A"):
         self.logger = DataError(__file__, self.__class__.__name__)
+        self.source = source
         if len(init_list) > 0:
             self._load_list_arg(init_list)
         else:
+            self.logger.msg = "Initializing empty list."
+            self.logger.warn()
             super().__init__([])
 
     def __iter__(self) -> Iterator[TIIPDocument]:
@@ -138,6 +141,10 @@ Takes the content of the list and returns a doctionary formatted as:\n
                 "fields": [{
                     "name": "content",
                     "value": doc.content,
+                    "type": "string"
+                }, {
+                    "name": "source",
+                    "value": self.source,
                     "type": "string"
                 }]})
 
