@@ -441,9 +441,9 @@ class LingtelliElastic(Elasticsearch):
         """
         This method attempts to safely save document into Elasticsearch.
         """
-        if type(doc).__name__ == 'dict':
+        if isinstance(doc, dict):
             doc = ElasticDoc(
-                vendor_id=doc["vendor_id"], fields=doc["fields"], source=doc["source"])
+                vendor_id=doc["vendor_id"], fields=doc["fields"], source=doc["source"], main=doc.get('main', ''))
         try:
             self.doc = self._level_docs(doc)
             resp = self.index(index=doc.vendor_id,
@@ -573,6 +573,8 @@ class LingtelliElastic(Elasticsearch):
 
                 qa_data = {
                     'vendor_id': qa_doc.vendor_id,
+                    'source': 'GPT3',
+                    'main': 'q',
                     'fields': [{
                         'name': 'q',
                         'value': qa_doc.match.search_term,
