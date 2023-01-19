@@ -469,8 +469,8 @@ class LingtelliElastic(Elasticsearch):
             if i == 0:
                 lang = get_language(doc["fields"][0]["value"])
                 update_index = doc["vendor_id"]
-                for field in doc.fields:
-                    mappings.update({field.name: {"type": field.type}})
+                for field in doc["fields"]:
+                    mappings.update({field["name"]: {"type": field["type"]}})
                 self._create_index(
                     update_index, doc.main, language=lang, mappings=mappings)
             self.save(doc)
