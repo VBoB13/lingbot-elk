@@ -472,7 +472,7 @@ class LingtelliElastic(Elasticsearch):
                 for field in doc["fields"]:
                     mappings.update({field["name"]: {"type": field["type"]}})
                 self._create_index(
-                    update_index, doc.main, language=lang, mappings=mappings)
+                    update_index, doc["main"], language=lang, mappings=mappings)
             self.save(doc)
             time.sleep(0.05)
         time.sleep(1)
