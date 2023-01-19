@@ -456,7 +456,7 @@ class LingtelliElastic(Elasticsearch):
 
         return resp['result']
 
-    def save_bulk(self, docs: list[ElasticDoc | dict]):
+    def save_bulk(self, docs: list[ElasticDoc | dict], main_field: str):
         """
         This method attempts to safely save a list of documents
         into Elasticsearch.
@@ -470,9 +470,11 @@ class LingtelliElastic(Elasticsearch):
                 lang = get_language(doc["fields"][0]["value"])
                 update_index = doc["vendor_id"]
                 for field in doc["fields"]:
+                    if len(doc["fields"]) == 1:
+                        main_field = doc["fields"][0]["name"]
                     mappings.update({field["name"]: {"type": field["type"]}})
                 self._create_index(
-                    update_index, doc["main"], language=lang, mappings=mappings)
+                    update_index, main_field, language=lang, mappings=mappings)
             self.save(doc)
             time.sleep(0.05)
         time.sleep(1)

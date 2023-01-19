@@ -593,7 +593,7 @@ class CSVLoader(object):
         self.logger.msg = "Attempting to save {} document(s)...".format(
             len(self.output))
         try:
-            self.client.save_bulk(self.output)
+            self.client.save_bulk(self.output, 'content')
         except Exception as err:
             self.logger.msg = "Unable to save documents to Elasticsearch!"
             self.logger.error(extra_msg=str(err), orgErr=err)
