@@ -586,7 +586,7 @@ class CSVLoader(object):
             raise self.logger from err
         else:
             self.logger.msg = "Content loaded!"
-            self.logger.info(extra_msg=str(content))
+            self.logger.info()
 
         return TIIPDocumentList(content, source=filename)
 
