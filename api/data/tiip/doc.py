@@ -1,3 +1,4 @@
+from fastapi import UploadFile
 from typing import Iterator, Tuple
 from colorama import Fore
 
@@ -134,6 +135,8 @@ Takes the content of the list and returns a doctionary formatted as:\n
             self.logger.error()
             raise self.logger
 
+        if isinstance(source, UploadFile):
+            source = source.filename
         if len(source) == 0 and len(self.source) > 0:
             source = self.source
 
