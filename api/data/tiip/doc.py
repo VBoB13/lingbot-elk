@@ -85,7 +85,7 @@ class TIIPDocumentList(list):
     def __init__(self, init_list: list = [], source: str = ""):
         self.logger = DataError(__file__, self.__class__.__name__)
         self.source = source.filename if isinstance(
-            source, UploadFile) else source
+            source, UploadFile) else str(source)
         if len(init_list) > 0:
             self._load_list_arg(init_list)
         else:
