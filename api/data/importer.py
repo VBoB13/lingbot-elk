@@ -536,10 +536,8 @@ class CSVLoader(object):
             self.logger.error(extra_msg="No content loaded.")
             raise self.logger
 
-        self.logger.msg = Fore.LIGHTCYAN_EX + "CSV content type:" + \
+        self.logger.msg = Fore.LIGHTCYAN_EX + "CSV content type: " + \
             Fore.RESET + type(self.contents).__name__
-        self.logger.info(extra_msg=Fore.RED + "CSV contents:\n" +
-                         Fore.RESET + str(self.contents))
 
         if not self.client.index_exists(self.index):
             try:
