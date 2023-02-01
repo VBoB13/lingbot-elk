@@ -576,17 +576,26 @@ class LingtelliElastic(Elasticsearch):
 
                 qa_data = {
                     'vendor_id': qa_doc.vendor_id,
-                    'source': 'GPT3',
-                    'main': 'q',
                     'fields': [{
                         'name': 'q',
                         'value': qa_doc.match.search_term,
-                        'type': 'string'
+                        'type': 'string',
+                        'main': True,
+                        'searchable': True
                     },
                         {
                         'name': 'a',
                         'value': gpt3.results,
-                        'type': 'string'
+                        'type': 'string',
+                        'main': False,
+                        'searchable': False
+                    },
+                        {
+                        'name': 'source',
+                        'value': 'GPT-3',
+                        'type': 'string',
+                        'main': False,
+                        'searchable': True
                     }]
                 }
 
