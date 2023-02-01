@@ -134,11 +134,13 @@ Takes the content of the list and returns a doctionary formatted as:\n
             self.logger.error()
             raise self.logger
 
+        if len(source) == 0 and len(self.source) > 0:
+            source = self.source
+
         final_list = []
         for doc in self.__iter__():
             final_list.append({
                 "vendor_id": index,
-                "source": source,
                 "fields": [{
                     "name": "content",
                     "value": doc.content,
@@ -147,7 +149,7 @@ Takes the content of the list and returns a doctionary formatted as:\n
                     "searchable": True
                 }, {
                     "name": "source",
-                    "value": self.source,
+                    "value": source,
                     "type": "keyword",
                     "main": False,
                     "searchable": True

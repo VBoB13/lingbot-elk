@@ -58,13 +58,12 @@ class Field(BaseModel):
     name: str
     value: str | int
     type: str | None = None
+    main: bool
     searchable: bool = True
 
 
 class ElasticDoc(Vendor):
     fields: list[Field]
-    main: str
-    source: str = ""
 
 
 class SearchField(BaseModel):
