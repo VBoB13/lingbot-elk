@@ -445,7 +445,7 @@ class LingtelliElastic(Elasticsearch):
         """
         if isinstance(doc, dict):
             doc = ElasticDoc(
-                vendor_id=doc["vendor_id"], fields=doc["fields"])
+                vendor_id=doc["vendor_id"], fields=doc["fields"], source=doc["source"])
         try:
             self.doc = self._level_docs(doc)
             resp = self.index(index=doc.vendor_id,
@@ -472,8 +472,8 @@ class LingtelliElastic(Elasticsearch):
                 lang = get_language(doc["fields"][0]["value"])
                 update_index = doc["vendor_id"]
                 for field in doc["fields"]:
-                    if len(doc["fields"]) == 1:
-                        main_field = doc["fields"][0]["name"]
+                    if field["main"] == True:
+                        main_field = field["name"]
                     mappings.update({field["name"]: {"type": field["type"]}})
                 self._create_index(
                     update_index, main_field, language=lang, mappings=mappings)
