@@ -136,10 +136,11 @@ Takes the content of the list and returns a doctionary formatted as:\n
             self.logger.error()
             raise self.logger
 
-        if isinstance(source, UploadFile):
-            source = str(source.filename)
-        if isinstance(self.source, UploadFile):
-            self.source = str(self.source.filename)
+        source = str(source.filename) if isinstance(
+            source, UploadFile) else source
+        self.source = str(self.source.filename) if isinstance(
+            self.source, UploadFile) else self.source
+
         if len(source) == 0 and len(self.source) > 0:
             source = self.source
 
