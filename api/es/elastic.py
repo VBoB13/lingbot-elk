@@ -309,7 +309,6 @@ class LingtelliElastic(Elasticsearch):
             else:
                 document.update({obj.name: str(obj.value)})
 
-            document.update({"source": obj.source})
         # In the future, this is still going to be added.
         # if doc.doc_id:
         #     document.update({"id": doc.doc_id})
