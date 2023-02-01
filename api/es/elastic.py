@@ -308,6 +308,8 @@ class LingtelliElastic(Elasticsearch):
                 document.update({obj.name: int(obj.value)})
             else:
                 document.update({obj.name: str(obj.value)})
+
+            document.update({"source": obj.source})
         # In the future, this is still going to be added.
         # if doc.doc_id:
         #     document.update({"id": doc.doc_id})
@@ -317,7 +319,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.msg = "Timestamp is not in the correct format!"
             self.logger.error()
             raise self.logger
-        document.update({"timestamp": today_str, "source": doc.source})
+        document.update({"timestamp": today_str})
 
         return document
 
