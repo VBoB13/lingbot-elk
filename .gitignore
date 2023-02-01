@@ -8,3 +8,5 @@ api/data/tiip/docs
 
 
 **/data/*.json
+
+**.coverage
