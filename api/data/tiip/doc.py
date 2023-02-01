@@ -1,4 +1,4 @@
-from fastapi import UploadFile
+from starlette.datastructures import UploadFile
 from typing import Iterator, Tuple
 from colorama import Fore
 
