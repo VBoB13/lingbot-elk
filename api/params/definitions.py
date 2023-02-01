@@ -60,6 +60,7 @@ class Field(BaseModel):
     type: str | None = None
     main: bool
     searchable: bool = True
+    source: str
 
 
 class ElasticDoc(Vendor):
