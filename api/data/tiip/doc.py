@@ -137,9 +137,9 @@ Takes the content of the list and returns a doctionary formatted as:\n
             raise self.logger
 
         if isinstance(source, UploadFile):
-            source = source.filename
+            source = str(source.filename)
         if isinstance(self.source, UploadFile):
-            self.source = self.source.filename
+            self.source = str(self.source.filename)
         if len(source) == 0 and len(self.source) > 0:
             source = self.source
 
