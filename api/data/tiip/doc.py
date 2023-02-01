@@ -118,7 +118,7 @@ class TIIPDocumentList(list):
             raise self.logger
         super().append(obj)
 
-    def to_json(self, index: str) -> list[ElasticDoc]:
+    def to_json(self, index: str, source: str = "") -> list[ElasticDoc]:
         """
 Takes the content of the list and returns a doctionary formatted as:\n
 `{"vendor_id": index,\n
@@ -138,6 +138,7 @@ Takes the content of the list and returns a doctionary formatted as:\n
         for doc in self.__iter__():
             final_list.append({
                 "vendor_id": index,
+                "source": source,
                 "fields": [{
                     "name": "content",
                     "value": doc.content,

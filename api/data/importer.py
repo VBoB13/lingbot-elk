@@ -494,6 +494,7 @@ class CSVLoader(object):
         """Takes a filename/path as string to load its content into TIIPDocument objects."""
         self.logger = DataError(__file__, self.__class__.__name__)
         self.index = index
+        self.source = ""
         self.client = LingtelliElastic()
         self.contents = TIIPDocumentList()
         try:
@@ -553,7 +554,7 @@ class CSVLoader(object):
                 self.logger.error(extra_msg=str(err), orgErr=err)
                 raise self.logger from err
 
-        self.output = self.contents.to_json(self.index)
+        self.output = self.contents.to_json(self.index, self.source)
 
     def _load_csv(self, file: str | UploadFile) -> TIIPDocumentList[TIIPDocument]:
         """
@@ -571,6 +572,8 @@ class CSVLoader(object):
         else:
             filename = file
             temp_name = TEMP_DIR + f"/{self.index}/" + f"{file}"
+
+        self.source = filename
 
         with open(temp_name, "w+b") as tempfile:
             tempfile.write(file.file.read())
