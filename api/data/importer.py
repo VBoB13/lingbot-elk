@@ -579,9 +579,8 @@ class CSVLoader(object):
                 tempfile.write(file.file.read())
         else:
             with open(temp_name, "w+b") as tempfile:
-                f = open(file, 'rb')
-                tempfile.write(f.read())
-                f.close()
+                with open(file, 'rb') as f:
+                    tempfile.write(f.read())
         try:
             with open(temp_name) as fileObj:
                 for row in fileObj.readlines():
