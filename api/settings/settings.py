@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from helpers.helpers import get_local_ip
+from api.helpers.helpers import get_local_ip
 
 BASE_DIR = os.getcwd()
 

@@ -5,9 +5,9 @@ from traceback import print_tb, format_tb
 from colorama import Fore
 from gettext import gettext as translate
 from typing import Dict
-from stats import COLUMN_NAMES
+from api.stats import COLUMN_NAMES
 
-from settings.settings import BASE_DIR, LOG_DIR
+from api.settings.settings import BASE_DIR, LOG_DIR
 
 
 class BaseError(Exception):

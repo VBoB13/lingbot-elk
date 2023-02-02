@@ -2,8 +2,8 @@ from starlette.datastructures import UploadFile
 from typing import Iterator, Tuple
 from colorama import Fore
 
-from params.definitions import ElasticDoc
-from errors.errors import DataError
+from api.params.definitions import ElasticDoc
+from api.errors.errors import DataError
 
 
 class DocumentPosSeparator(object):

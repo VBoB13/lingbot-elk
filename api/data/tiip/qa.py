@@ -4,8 +4,8 @@ from pprint import pprint
 from typing import List, Iterator
 from colorama import Fore
 
-from params.definitions import ElasticDoc
-from errors.errors import DataError
+from api.params.definitions import ElasticDoc
+from api.errors.errors import DataError
 
 
 class TIIP_QA_Pair(object):

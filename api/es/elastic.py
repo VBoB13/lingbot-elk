@@ -10,14 +10,14 @@ from typing import Any, List, Dict
 import requests
 from elasticsearch import Elasticsearch
 
-from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
+from api.params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
     Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT
-from errors.errors import ElasticError
-from helpers.times import check_timestamp, get_tz, date_to_str
-from helpers.helpers import get_language
-from helpers import TODAY
-from es.query import QueryMaker
-from es.gpt3 import GPT3Request
+from api.errors.errors import ElasticError
+from api.helpers.times import check_timestamp, get_tz, date_to_str
+from api.helpers.helpers import get_language
+from api.helpers import TODAY
+from api.es.query import QueryMaker
+from api.es.gpt3 import GPT3Request
 from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE, TEXT_FIELD_TYPES, NUMBER_FIELD_TYPES
 
 
