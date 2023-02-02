@@ -26,7 +26,7 @@ class LingtelliElastic(Elasticsearch):
         self.logger = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
             ELASTIC_IP, ELASTIC_PORT))
         try:
-            super().__init__([{"scheme": "http://", "host": ELASTIC_IP, "port": ELASTIC_PORT}],
+            super().__init__([{"scheme": "http", "host": ELASTIC_IP, "port": ELASTIC_PORT}],
                              max_retries=30, retry_on_timeout=True, request_timeout=30)
         except Exception as err:
             self.logger.msg = "Initialization of Elasticsearch client FAILED!"
