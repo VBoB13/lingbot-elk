@@ -569,7 +569,7 @@ class CSVLoader(object):
             temp_name = os.path.join(TEMP_DIR, self.index, str(file.filename))
         else:
             filename = file
-            temp_name = os.pth.join(TEMP_DIR, self.index, file)
+            temp_name = os.path.join(TEMP_DIR, self.index, file)
 
         self.source = filename
 
