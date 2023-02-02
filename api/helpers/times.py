@@ -5,7 +5,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 
-from api.errors.errors import HelperError
+from errors.errors import HelperError
 
 
 def check_timestamp(date_str: str) -> bool:

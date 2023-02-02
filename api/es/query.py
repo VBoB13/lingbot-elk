@@ -1,8 +1,8 @@
 # This file contains code related to [search]query making for Elasticsearch.
 
-from api.params.definitions import SearchDocument, SearchPhraseDoc
-from api.errors.errors import ElasticError
-from api.helpers.times import check_timestamp
+from params.definitions import SearchDocument, SearchPhraseDoc
+from errors.errors import ElasticError
+from helpers.times import check_timestamp
 
 
 class QueryMaker(object):

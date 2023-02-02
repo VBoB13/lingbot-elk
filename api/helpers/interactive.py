@@ -3,8 +3,8 @@ This module is made to make certain interactive choices when running singular sc
 within the project (especially file loaders).
 """
 
-from api.helpers import INTERACTIVE_ANSWERS, YES_ANSWERS
-from api.errors.errors import HelperError
+from helpers import INTERACTIVE_ANSWERS, YES_ANSWERS
+from errors.errors import HelperError
 
 
 def question_check(question: str) -> bool:

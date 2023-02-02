@@ -17,17 +17,17 @@ from ftplib import FTP
 from docx import Document
 from docx.package import Package
 
-from api.errors.errors import DataError
-from api.settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR, TEMP_DIR
-from api.data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH, TIIP_FTP_SERVER, TIIP_FTP_ACC, TIIP_FTP_PASS
-from api.data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
-from api.data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
-from api.es.elastic import LingtelliElastic
-from api.es import TIIP_INDEX
-from api.helpers.helpers import get_language
-from api.helpers.interactive import question_check
-from api.helpers.times import date_to_str
-from api.helpers import TODAY, YESTERDAY
+from errors.errors import DataError
+from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR, TEMP_DIR
+from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH, TIIP_FTP_SERVER, TIIP_FTP_ACC, TIIP_FTP_PASS
+from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
+from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
+from es.elastic import LingtelliElastic
+from es import TIIP_INDEX
+from helpers.helpers import get_language
+from helpers.interactive import question_check
+from helpers.times import date_to_str
+from helpers import TODAY, YESTERDAY
 
 
 class PDFImporter(PdfReader):

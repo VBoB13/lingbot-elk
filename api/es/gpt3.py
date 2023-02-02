@@ -8,8 +8,8 @@ import json
 import time
 from colorama import Fore
 
-from api.errors.errors import ElasticError
-from api.settings.settings import GPT3_SERVER, GPT3_PORT
+from errors.errors import ElasticError
+from settings.settings import GPT3_SERVER, GPT3_PORT
 
 
 class GPT3Request(object):
