@@ -19,7 +19,7 @@ class TestELK:
         assert self.client.index_exists(self.index) == False
         try:
             self.client._create_index(
-                self.index, 'content', 'CH', mappings=self.mappings)
+                self.index, 'content', language='CH', mappings=self.mappings)
         except Exception as err:
             raise AssertionError('Index could NOT be created...') from err
 
