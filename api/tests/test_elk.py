@@ -23,6 +23,9 @@ class TestELK:
         except Exception as err:
             raise AssertionError('Index could NOT be created...') from err
 
+        else:
+            self.client.update_index({'vendor_id': self.index})
+
         assert self.client.index_exists(self.index) == True
         self.client.delete_index(self.index)
         assert self.client.index_exists(self.index) == False
