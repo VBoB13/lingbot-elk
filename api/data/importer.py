@@ -5,12 +5,10 @@
 # PDF files within the /data folder.
 import glob
 import os
-import io
 import json
-from tempfile import TemporaryFile
 from typing import Iterator, List
 from datetime import datetime, timedelta
-from fastapi import UploadFile
+from starlette.datastructures import UploadFile
 
 from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
