@@ -3,17 +3,13 @@
 
 from es.elastic import LingtelliElastic
 from settings.settings import TIIP_CSV_DIR
-from api.data.importer import CSVLoader
-from api.params.definitions import SearchDocument, SearchField
+from data.importer import CSVLoader
+from params.definitions import SearchDocument, SearchField
 
 
 class TestELK:
 
     client = LingtelliElastic()
-
-    def test_answer():
-        # Test a normal answer from Chat-GPT.
-        return
 
     def test_index(self):
         self.index = 'random-test-index'
@@ -57,11 +53,3 @@ class TestELK:
         assert len(results["hits"]) == 0
         self.client.delete_index(self.index)
         assert self.client.index_exists(self.index) == False
-
-    def test_QA(self):
-        # Test a '-qa' index and check for answers.
-        return
-
-    def test_question(self):
-        # Test a normal question to Chat-GPT
-        return
