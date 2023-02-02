@@ -5,6 +5,7 @@
 # PDF files within the /data folder.
 import glob
 import os
+import io
 import json
 from tempfile import TemporaryFile
 from typing import Iterator, List
@@ -573,9 +574,14 @@ class CSVLoader(object):
 
         self.source = filename
 
-        with open(temp_name, "w+b") as tempfile:
-            tempfile.write(file.file.read())
-
+        if isinstance(file, UploadFile):
+            with open(temp_name, "w+b") as tempfile:
+                tempfile.write(file.file.read())
+        else:
+            with open(temp_name, "w+b") as tempfile:
+                f = open(file, 'rb')
+                tempfile.write(f.read())
+                f.close()
         try:
             with open(temp_name) as fileObj:
                 for row in fileObj.readlines():
