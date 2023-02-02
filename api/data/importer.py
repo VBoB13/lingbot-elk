@@ -566,10 +566,10 @@ class CSVLoader(object):
             os.mkdir(os.path.join(TEMP_DIR, f"{self.index}"))
         if isinstance(file, UploadFile):
             filename = file.filename
-            temp_name = TEMP_DIR + f"/{self.index}/" + f"{str(file.filename)}"
+            temp_name = os.path.join(TEMP_DIR, self.index, str(file.filename))
         else:
             filename = file
-            temp_name = TEMP_DIR + f"/{self.index}/" + f"{file}"
+            temp_name = os.pth.join(TEMP_DIR, self.index, file)
 
         self.source = filename
 
