@@ -1,5 +1,5 @@
 # This module is meant to test so that functionalities within the
-# GPT-3 project and its API is working as intended without crashing.
+# ELK part of the GPT-3 project is working as intended without crashing.
 
 
 def test_question():
