@@ -40,7 +40,6 @@ class TestELK:
 
         csv_object = CSVLoader(self.index, TIIP_CSV_DIR + '/' + self.source)
         csv_object.save_bulk()
-        del csv_object
         assert self.client.index_exists(self.index) == True
         self.doc = SearchDocument(
             vendor_id=self.index,
