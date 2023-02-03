@@ -6,6 +6,7 @@
 import glob
 import os
 import json
+import shutil
 from typing import Iterator, List
 from datetime import datetime, timedelta
 from starlette.datastructures import UploadFile
@@ -575,20 +576,29 @@ class CSVLoader(object):
         self.source = file.filename
         temp_name = os.path.join(TEMP_DIR, self.index, self.source)
 
-        with open(temp_name, "wb",) as tempfile:
-            tempfile.writelines(file.file.readlines())
-
+        # Save file's content into a temp. file
         try:
-            with open(temp_name, "rb") as fileObj:
-                for row in fileObj.readlines():
-                    content.append(str(row))
+            with open(temp_name, 'wb') as f:
+                shutil.copyfileobj(file.file, f)
         except Exception as err:
-            self.logger.msg = "Could not create string contents from CSV file!"
-            self.logger.error(extra_msg=str(err), orgErr=err)
+            self.logger.msg = "Something went wrong when trying to copy contents of file!"
+            self.logger.error(orgErr=err)
             raise self.logger from err
         else:
-            self.logger.msg = "Content loaded!"
-            self.logger.info()
+            # Retrieve the content of the file and save into 'content' attr.
+            try:
+                with open(temp_name, "rb") as fileObj:
+                    for row in fileObj.readlines():
+                        content.append(str(row))
+            except Exception as err:
+                self.logger.msg = "Could not create string contents from CSV file!"
+                self.logger.error(orgErr=err)
+                raise self.logger from err
+            else:
+                self.logger.msg = "Content loaded!"
+                self.logger.info()
+        finally:
+            file.file.close()
 
         return TIIPDocumentList(content, source=self.source)
 
