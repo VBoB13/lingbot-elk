@@ -572,7 +572,7 @@ class CSVLoader(object):
         try:
             with open(temp_name, "rb") as fileObj:
                 for row in fileObj.readlines():
-                    content.append(str(row))
+                    content.append(row.decode('utf-8'))
         except Exception as err:
             self.logger.msg = "Could not create string contents from CSV file!"
             self.logger.error(orgErr=err)
