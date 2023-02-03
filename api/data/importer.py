@@ -581,12 +581,12 @@ class CSVLoader(object):
         else:
             self.logger.msg = "File is of type %s" % type(file).__name__
             self.logger.info()
-            with open(filename, 'rb') as f:
-                with open(temp_name, "w+b") as tempfile:
-                    txt = f.read()
-                    self.logger.msg = "Adding content:\n %s" % str(txt)
-                    self.logger.info()
-                    tempfile.write(txt)
+            file = UploadFile(filename=file)
+            with open(temp_name, "w+b") as tempfile:
+                txt = file.file.read()
+                self.logger.msg = "Adding content:\n %s" % str(txt)
+                self.logger.info()
+                tempfile.write(txt)
         try:
             with open(temp_name) as fileObj:
                 for row in fileObj.readlines():
