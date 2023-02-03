@@ -568,18 +568,15 @@ class CSVLoader(object):
             self.logger.msg = "File is of type %s" % type(file).__name__
             self.logger.info()
             file = UploadFile(filename=file)
-
         else:
             self.logger.msg = "File is of type UploadFile!"
             self.logger.info(extra_msg="See?: %s" % type(file).__name__)
 
-        filename = file.filename
-        self.source = filename
-        temp_name = os.path.join(TEMP_DIR, self.index, filename)
+        self.source = file.filename
+        temp_name = os.path.join(TEMP_DIR, self.index, self.source)
 
         with open(temp_name, "w+b") as tempfile:
-            file.file.seek(0)
-            tempfile.write(file.file.read())
+            tempfile.writelines(file.file.readlines())
 
         try:
             with open(temp_name) as fileObj:
@@ -593,7 +590,7 @@ class CSVLoader(object):
             self.logger.msg = "Content loaded!"
             self.logger.info()
 
-        return TIIPDocumentList(content, source=filename)
+        return TIIPDocumentList(content, source=self.source)
 
     def save_bulk(self):
         self.logger.msg = "Attempting to save {} document(s)...".format(
@@ -823,13 +820,13 @@ class WordDocumentReader(object):
 
 
 if __name__ == "__main__":
-    ftp = TIIPFTPReader()
-    ftp.check_new_content()
+    # ftp = TIIPFTPReader()
+    # ftp.check_new_content()
 
-    # ## Load CSV and save into ELK ###
-    # csv = CSVLoader("7caed8a9-9c02-3b4e-a8eb-94ed959b9b6e",
-    #                 "/opt/api/data/tiip/csv/EBR.csv")
-    # csv.save_bulk()
+    ## Load CSV and save into ELK ###
+    csv = CSVLoader("test-index-for-csv-upload",
+                    "/opt/api/data/tiip/csv/通用.csv")
+    csv.save_bulk()
 
     # CSV IMPORT
     # try:
