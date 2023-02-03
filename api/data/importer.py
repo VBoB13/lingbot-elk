@@ -575,7 +575,7 @@ class CSVLoader(object):
         self.source = file.filename
         temp_name = os.path.join(TEMP_DIR, self.index, self.source)
 
-        with open(temp_name, "w+b") as tempfile:
+        with open(temp_name, "wb",) as tempfile:
             tempfile.writelines(file.file.readlines())
 
         try:
