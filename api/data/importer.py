@@ -580,8 +580,8 @@ class CSVLoader(object):
         else:
             self.logger.msg = "File is of type %s" % type(file).__name__
             self.logger.info()
-            with open(temp_name, "w+b") as tempfile:
-                with open(filename, 'rb') as f:
+            with open(filename, 'rb') as f:
+                with open(temp_name, "w+b") as tempfile:
                     tempfile.write(f.read())
         try:
             with open(temp_name, "rb") as fileObj:
