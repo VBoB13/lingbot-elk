@@ -579,7 +579,7 @@ class CSVLoader(object):
             tempfile.writelines(file.file.readlines())
 
         try:
-            with open(temp_name) as fileObj:
+            with open(temp_name, "rb") as fileObj:
                 for row in fileObj.readlines():
                     content.append(str(row))
         except Exception as err:
