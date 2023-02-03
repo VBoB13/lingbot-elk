@@ -6,7 +6,7 @@
 import glob
 import os
 import json
-import shutil
+
 from typing import Iterator, List
 from datetime import datetime, timedelta
 from starlette.datastructures import UploadFile
@@ -490,7 +490,7 @@ class CSVLoader(object):
     `file:<str>` : Filepath to .csv file to be loaded.
     """
 
-    def __init__(self, index: str, file: str | UploadFile = None) -> None:
+    def __init__(self, index: str, file: str) -> None:
         """Takes a filename/path as string to load its content into TIIPDocument objects."""
         self.logger = DataError(__file__, self.__class__.__name__)
         self.index = index
@@ -554,7 +554,7 @@ class CSVLoader(object):
 
         self.output = self.contents.to_json(self.index, self.source)
 
-    def _load_csv(self, file: str | UploadFile) -> TIIPDocumentList[TIIPDocument]:
+    def _load_csv(self, file: str) -> TIIPDocumentList[TIIPDocument]:
         """
         Method that loads the content of a .csv file into the attribute
         `self.contents`
@@ -565,40 +565,21 @@ class CSVLoader(object):
         if not os.path.isdir(TEMP_DIR + f"/{self.index}"):
             os.mkdir(os.path.join(TEMP_DIR, f"{self.index}"))
 
-        if not isinstance(file, UploadFile):
-            self.logger.msg = "File is of type %s" % type(file).__name__
-            self.logger.info()
-            file = UploadFile(filename=file)
-        else:
-            self.logger.msg = "File is of type UploadFile!"
-            self.logger.info(extra_msg="See?: %s" % type(file).__name__)
-
-        self.source = file.filename
+        self.source = os.path.split(file)[1]
         temp_name = os.path.join(TEMP_DIR, self.index, self.source)
 
-        # Save file's content into a temp. file
+        # Retrieve file's content from temp. file
         try:
-            with open(temp_name, 'wb') as f:
-                shutil.copyfileobj(file.file, f)
+            with open(temp_name, "rb") as fileObj:
+                for row in fileObj.readlines():
+                    content.append(str(row))
         except Exception as err:
-            self.logger.msg = "Something went wrong when trying to copy contents of file!"
+            self.logger.msg = "Could not create string contents from CSV file!"
             self.logger.error(orgErr=err)
             raise self.logger from err
         else:
-            # Retrieve the content of the file and save into 'content' attr.
-            try:
-                with open(temp_name, "rb") as fileObj:
-                    for row in fileObj.readlines():
-                        content.append(str(row))
-            except Exception as err:
-                self.logger.msg = "Could not create string contents from CSV file!"
-                self.logger.error(orgErr=err)
-                raise self.logger from err
-            else:
-                self.logger.msg = "Content loaded!"
-                self.logger.info()
-        finally:
-            file.file.close()
+            self.logger.msg = "Content loaded!"
+            self.logger.info()
 
         return TIIPDocumentList(content, source=self.source)
 

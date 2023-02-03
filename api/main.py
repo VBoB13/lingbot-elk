@@ -1,5 +1,6 @@
 import os
 import uvicorn
+import shutil
 
 from fastapi import FastAPI, status, BackgroundTasks, UploadFile
 
@@ -8,6 +9,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     DocID_Must, BasicResponse, SearchResponse, \
     SearchPhraseDoc, SearchGPT, Vendor
 from es.elastic import LingtelliElastic
+from settings.settings import TEMP_DIR
 from helpers.reqres import ElkServiceResponse
 from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
 from errors.errors import BaseError
@@ -136,24 +138,43 @@ async def search_doc_timerange(doc: SearchDocTimeRange):
 
 
 @app.post("/upload/csv", description=DESCRIPTIONS["/upload/csv"])
-async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
+def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
     global logger
     logger.cls = "main.py:upload_csv"
     try:
         # Recieve and parse the csv file
+        # Check for correct file type
         if file and file.filename.endswith(".csv"):
-            csv_obj = CSVLoader(index, file)
-            bg_tasks.add_task(csv_obj.save_bulk)
+            temp_name = os.path.join(TEMP_DIR, index, file.filename)
+            try:
+                # Copy contents into a temporary file
+                with open(temp_name, 'wb') as f:
+                    shutil.copyfileobj(file.file, f)
+            except Exception as err:
+                logger.msg = "Something went wrong when trying to copy contents of file!"
+                logger.error(orgErr=err)
+                raise logger from err
+            else:
+                # Load the contents of the temp. file
+                csv_obj = CSVLoader(index, temp_name)
+                bg_tasks.add_task(csv_obj.save_bulk)
+            finally:
+                # Close file for read/write
+                file.file.close()
+                # Remove temp. file from system
+                os.remove(temp_name)
         else:
             logger.msg = "File must be of type '.csv'; not '.{}'!".format(
                 file.filename.split(".")[1])
             logger.error()
             raise logger
+
     except Exception as err:
         logger.msg = "Could not save CSV content into Elasticsearch!"
         logger.error(orgErr=err)
         logger.save_log(index, str(logger))
         raise logger from err
+
     return ElkServiceResponse(content={"msg": "Documents successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_202_ACCEPTED)
 
 
