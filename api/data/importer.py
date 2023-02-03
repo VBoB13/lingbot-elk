@@ -564,15 +564,6 @@ class CSVLoader(object):
         if not os.path.isdir(TEMP_DIR + f"/{self.index}"):
             os.mkdir(os.path.join(TEMP_DIR, f"{self.index}"))
 
-        if isinstance(file, UploadFile):
-            filename = file.filename
-        else:
-            filename = file
-
-        temp_name = os.path.join(TEMP_DIR, self.index, filename)
-
-        self.source = filename
-
         if not isinstance(file, UploadFile):
             self.logger.msg = "File is of type %s" % type(file).__name__
             self.logger.info()
@@ -582,7 +573,12 @@ class CSVLoader(object):
             self.logger.msg = "File is of type UploadFile!"
             self.logger.info(extra_msg="See?: %s" % type(file).__name__)
 
+        filename = file.filename
+        self.source = filename
+        temp_name = os.path.join(TEMP_DIR, self.index, filename)
+
         with open(temp_name, "w+b") as tempfile:
+            file.file.seek(0)
             tempfile.write(file.file.read())
 
         try:
