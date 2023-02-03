@@ -1,5 +1,6 @@
 # This module is meant to test so that functionalities within the
 # ELK part of the GPT-3 project is working as intended without crashing.
+import time
 
 from es.elastic import LingtelliElastic
 from settings.settings import TIIP_CSV_DIR
@@ -10,12 +11,12 @@ from params.definitions import SearchDocument, SearchField
 class TestELK:
 
     client = LingtelliElastic()
+    index = 'random-test-index'
+    mappings = {
+        "content": {"type": "text"}
+    }
 
-    def test_index(self):
-        self.index = 'random-test-index'
-        self.mappings = {
-            "content": {"type": "text"}
-        }
+    def test_index_create_delete(self):
         assert self.client.index_exists(self.index) == False
         try:
             self.client._create_index(
@@ -24,11 +25,12 @@ class TestELK:
             raise AssertionError('Index could NOT be created...') from err
 
         else:
+            time.sleep(2)
             self.client.update_index({'vendor_id': self.index})
-
-        assert self.client.index_exists(self.index) == True
-        self.client.delete_index(self.index)
-        assert self.client.index_exists(self.index) == False
+            assert self.client.index_exists(self.index) == True
+            self.client.delete_index(self.index)
+            time.sleep(2)
+            assert self.client.index_exists(self.index) == False
 
     def test_delete_source(self):
         # Test deleting documents from a specific source (file)
