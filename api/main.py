@@ -136,7 +136,7 @@ async def search_doc_timerange(doc: SearchDocTimeRange):
 
 
 @app.post("/upload/csv", description=DESCRIPTIONS["/upload/csv"])
-async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
+def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
     global logger
     logger.cls = "main.py:upload_csv"
     try:

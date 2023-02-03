@@ -532,7 +532,7 @@ class CSVLoader(object):
         # No content? Can't proceed.
         if len(self.contents) == 0:
             self.logger.msg = "No content available!"
-            self.logger.error(extra_msg="No content loaded.")
+            self.logger.error()
             raise self.logger
 
         self.logger.msg = Fore.LIGHTCYAN_EX + "CSV content type: " + \
