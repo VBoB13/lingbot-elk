@@ -582,7 +582,8 @@ class CSVLoader(object):
             self.logger.info()
             with open(temp_name, "w+b") as tempfile:
                 with open(file, 'rb',) as f:
-                    tempfile.write(f.read())
+                    file_content = f.read()
+                    tempfile.write(file_content)
         try:
             with open(temp_name) as fileObj:
                 for row in fileObj.readlines():
