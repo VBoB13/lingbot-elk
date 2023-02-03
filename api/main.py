@@ -165,6 +165,7 @@ def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
                 # Close file for read/write
                 file.file.close()
                 # Remove the temp. file afterwards
+                os.remove(temp_name)
                 os.rmdir(os.path.join(TEMP_DIR, index))
 
         else:
