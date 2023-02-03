@@ -164,6 +164,8 @@ def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
             finally:
                 # Close file for read/write
                 file.file.close()
+                # Remove the temp. file afterwards
+                os.rmdir(os.path.join(TEMP_DIR, index))
 
         else:
             logger.msg = "File must be of type '.csv'; not '.{}'!".format(
