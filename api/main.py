@@ -146,6 +146,9 @@ def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
         # Check for correct file type
         if file and file.filename.endswith(".csv"):
             temp_name = os.path.join(TEMP_DIR, index, file.filename)
+            if not os.path.isdir(os.path.join(TEMP_DIR, index)):
+                os.mkdir(os.path.join(TEMP_DIR, index))
+
             try:
                 # Copy contents into a temporary file
                 with open(temp_name, 'xb') as f:
