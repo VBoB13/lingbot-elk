@@ -148,7 +148,7 @@ def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
             temp_name = os.path.join(TEMP_DIR, index, file.filename)
             try:
                 # Copy contents into a temporary file
-                with open(temp_name, 'wb') as f:
+                with open(temp_name, 'xb') as f:
                     shutil.copyfileobj(file.file, f)
             except Exception as err:
                 logger.msg = "Something went wrong when trying to copy contents of file!"
