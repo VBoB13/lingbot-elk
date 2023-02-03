@@ -10,13 +10,13 @@ from params.definitions import SearchDocument, SearchField
 
 class TestELK:
 
-    client = LingtelliElastic()
     index = 'random-test-index'
     mappings = {
         "content": {"type": "text"}
     }
 
     def test_index_create_delete(self):
+        self.client = LingtelliElastic()
         assert self.client.index_exists(self.index) == False
         try:
             self.client._create_index(
@@ -34,10 +34,8 @@ class TestELK:
 
     def test_delete_source(self):
         # Test deleting documents from a specific source (file)
+        self.client = LingtelliElastic()
         self.index = 'test-del-source-index'
-        self.mappings = {
-            "content": {"type": "text"}
-        }
         self.source = '通用.csv'
 
         csv_object = CSVLoader(self.index, TIIP_CSV_DIR + '/' + self.source)
