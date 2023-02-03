@@ -574,8 +574,9 @@ class CSVLoader(object):
 
         if isinstance(file, UploadFile):
             self.logger.msg = "File is of type UploadFile!"
-            self.logger.info()
+            self.logger.info(extra_msg="Type: %s" % type(file).__name__)
             with open(temp_name, "w+b") as tempfile:
+                file.file.seek(0)
                 tempfile.write(file.file.read())
         else:
             self.logger.msg = "File is of type %s" % type(file).__name__
