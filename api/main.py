@@ -217,18 +217,21 @@ async def upload_docx(index: str, file: UploadFile):
 
 def test_upload_csv():
     index = "test-upload-csv-index"
+    # Create file object to throw to endpoint
     files = {'file': open(os.path.join(TIIP_CSV_DIR, '通用.csv'), 'rb')}
     response = test_client.post('/upload/csv?index=%s' % index, files=files)
     check_result = {
         "msg": "Documents successfully uploaded & saved into ELK (index: %s)!" % index}
-    try:
-        assert check_result == response.json()
-    except AssertionError:
-        elk_client = LingtelliElastic()
-        if elk_client.index_exists(index):
-            data = {'vendor_id': index}
-            response = test_client.post("/delete", data=data)
-            assert response.json() == {"msg": "Index deleted.", "data": index}
+
+    assert check_result == response.json()
+
+    # Initiate ELK client
+    elk_client = LingtelliElastic()
+    if elk_client.index_exists(index):
+        data = {'vendor_id': index}
+        # Delete index if it exists
+        response = test_client.post("/delete", data=data)
+        assert response.json() == {"msg": "Index deleted.", "data": index}
 
 
 if __name__ == "__main__":
