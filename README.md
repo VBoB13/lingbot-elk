@@ -25,20 +25,40 @@ mappings and shard/replica settings on **each node** (if multiple) by entering t
 ```
 PUT <YOUR_INDEX_HERE>
 {
-  "mappings": {
-    "properties": {
-      "content": {
-        "type": "text",
-        "analyzer": "ik_max_word",
-        "search_analyzer": "ik_smart"
+  "settings": {
+      "analysis": {
+          "filter": {
+              "nfkc_normalizer": {
+                  "type": "icu_normalizer",
+                  "name": "nfkc"
+              }
+          },
+          "analyzer": {
+              "icu_analyzer": {
+                  "tokenizer": "icu_tokenizer",
+                  "filter":  ["nfkc_normalizer"]
+              }
+          }
+      },
+      "index": {
+          "number_of_shards": 3,
+          "number_of_replicas": 1
       }
-    }
   },
-  "settings" : {
-    "index" : {
-      "number_of_shards" : 3,
-      "number_of_replicas" : 1
-    }
+  "mappings": {
+      "_meta": {"main_field": main_field},
+      "properties": {"content": {
+                      "type": "text",
+                      "analyzer": "icu_analyzer",
+                      "search_analyzer": "icu_analyzer"
+                      }
+                    }
   }
 }
 ```
+
+## Testing
+
+You can easily test the API and its functions by using `pytest`.
+To test the API, use the following command:
+`sudo docker exec -it elk_api python3 -m pytest test_api.py`
