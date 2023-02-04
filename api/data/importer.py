@@ -233,7 +233,7 @@ class TIIPDocImporter(PDFImporter):
                 if len(match_list) == 0:
                     # self.logger.msg = "Could NOT find any matches for pattern object {}!".format(
                     #     str(pattern_obj))
-                    # self.logger.warn()
+                    # self.logger.warning()
                     continue
 
                 # Print out matched objects
@@ -245,7 +245,7 @@ class TIIPDocImporter(PDFImporter):
                             DocumentPosSeparator((self.text.index(match, start, end), len(match))))
                     except ValueError:
                         self.logger.msg = "Could not get index!"
-                        self.logger.warn(
+                        self.logger.warning(
                             extra_msg="Tried to get index for match: {}".format(match))
                         continue
 
@@ -505,7 +505,7 @@ class CSVLoader(object):
             raise self.logger from err
         except Exception as err:
             self.logger.msg = "Unable to load .csv file!"
-            self.logger.warn(extra_msg=str(err))
+            self.logger.warning(extra_msg=str(err))
             if question_check("Want to load files from {}?".format(TIIP_CSV_DIR)):
                 try:
                     self.index = TIIP_INDEX
@@ -635,7 +635,7 @@ class TIIPFTPReader(object):
             self.logger.info()
         else:
             self.logger.msg = "No FTP client initialized!"
-            self.logger.warn()
+            self.logger.warning()
 
     def check_new_content(self, dir: str = "docs"):
         """
@@ -673,7 +673,7 @@ class TIIPFTPReader(object):
                     self.save_to_elk(TIIP_DOC_DIR + f"/{file}")
         else:
             self.logger.msg = "No files in directory '/docs'!"
-            self.logger.warn()
+            self.logger.warning()
 
     def cwd(self, dir: str) -> None:
         """
@@ -719,7 +719,7 @@ class TIIPFTPReader(object):
                 self.logger.info()
         else:
             self.logger.msg = "%s already exists!" % local_file
-            self.logger.warn()
+            self.logger.warning()
 
     def upload_file(self, local_file: str, remote_file: str) -> None:
         """
@@ -800,12 +800,12 @@ class WordDocumentReader(object):
                 all_text.append("".join(chunks[last_pos + 1:]))
 
         WordDocumentReader.logger.msg = "Unable to add the following text chunks to ELK:"
-        WordDocumentReader.logger.warn(
+        WordDocumentReader.logger.warning(
             extra_msg="Number of text chunks: %s" % str(len(failed_chunks)))
 
         for chunk in failed_chunks:
             WordDocumentReader.logger.msg = chunk
-            WordDocumentReader.logger.warn(
+            WordDocumentReader.logger.warning(
                 extra_msg="Limit: 50 >= content <= 500 || Got length: %s" % str(len(chunk)))
 
         return all_text

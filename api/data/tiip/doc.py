@@ -90,7 +90,7 @@ class TIIPDocumentList(list):
             self._load_list_arg(init_list)
         else:
             self.logger.msg = "Initializing empty list."
-            self.logger.warn()
+            self.logger.warning()
             super().__init__([])
 
     def __iter__(self) -> Iterator[TIIPDocument]:

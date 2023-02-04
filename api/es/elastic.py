@@ -79,11 +79,11 @@ class LingtelliElastic(Elasticsearch):
                     if not value.get('analyzer', None):
                         final_mappings[key]['analyzer'] = DEFAULT_ANALYZER
                         self.logger.msg = "Added 'analyzer' key with proper values to mappings."
-                        self.logger.warn()
+                        self.logger.warning()
                     if not value.get('search_analyzer', None):
                         final_mappings[key]['search_analyzer'] = DEFAULT_ANALYZER
                         self.logger.msg = "Added 'search_analyzer' key with proper values to mappings."
-                        self.logger.warn()
+                        self.logger.warning()
 
         return final_mappings
 
