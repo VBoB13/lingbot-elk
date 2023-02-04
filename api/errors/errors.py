@@ -108,7 +108,7 @@ class BaseError(Exception):
         print(self._full_msg)
         self.logger.info(self._full_msg)
 
-    def warn(self, extra_msg: str = None) -> None:
+    def warning(self, extra_msg: str = None) -> None:
         """
         Log a message (.msg attribute) to console preceded with a | WARN | tag.
         """
