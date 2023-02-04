@@ -61,4 +61,5 @@ PUT <YOUR_INDEX_HERE>
 
 You can easily test the API and its functions by using `pytest`.
 To test the API, use the following command:
+
 `sudo docker exec -it elk_api python3 -m pytest test_api.py`
