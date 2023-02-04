@@ -3,6 +3,7 @@ import uvicorn
 import shutil
 
 from fastapi import FastAPI, status, BackgroundTasks, UploadFile
+from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
@@ -16,6 +17,7 @@ from errors.errors import BaseError
 
 
 app = FastAPI()
+test_client = TestClient(app)
 logger = BaseError(__file__, "main")
 
 
