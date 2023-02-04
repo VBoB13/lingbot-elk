@@ -215,25 +215,6 @@ async def upload_docx(index: str, file: UploadFile):
         return ElkServiceResponse(content={"msg": "Document successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_200_OK)
 
 
-def test_upload_csv():
-    index = "test-upload-csv-index"
-    # Create file object to throw to endpoint
-    files = {'file': open(os.path.join(TIIP_CSV_DIR, '通用.csv'), 'rb')}
-    response = test_client.post('/upload/csv?index=%s' % index, files=files)
-    check_result = {
-        "msg": "Documents successfully uploaded & saved into ELK (index: %s)!" % index}
-
-    assert check_result == response.json()
-
-    # Initiate ELK client
-    elk_client = LingtelliElastic()
-    if elk_client.index_exists(index):
-        data = {'vendor_id': index}
-        # Delete index if it exists
-        response = test_client.post("/delete", data=data)
-        assert response.json() == {"msg": "Index deleted.", "data": index}
-
-
 if __name__ == "__main__":
     API_HOST = os.environ.get("API_SERVER", "0.0.0.0")
     API_PORT = int(os.environ.get("API_PORT", "420"))
