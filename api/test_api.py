@@ -1,4 +1,5 @@
 import os
+import json
 
 from fastapi.testclient import TestClient
 
@@ -22,7 +23,7 @@ def test_upload_csv():
     # Initiate ELK client
     elk_client = LingtelliElastic()
     if elk_client.index_exists(index):
-        data = {'vendor_id': index}
+        data = json.dumps({'vendor_id': index})
         # Delete index if it exists
         response = test_client.post("/delete", data=data)
         assert response.json() == {"msg": "Index deleted.", "data": index}
