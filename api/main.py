@@ -10,7 +10,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     DocID_Must, BasicResponse, SearchResponse, \
     SearchPhraseDoc, SearchGPT, Vendor
 from es.elastic import LingtelliElastic
-from settings.settings import TEMP_DIR
+from settings.settings import TEMP_DIR, TIIP_CSV_DIR
 from helpers.reqres import ElkServiceResponse
 from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
 from errors.errors import BaseError
@@ -213,6 +213,22 @@ async def upload_docx(index: str, file: UploadFile):
                 extra_msg="{} documents were saved!".format(len(doc_list)))
 
         return ElkServiceResponse(content={"msg": "Document successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_200_OK)
+
+
+def test_upload_csv():
+    index = "test-upload-csv-index"
+    files = {'file': open(os.path.join(TIIP_CSV_DIR, '通用.csv'), 'rb')}
+    response = test_client.post('/upload/csv?index=%s' % index, files=files)
+    check_result = {
+        "msg": "Documents successfully uploaded & saved into ELK (index: %s)!" % index}
+    try:
+        assert check_result == response.json()
+    except AssertionError:
+        elk_client = LingtelliElastic()
+        if elk_client.index_exists(index):
+            data = {'vendor_id': index}
+            response = test_client.post("/delete", data=data)
+            assert response.json() == {"msg": "Index deleted.", "data": index}
 
 
 if __name__ == "__main__":
