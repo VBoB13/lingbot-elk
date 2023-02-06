@@ -62,3 +62,9 @@ def test_search():
     response = test_client.post("/search", data=json_data)
 
     assert response.json()["msg"] == "Document(s) found!"
+
+    data["match"]["search_term"] = "ㄎㄎ"
+    json_data = json.dumps(data)
+    response = test_client.post("/search", data=json_data)
+
+    assert response.status_code == 204
