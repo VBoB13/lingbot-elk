@@ -27,3 +27,21 @@ def test_upload_csv():
         # Delete index if it exists
         response = test_client.post("/delete", data=data)
         assert response.json() == {"msg": "Index deleted.", "data": index}
+
+
+def test_gpt():
+    index = "193b3d9c-744c-37d6-bfcb-cc5707cf20d6"
+    data = {
+        "vendor_id": index,
+        "match": {
+            "name": "content",
+            "search_term": "請您直接回覆「ＯＫ！」即可，不用多說什麼。",
+            "operator": "OR",
+            "min_should_match": 1
+        }
+    }
+    json_data = json.dumps(data)
+
+    response = test_client.post("/search-gpt", data=json_data)
+
+    assert response.json()["msg"] == "Document(s) found!"
