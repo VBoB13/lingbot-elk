@@ -63,6 +63,8 @@ def test_search():
 
     assert response.json()["msg"] == "Document(s) found!"
 
+    # Garbage in?
+    # Nothing out! ;)
     data["match"]["search_term"] = "ㄎㄎ"
     json_data = json.dumps(data)
     response = test_client.post("/search", data=json_data)
