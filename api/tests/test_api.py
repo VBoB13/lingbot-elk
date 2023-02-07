@@ -35,7 +35,7 @@ def test_search_gpt():
         "vendor_id": index,
         "match": {
             "name": "content",
-            "search_term": "請您直接回覆「ＯＫ！」即可，不用多說什麼。",
+            "search_term": "申請補助上限多少？",
             "operator": "OR",
             "min_should_match": 1
         },
