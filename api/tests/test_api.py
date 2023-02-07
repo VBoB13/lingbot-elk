@@ -30,6 +30,7 @@ def test_upload_csv():
 
 
 def test_search_gpt():
+    elk_client = LingtelliElastic()
     index = "193b3d9c-744c-37d6-bfcb-cc5707cf20d6"
     data = {
         "vendor_id": index,
@@ -41,10 +42,26 @@ def test_search_gpt():
         },
         "strict": False
     }
+    # If the index doesn't exist, we create and load it with data.
+    if not elk_client.index_exists(index):
+        files = {'file': open(os.path.join(TIIP_CSV_DIR, '通用.csv'), 'rb')}
+        response = test_client.post(
+            '/upload/csv?index=%s' % index, files=files)
+        check_result = {
+            "msg": "Documents successfully uploaded & saved into ELK (index: %s)!" % index}
+
+        assert check_result == response.json()
+
     json_data = json.dumps(data)
     response = test_client.post("/search-gpt", data=json_data)
 
     assert response.json()["msg"] == "Document(s) found!"
+
+    if elk_client.index_exists(index):
+        data = json.dumps({'vendor_id': index})
+        # Delete index if it exists
+        response = test_client.post("/delete", data=data)
+        assert response.json() == {"msg": "Index deleted.", "data": index}
 
 
 def test_search():
