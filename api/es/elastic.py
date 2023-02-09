@@ -655,7 +655,7 @@ class LingtelliElastic(Elasticsearch):
         """
         This method is a more specific/precise version of the /search endpoint in Lingtelli services.
         """
-
+        resp = None
         try:
             query = self._get_query(doc)
             resp = super().search(index=doc.vendor_id, query=query)
