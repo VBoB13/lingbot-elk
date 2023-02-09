@@ -686,7 +686,8 @@ class LingtelliElastic(Elasticsearch):
         mappings = {}
         try:
             if not self._index_exists(doc.vendor_id):
-                self.logger.msg = "Index [%s] does not exist. Attempting to create index..."
+                self.logger.msg = "Index [%s] does not exist. Attempting to create index..." % Fore.LIGHTCYAN_EX + \
+                    doc.vendor_id + Fore.RESET
                 self.logger.info()
                 lang = get_language(doc.match.search_term)
                 mappings.update({'q': {'type': 'text'}})
@@ -695,14 +696,14 @@ class LingtelliElastic(Elasticsearch):
                     self._create_index(doc.vendor_id, "a",
                                        language=lang, mappings=mappings)
                 except Exception as err:
-                    self.logger.msg = "Something went wrong when trying to create index %s!" % doc.vendor_id
+                    self.logger.msg = "Something went wrong when trying to create index %s!" % Fore.LIGHTCYAN_EX + \
+                        doc.vendor_id + Fore.RESET
                     self.logger.error()
                     raise self.logger from err
                 else:
-                    self.logger.msg = "Index created: {}".format(
-                        doc.vendor_id)
+                    self.logger.msg = "Index created: {}".format(Fore.LIGHTGREEN_EX +
+                                                                 doc.vendor_id + Fore.RESET)
                     self.logger.info()
-                    raise self.logger
             else:
                 phrase_doc = SearchPhraseDoc(
                     vendor_id=doc.vendor_id, match_phrase=doc.match.search_term)
