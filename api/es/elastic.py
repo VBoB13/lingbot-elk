@@ -155,8 +155,8 @@ class LingtelliElastic(Elasticsearch):
             try:
                 self.logger.msg = "Sending request to create index [%s] on ELK server..." % index
                 self.logger.info()
-                response = requests.post('http://' +
-                                         ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=json.dumps(settings), headers={"Content-Type": "application/json"})
+                response = requests.put('http://' +
+                                        ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=json.dumps(settings), headers={"Content-Type": "application/json"})
 
             except Exception as err:
                 self.logger.msg = "Could not create a new index (%s)\nReason: %s!" % index, str(
