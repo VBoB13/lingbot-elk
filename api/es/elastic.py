@@ -699,10 +699,24 @@ class LingtelliElastic(Elasticsearch):
                     self.logger.msg = "Index created: {}".format(
                         doc.vendor_id)
                     self.logger.info()
+                    raise self.logger
+            else:
+                phrase_doc = SearchPhraseDoc(
+                    vendor_id=doc.vendor_id, match_phrase=doc.match.search_term)
+                resp = self.search_phrase(phrase_doc)
 
-            phrase_doc = SearchPhraseDoc(
-                vendor_id=doc.vendor_id, match_phrase=doc.match.search_term)
-            resp = self.search_phrase(phrase_doc)
+                if isinstance(resp["hits"], dict):
+                    if resp["hits"]["score"] < MIN_QA_DOC_SCORE:
+                        self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
+                        self.logger.error()
+                        raise self.logger
+                    return resp["hits"]["source"]["context"]
+                else:
+                    if resp["hits"][0]["score"] < MIN_QA_DOC_SCORE:
+                        self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
+                        self.logger.error()
+                        raise self.logger
+                    return resp["hits"][0]["source"]["context"]
             # self.logger.msg = "QA search:"
             # self.logger.info(extra_msg=str(str(resp)))
         except ElasticError as err:
@@ -717,19 +731,6 @@ class LingtelliElastic(Elasticsearch):
         except Exception as err:
             self.logger.error(extra_msg=str(err))
             raise self.logger from err
-
-        if isinstance(resp["hits"], dict):
-            if resp["hits"]["score"] < MIN_QA_DOC_SCORE:
-                self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
-                self.logger.error()
-                raise self.logger
-            return resp["hits"]["source"]["context"]
-        else:
-            if resp["hits"][0]["score"] < MIN_QA_DOC_SCORE:
-                self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
-                self.logger.error()
-                raise self.logger
-            return resp["hits"][0]["source"]["context"]
 
     def search_timerange(self, doc: SearchDocTimeRange, *args, **kwargs):
         """
