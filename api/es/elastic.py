@@ -657,11 +657,6 @@ class LingtelliElastic(Elasticsearch):
         """
 
         try:
-            if not self._index_exists(doc.vendor_id):
-                self.logger.msg = "Could not search for documents!"
-                self.logger.error(
-                    extra_msg="Index {} does NOT exist!".format(doc.vendor_id))
-                raise self.logger
             query = self._get_query(doc)
             resp = super().search(index=doc.vendor_id, query=query)
             resp["hits"]["hits"] = self._remove_underlines(
