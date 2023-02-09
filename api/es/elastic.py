@@ -79,11 +79,11 @@ class LingtelliElastic(Elasticsearch):
                     if not value.get('analyzer', None):
                         final_mappings[key]['analyzer'] = DEFAULT_ANALYZER
                         self.logger.msg = "Added 'analyzer' key with proper values to mappings."
-                        self.logger.warning()
+                        self.logger.info()
                     if not value.get('search_analyzer', None):
                         final_mappings[key]['search_analyzer'] = DEFAULT_ANALYZER
                         self.logger.msg = "Added 'search_analyzer' key with proper values to mappings."
-                        self.logger.warning()
+                        self.logger.info()
 
         return final_mappings
 
@@ -92,6 +92,16 @@ class LingtelliElastic(Elasticsearch):
         Method for creating an index when it doesn't exist.
         """
         settings = {}
+
+        # No mappings? No index!
+        if mappings is None:
+            self.logger.msg = "Mappings MUST be defined with a least ONE(1) field!"
+            self.logger.error()
+            raise self.logger
+
+        final_mapping = self._check_mappings(
+            mappings, language=language)
+
         if not self._index_exists(index):
             if language == "CH":
                 final_mapping = {"content": {
@@ -99,9 +109,6 @@ class LingtelliElastic(Elasticsearch):
                     "analyzer": DEFAULT_ANALYZER,
                     "search_analyzer": DEFAULT_ANALYZER
                 }}
-                if mappings is not None:
-                    final_mapping = self._check_mappings(
-                        mappings, language=language)
                 settings.update({
                     "settings": {
                         "analysis": {
@@ -130,9 +137,6 @@ class LingtelliElastic(Elasticsearch):
                 })
             else:
                 final_mapping = {"content": {"type": "text"}}
-                if mappings is not None:
-                    final_mapping = self._check_mappings(
-                        mappings, language=language)
                 settings.update({
                     "mappings": {
                         "_meta": {"main_field": main_field},
