@@ -104,11 +104,6 @@ class LingtelliElastic(Elasticsearch):
 
         if not self._index_exists(index):
             if language == "CH":
-                final_mapping = {"content": {
-                    "type": "text",
-                    "analyzer": DEFAULT_ANALYZER,
-                    "search_analyzer": DEFAULT_ANALYZER
-                }}
                 settings.update({
                     "settings": {
                         "analysis": {
@@ -136,7 +131,6 @@ class LingtelliElastic(Elasticsearch):
                     }
                 })
             else:
-                final_mapping = {"content": {"type": "text"}}
                 settings.update({
                     "mappings": {
                         "_meta": {"main_field": main_field},
