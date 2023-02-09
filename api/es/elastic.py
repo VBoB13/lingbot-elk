@@ -665,7 +665,8 @@ class LingtelliElastic(Elasticsearch):
         except ElasticError as err:
             raise self.logger from err
         except Exception as err:
-            self.logger.error(extra_msg=str(err), orgErr=err)
+            self.logger.msg = "Unable to search phrase!"
+            self.logger.error(extra_msg=str(resp.body), orgErr=err)
             raise self.logger from err
 
         return dict(resp["hits"])
