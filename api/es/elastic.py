@@ -558,7 +558,8 @@ class LingtelliElastic(Elasticsearch):
             try:
                 resp = self.search(doc)
             except ElasticError as err:
-                self.logger.error(extra_msg="No hits from ELK!")
+                self.logger.msg = "No hits from ELK!"
+                self.logger.error()
                 if self.docs_found:
                     self.docs_found = False
                 raise self.logger from err
@@ -676,10 +677,12 @@ class LingtelliElastic(Elasticsearch):
         This method is the go-to search method for most use cases for our
         Lingtelli services.
         """
+        mappings = {}
         try:
             if not self._index_exists(doc.vendor_id):
                 lang = get_language(doc.match.search_term)
-                mappings = {'q': {'type': 'text'}, 'a': {'type': 'text'}}
+                mappings.update({'q': {'type': 'text'}})
+                mappings.update({'a': {'type': 'text'}})
                 try:
                     self._create_index(doc.vendor_id, "a",
                                        language=lang, mappings=mappings)
