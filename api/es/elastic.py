@@ -276,7 +276,7 @@ class LingtelliElastic(Elasticsearch):
         for index in mappings.keys():
             if mappings[index]["mappings"].get('_meta', None):
                 final_mapping.update(
-                    {index: {"context": mappings[index]["mappings"]["_meta"]}})
+                    {index: {"context": mappings[index]["mappings"]["_meta"]["main_field"]}})
             else:
                 for field in mappings[index]["mappings"]["properties"].keys():
                     if mappings[index]["mappings"]["properties"][field].get('type', None) \
@@ -291,7 +291,7 @@ class LingtelliElastic(Elasticsearch):
 
         self.known_indices = final_mapping
         self.logger.msg = "New mapping object:"
-        self.logger.info(extra_msg=str(self.known_indices))
+        pprint(self.known_indices)
 
     def _get_query(self, doc) -> dict:
         queryObj = QueryMaker(self.known_indices)
