@@ -33,7 +33,7 @@ class LingtelliElastic(Elasticsearch):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
 
-        self.known_indices = self._get_mappings()
+        self._get_mappings()
         self.logger.msg = "Elasticsearch client initialized " + \
             Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
         self.logger.info()
@@ -177,6 +177,7 @@ class LingtelliElastic(Elasticsearch):
                     extra_msg = "Reason: %s" % response.reason
 
                 self.logger.info(extra_msg=extra_msg)
+                self._get_mappings()
 
                 return
 
@@ -240,10 +241,10 @@ class LingtelliElastic(Elasticsearch):
 
         return context
 
-    def _get_mappings(self) -> dict:
+    def _get_mappings(self) -> None:
         """
         Method that simply makes a request to 'elastic_server:9200/_mapping'
-        and organizes the response into a dict.
+        and organizes the response into the attribute 'known_indices'.
         """
         address = "http://" + ELASTIC_IP + \
             ":" + str(ELASTIC_PORT) + "/_mapping"
@@ -287,7 +288,7 @@ class LingtelliElastic(Elasticsearch):
         # self.logger.msg = "Final mapping:\n%s" % final_mapping
         # self.logger.info()
 
-        return final_mapping
+        self.known_indices = final_mapping
 
     def _get_query(self, doc) -> dict:
         queryObj = QueryMaker(self.known_indices)
