@@ -675,7 +675,9 @@ class LingtelliElastic(Elasticsearch):
         try:
             if not self._index_exists(doc.vendor_id):
                 lang = get_language(doc.match.search_term)
-                self._create_index(doc.vendor_id, "a", language=lang)
+                mappings = {'q': {'type': 'text'}, 'a': {'type': 'text'}}
+                self._create_index(doc.vendor_id, "a",
+                                   language=lang, mappings=mappings)
                 self.logger.msg = "Index created: {}".format(
                     doc.vendor_id)
                 self.logger.info()
