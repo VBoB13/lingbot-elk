@@ -290,8 +290,9 @@ class LingtelliElastic(Elasticsearch):
         # self.logger.info()
 
         self.known_indices = final_mapping
-        self.logger.msg = "New mapping object:"
-        pprint(self.known_indices)
+        # self.logger.msg = "New mapping object:"
+        # self.logger.info()
+        # pprint(self.known_indices)
 
     def _get_query(self, doc) -> dict:
         queryObj = QueryMaker(self.known_indices)
