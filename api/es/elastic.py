@@ -158,6 +158,8 @@ class LingtelliElastic(Elasticsearch):
 
             # Make the HTTP request to create index
             try:
+                self.logger.msg = "Sending request to create index [%s] on ELK server..." % index
+                self.logger.info()
                 response = requests.post('http://' +
                                          ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=json.dumps(settings), headers={"Content-Type": "application/json"})
 
@@ -542,7 +544,7 @@ class LingtelliElastic(Elasticsearch):
         to generate full-fledged answers to almost every question.
         """
         # Save 'QA' vendor_id within another variable
-        # We use '.copy()' to make sure new variagle isn't just a ref-pointer.
+        # We use '.copy()' to make sure new variable isn't just a ref-pointer.
         qa_doc = doc.copy(exclude={'strict', }, deep=True)
         qa_doc.vendor_id += "-qa"
         qa_doc.match.name = "q"
