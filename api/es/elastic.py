@@ -466,14 +466,27 @@ class LingtelliElastic(Elasticsearch):
         total_length = 0
         mappings = {}
         for i, doc in enumerate(docs):
-            total_length += len(doc["fields"][0]["value"])
+            if isinstance(doc, ElasticDoc):
+                total_length += len(doc.fields[0].value)
+            else:
+                total_length += len(doc["fields"][0]["value"])
             if i == 0:
-                lang = get_language(doc["fields"][0]["value"])
-                update_index = doc["vendor_id"]
-                for field in doc["fields"]:
-                    if field["main"] == True:
-                        main_field = field["name"]
-                    mappings.update({field["name"]: {"type": field["type"]}})
+                if not isinstance(doc, ElasticDoc):
+                    lang = get_language(doc["fields"][0]["value"])
+                    update_index = doc["vendor_id"]
+                    for field in doc["fields"]:
+                        if field["main"] == True:
+                            main_field = field["name"]
+                        mappings.update(
+                            {field["name"]: {"type": field["type"]}})
+                else:
+                    lang = get_language(doc.fields[0].value)
+                    update_index = doc.vendor_id
+                    for field in doc.fields:
+                        if field.main == True:
+                            main_field = field.name
+                        mappings.update(
+                            {field.name: {"type": field.type}})
                 self._create_index(
                     update_index, main_field, language=lang, mappings=mappings)
             self.save(doc)
