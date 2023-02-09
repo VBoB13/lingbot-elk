@@ -681,7 +681,6 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.msg = "Index created: {}".format(
                     doc.vendor_id)
                 self.logger.info()
-                raise self.logger
 
             phrase_doc = SearchPhraseDoc(
                 vendor_id=doc.vendor_id, match_phrase=doc.match.search_term)
