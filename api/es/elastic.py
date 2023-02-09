@@ -60,7 +60,6 @@ class LingtelliElastic(Elasticsearch):
             raise self.logger
 
         for key, value in mappings.items():
-            final_mappings[key] = value
 
             if not isinstance(value, dict):
                 self.logger.msg = "'%s' value parameter needs to be of type " % key + \
@@ -73,6 +72,8 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.msg = "'%s' missing parameter 'type'!" % key
                 self.logger.error()
                 raise self.logger
+
+            final_mappings[key] = value
 
             if language == "CH":
                 if type_str in ['text', 'keywords']:
@@ -167,11 +168,16 @@ class LingtelliElastic(Elasticsearch):
                     self.logger.msg = "Successfully created index: " + Fore.LIGHTCYAN_EX + \
                         index + Fore.RESET + "!"
                     if language == "CH":
-                        self.logger.info(
-                            extra_msg="Language: Traditional Chinese.")
+                        extra_msg = "Language: Traditional Chinese."
                     else:
-                        self.logger.info(
-                            extra_msg="Language: English.")
+                        extra_msg = "Language: English."
+
+                else:
+                    self.logger.msg = "Something went wrong when trying to create index!"
+                    extra_msg = "Reason: %s" % response.reason
+
+                self.logger.info(extra_msg=extra_msg)
+
                 return
 
         self.logger.msg = "Index %s already exists!" % index
@@ -676,6 +682,8 @@ class LingtelliElastic(Elasticsearch):
         mappings = {}
         try:
             if not self._index_exists(doc.vendor_id):
+                self.logger.msg = "Index [%s] does not exist. Attempting to create index..."
+                self.logger.info()
                 lang = get_language(doc.match.search_term)
                 mappings.update({'q': {'type': 'text'}})
                 mappings.update({'a': {'type': 'text'}})
