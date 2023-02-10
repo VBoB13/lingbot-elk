@@ -638,7 +638,7 @@ class LingtelliElastic(Elasticsearch):
 
                 self.logger.save_stats(stats)
 
-                self.logger.msg = "Response from GPT-3 service: %s" % str(
+                self.logger.msg = "Response from " + Fore.LIGHTCYAN_EX + "GPT-3 service: " + Fore.RESET + "%s" % str(
                     gpt3.results)
                 self.logger.info()
 
@@ -659,7 +659,8 @@ class LingtelliElastic(Elasticsearch):
         }
 
         self.logger.save_stats(stats)
-        self.logger.msg = "Response from index [%s]:" % str(qa_doc.vendor_id)
+        index = Fore.LIGHTCYAN_EX + qa_doc.vendor_id + Fore.RESET
+        self.logger.msg = "Response from index [%s]:" % str(index)
         self.logger.info(extra_msg=str(resp))
 
         return resp
