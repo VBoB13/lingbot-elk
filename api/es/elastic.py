@@ -716,12 +716,16 @@ class LingtelliElastic(Elasticsearch):
                         self.logger.error()
                         raise self.logger
                     return resp["hits"]["source"]["context"]
-                else:
+                elif isinstance(resp["hits"], list):
                     if resp["hits"][0]["score"] < MIN_QA_DOC_SCORE:
                         self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
                         self.logger.error()
                         raise self.logger
                     return resp["hits"][0]["source"]["context"]
+                elif resp is None:
+                    self.logger.msg = "No results from search_qa!"
+                    self.logger.warning()
+                    raise self.logger
             # self.logger.msg = "QA search:"
             # self.logger.info(extra_msg=str(str(resp)))
         except ElasticError as err:
