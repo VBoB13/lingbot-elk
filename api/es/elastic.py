@@ -191,7 +191,7 @@ class LingtelliElastic(Elasticsearch):
         if isinstance(hits, list):
             if len(hits) == 0:
                 self.logger.msg = "Could not get any documents!"
-                self.logger.error(
+                self.logger.warning(
                     extra_msg="'hits' list: {}".format(str(hits)))
                 self.docs_found = False
                 raise self.logger
@@ -524,7 +524,7 @@ class LingtelliElastic(Elasticsearch):
         try:
             if not self._index_exists(doc.vendor_id):
                 self.logger.msg = "Could not search for documents!"
-                self.logger.error("Index {} does NOT exist!".format(
+                self.logger.warning("Index {} does NOT exist!".format(
                     doc.vendor_id))
                 raise self.logger
             query = self._get_query(doc)
@@ -566,7 +566,7 @@ class LingtelliElastic(Elasticsearch):
                 resp = self.search(doc)
             except ElasticError as err:
                 self.logger.msg = "No hits from ELK!"
-                self.logger.error()
+                self.logger.warning()
                 if self.docs_found:
                     self.docs_found = False
                 raise self.logger from err
