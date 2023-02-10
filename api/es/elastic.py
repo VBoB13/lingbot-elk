@@ -563,6 +563,9 @@ class LingtelliElastic(Elasticsearch):
             resp = self.search_qa(qa_doc)
         except ElasticError as err:
             try:
+                self.logger.msg = "No hits from" + Fore.RED + \
+                    "%s-qa." % qa_doc.vendor_id + Fore.RESET + " Asking Chat-GPT..."
+                self.logger.info()
                 resp = self.search(doc)
             except ElasticError as err:
                 self.logger.msg = "No hits from ELK!"
@@ -687,8 +690,8 @@ class LingtelliElastic(Elasticsearch):
         mappings = {}
         try:
             if not self._index_exists(doc.vendor_id):
-                self.logger.msg = "Index [%s] does not exist. Attempting to create index..." % Fore.LIGHTCYAN_EX + \
-                    doc.vendor_id + Fore.RESET
+                index = Fore.LIGHTCYAN_EX + doc.vendor_id + Fore.RESET
+                self.logger.msg = "Index [%s] does not exist. Attempting to create index..." % index
                 self.logger.info()
                 lang = get_language(doc.match.search_term)
                 mappings.update({'q': {'type': 'text'}})
@@ -737,6 +740,23 @@ class LingtelliElastic(Elasticsearch):
             except Exception as err:
                 self.logger.error(extra_msg=str(err), orgErr=err)
                 raise self.logger from err
+            else:
+                if isinstance(resp["hits"], dict):
+                    if resp["hits"]["score"] < MIN_QA_DOC_SCORE:
+                        self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
+                        self.logger.error()
+                        raise self.logger
+                    return resp["hits"]["source"]["context"]
+                elif isinstance(resp["hits"], list):
+                    if resp["hits"][0]["score"] < MIN_QA_DOC_SCORE:
+                        self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
+                        self.logger.error()
+                        raise self.logger
+                    return resp["hits"][0]["source"]["context"]
+                elif resp is None:
+                    self.logger.msg = "No results from search_qa!"
+                    self.logger.warning()
+                    raise self.logger
 
         except Exception as err:
             self.logger.error(extra_msg=str(err))
