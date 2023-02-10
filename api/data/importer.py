@@ -546,7 +546,10 @@ class CSVLoader(object):
                 self.logger.msg = "Index does not exist!"
                 self.logger.info(
                     extra_msg="Creating index [%s] for you..." % self.index)
-                self.client._create_index(self.index, 'content', language=lang)
+                mappings = [{field["name"]: {"type": field["type"]}}
+                            for field in self.contents.to_json()[0]["fields"]]
+                self.client._create_index(
+                    self.index, 'content', language=lang, mappings=mappings)
             except Exception as err:
                 self.logger.msg = "Could not create index 'on-the-fly'!"
                 self.logger.error(extra_msg=str(err), orgErr=err)
