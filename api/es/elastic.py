@@ -728,9 +728,10 @@ class LingtelliElastic(Elasticsearch):
             try:
                 resp = self.search(doc)
             except ElasticError as err:
-                self.logger.error(extra_msg=str(err))
+                self.logger.warning(extra_msg=str(err))
                 raise self.logger from err
             except Exception as err:
+                self.logger.error(extra_msg=str(err), orgErr=err)
                 raise self.logger from err
 
         except Exception as err:
