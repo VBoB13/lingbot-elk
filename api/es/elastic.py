@@ -715,13 +715,13 @@ class LingtelliElastic(Elasticsearch):
 
                 if isinstance(resp["hits"], dict):
                     if resp["hits"]["score"] < MIN_QA_DOC_SCORE:
-                        self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
+                        self.logger.msg = "/search_qa: Hit with confident score (<%s)!" % MIN_QA_DOC_SCORE
                         self.logger.error()
                         raise self.logger
                     return resp["hits"]["source"]["context"]
                 elif isinstance(resp["hits"], list):
                     if resp["hits"][0]["score"] < MIN_QA_DOC_SCORE:
-                        self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
+                        self.logger.msg = "/search_qa: Hit with confident score (<%s)!" % MIN_QA_DOC_SCORE
                         self.logger.error()
                         raise self.logger
                     return resp["hits"][0]["source"]["context"]
@@ -743,13 +743,13 @@ class LingtelliElastic(Elasticsearch):
             else:
                 if isinstance(resp["hits"], dict):
                     if resp["hits"]["score"] < MIN_QA_DOC_SCORE:
-                        self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
+                        self.logger.msg = "/search: Hit with confident score (<%s)!" % MIN_QA_DOC_SCORE
                         self.logger.error()
                         raise self.logger
                     return resp["hits"]["source"]["context"]
                 elif isinstance(resp["hits"], list):
                     if resp["hits"][0]["score"] < MIN_QA_DOC_SCORE:
-                        self.logger.msg = "Hits found with less than confident score (<%s)!" % MIN_QA_DOC_SCORE
+                        self.logger.msg = "/search: Hit with confident score (<%s)!" % MIN_QA_DOC_SCORE
                         self.logger.error()
                         raise self.logger
                     return resp["hits"][0]["source"]["context"]
