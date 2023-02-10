@@ -638,6 +638,10 @@ class LingtelliElastic(Elasticsearch):
 
                 self.logger.save_stats(stats)
 
+                self.logger.msg = "Response from GPT-3 service: %s" % str(
+                    gpt3.results)
+                self.logger.info()
+
                 return gpt3.results
 
         except Exception as err:
@@ -655,6 +659,8 @@ class LingtelliElastic(Elasticsearch):
         }
 
         self.logger.save_stats(stats)
+        self.logger.msg = "Response from index [%s]:" % str(qa_doc.vendor_id)
+        self.logger.info(extra_msg=str(resp))
 
         return resp
 
