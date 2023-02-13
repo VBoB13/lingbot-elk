@@ -564,7 +564,7 @@ class LingtelliElastic(Elasticsearch):
         except ElasticError as err:
             try:
                 self.logger.msg = "No hits from" + Fore.RED + \
-                    "%s-qa." % qa_doc.vendor_id + Fore.RESET + " Asking Chat-GPT..."
+                    "%s." % qa_doc.vendor_id + Fore.RESET + " Asking Chat-GPT..."
                 self.logger.info()
                 resp = self.search(doc)
             except ElasticError as err:
