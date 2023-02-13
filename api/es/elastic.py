@@ -556,6 +556,8 @@ class LingtelliElastic(Elasticsearch):
         qa_doc = SearchDocument(
             vendor_id=qa_doc.vendor_id, match=qa_doc.match)
 
+        qa_timer = time.time()
+
         try:
             self.logger.msg = "Searching within %s with document: " % qa_doc.vendor_id + \
                 str(qa_doc)
@@ -564,8 +566,9 @@ class LingtelliElastic(Elasticsearch):
         except ElasticError as err:
             try:
                 self.logger.msg = "No hits from" + Fore.RED + \
-                    "%s." % qa_doc.vendor_id + Fore.RESET + " Asking Chat-GPT..."
+                    " %s." % qa_doc.vendor_id + Fore.RESET + " Asking Chat-GPT..."
                 self.logger.info()
+                gpt_timer = time.time()
                 resp = self.search(doc)
             except ElasticError as err:
                 self.logger.msg = "No hits from ELK!"
@@ -640,7 +643,8 @@ class LingtelliElastic(Elasticsearch):
 
                 self.logger.msg = "Response from " + Fore.LIGHTCYAN_EX + "GPT-3 service: " + Fore.RESET + "%s" % str(
                     gpt3.results)
-                self.logger.info()
+                self.logger.info(extra_msg="Took " + Fore.LIGHTCYAN_EX + "%s" %
+                                 str(round(gpt_timer - time.time(), 2)) + Fore.RESET + "s.")
 
                 return gpt3.results
 
@@ -662,6 +666,9 @@ class LingtelliElastic(Elasticsearch):
         index = Fore.LIGHTCYAN_EX + qa_doc.vendor_id + Fore.RESET
         self.logger.msg = "Response from index [%s]:" % str(index)
         self.logger.info(extra_msg=str(resp))
+        self.logger.msg = "QA query took " + Fore.LIGHTCYAN_EX + \
+            "%s" % str(round(time.time() - qa_timer, 2)) + Fore.RESET + "s."
+        self.logger.info()
 
         return resp
 
