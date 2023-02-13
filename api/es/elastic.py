@@ -155,7 +155,7 @@ class LingtelliElastic(Elasticsearch):
             # Make the HTTP request to create index
             try:
                 self.logger.msg = "Sending request to create index [%s] on ELK server..." % index
-                self.logger.info()
+                self.logger.info(extra_msg="Mappings: %s" % str(final_mapping))
                 response = requests.put('http://' +
                                         ELASTIC_IP + ':' + str(ELASTIC_PORT) + f'/{index}', data=json.dumps(settings), headers={"Content-Type": "application/json"})
 
@@ -228,8 +228,8 @@ class LingtelliElastic(Elasticsearch):
             for hit in hits:
                 if (len(context) + len(hit["source"]["context"])) <= 1300:
                     context += hit["source"]["context"]
-                    if '"' in context:
-                        context = context.replace('"', '')
+                    if '\"' in context:
+                        context = context.replace('\"', '')
                 else:
                     break
 
@@ -520,6 +520,9 @@ class LingtelliElastic(Elasticsearch):
             if hasattr(doc.match, 'min_should_match'):
                 token_set = self.analyze(doc.match.search_term)
                 doc.match.min_should_match = len(token_set)
+                self.logger.msg = "'min_should_match' changed to: %s" % str(
+                    doc.match.min_should_match)
+                self.logger.info()
 
         try:
             if not self._index_exists(doc.vendor_id):
