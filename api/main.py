@@ -218,4 +218,4 @@ async def upload_docx(index: str, file: UploadFile):
 if __name__ == "__main__":
     API_HOST = os.environ.get("API_SERVER", "0.0.0.0")
     API_PORT = int(os.environ.get("API_PORT", "420"))
-    uvicorn.run("main:app", host=API_HOST, port=API_PORT)
+    uvicorn.run("main:app", host=API_HOST, port=API_PORT, workers=2)
