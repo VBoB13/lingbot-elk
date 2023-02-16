@@ -19,7 +19,7 @@ from helpers.helpers import get_language
 from helpers import TODAY
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE, TEXT_FIELD_TYPES, NUMBER_FIELD_TYPES
+from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE, MAX_CONTEXT_LENGTH, TEXT_FIELD_TYPES, NUMBER_FIELD_TYPES
 
 
 class LingtelliElastic(Elasticsearch):
@@ -226,7 +226,7 @@ class LingtelliElastic(Elasticsearch):
             # Then we remove those 'None' values, leaving only relevant documents.
             hits = [hit for hit in hits if hit]
             for hit in hits:
-                if (len(context) + len(hit["source"]["context"])) <= 1300:
+                if (len(context) + len(hit["source"]["context"])) <= MAX_CONTEXT_LENGTH:
                     context += hit["source"]["context"]
                     if '\"' in context:
                         context = context.replace('\"', '')
@@ -234,7 +234,7 @@ class LingtelliElastic(Elasticsearch):
                     break
 
         elif isinstance(hits, dict):
-            if (len(context) + len(hits["source"]["context"]) <= 1300) and (hits.get('score', None)):
+            if (len(context) + len(hits["source"]["context"]) <= MAX_CONTEXT_LENGTH) and (hits.get('score', None)):
                 if hits['score'] >= MIN_DOC_SCORE:
                     context += hits["source"]["context"]
                 if '"' in context:
