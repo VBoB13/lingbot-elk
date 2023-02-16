@@ -79,6 +79,7 @@ class SearchDocument(Vendor):
 
 class SearchGPT(SearchDocument):
     strict: bool = False
+    session_id: str
 
 
 class SearchPhraseDoc(Vendor):
