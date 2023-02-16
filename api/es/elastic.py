@@ -647,7 +647,7 @@ class LingtelliElastic(Elasticsearch):
                 self.logger.msg = "Response from " + Fore.LIGHTCYAN_EX + "GPT-3 service: " + Fore.RESET + "%s" % str(
                     gpt3.results)
                 self.logger.info(extra_msg="Took " + Fore.LIGHTCYAN_EX + "%s" %
-                                 str(round(gpt_timer - time.time(), 2)) + Fore.RESET + "s.")
+                                 str(round(time.time() - gpt_timer, 2)) + Fore.RESET + "s.")
 
                 return gpt3.results
 
