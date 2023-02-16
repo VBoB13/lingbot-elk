@@ -725,6 +725,10 @@ class LingtelliElastic(Elasticsearch):
                     self.logger.msg = "Index created: {}".format(Fore.LIGHTGREEN_EX +
                                                                  doc.vendor_id + Fore.RESET)
                     self.logger.info()
+                    self.logger.msg = "Since index [%s]" % doc.vendor_id + \
+                        " was just created, we won't search through..."
+                    self.logger.warning()
+                    raise self.logger
             else:
                 phrase_doc = SearchPhraseDoc(
                     vendor_id=doc.vendor_id, match_phrase=doc.match.search_term)
