@@ -455,7 +455,7 @@ class LingtelliElastic(Elasticsearch):
         """
         if isinstance(doc, dict):
             doc = ElasticDoc(
-                vendor_id=doc["vendor_id"], fields=doc["fields"])
+                vendor_id=doc["vendor_id"], fields=doc["fields"], source=doc["source"])
         try:
             self.doc = self._level_docs(doc)
             resp = self.index(index=doc.vendor_id,
