@@ -454,8 +454,11 @@ class LingtelliElastic(Elasticsearch):
         This method attempts to safely save document into Elasticsearch.
         """
         if isinstance(doc, dict):
+            source = ""
+            if 'source' in [field['name'] for field in doc["fields"]]:
+                source = doc["fields"][-1]["value"]
             doc = ElasticDoc(
-                vendor_id=doc["vendor_id"], fields=doc["fields"], source=doc["fields"][-1]["value"])
+                vendor_id=doc["vendor_id"], fields=doc["fields"], source=source)
         try:
             self.doc = self._level_docs(doc)
             resp = self.index(index=doc.vendor_id,
