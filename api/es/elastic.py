@@ -424,7 +424,8 @@ class LingtelliElastic(Elasticsearch):
         """
         if self.index_exists(index):
             try:
-                query = {"match": {"source": source_file}}
+                query = {"query_string": {
+                    "query": "source:*%s*" % source_file}}
                 self.delete_by_query(index=index, query=query)
             except Exception as err:
                 self.logger.msg = "Could NOT delete documents by query: %s" % (
