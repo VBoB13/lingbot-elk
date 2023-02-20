@@ -4,11 +4,12 @@ import shutil
 
 from fastapi import FastAPI, status, BackgroundTasks, UploadFile
 from fastapi.testclient import TestClient
+from colorama import Fore
 
 from params import DESCRIPTIONS
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     DocID_Must, BasicResponse, SearchResponse, \
-    SearchPhraseDoc, SearchGPT, Vendor
+    SearchPhraseDoc, SearchGPT, Vendor, SourceDocument
 from es.elastic import LingtelliElastic
 from settings.settings import TEMP_DIR, TIIP_CSV_DIR
 from helpers.reqres import ElkServiceResponse
@@ -36,6 +37,20 @@ async def delete_index(vendor: Vendor):
         return ElkServiceResponse(content={"msg": "Index deleted.", "data": vendor.vendor_id}, status_code=status.HTTP_200_OK)
     except Exception as err:
         logger.msg = "Could NOT delete index <%s>!" % vendor.vendor_id
+        logger.error(extra_msg=str(err), orgErr=err)
+        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/delete_source", response_model=BasicResponse, description=DESCRIPTIONS["/delete_source"])
+async def delete_source(source: SourceDocument):
+    global logger
+    logger.cls = "main.py:delete_source"
+    try:
+        es = LingtelliElastic()
+        es.delete_source(source.vendor_id, source.filename)
+        return ElkServiceResponse(content={"msg": "Documents from source file [%s] deleted!" % (Fore.LIGHTGREEN_EX + source.filename + Fore.RESET), "data": source.vendor_id}, status_code=status.HTTP_200_OK)
+    except Exception as err:
+        logger.msg = "Could NOT delete index <%s>!" % source.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

@@ -94,3 +94,7 @@ class SearchDocTimeRange(Vendor):
     start: str = (datetime.now() - timedelta(days=1)
                   ).strftime("%Y-%m-%dT%H:%M:%S")
     end: str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+
+class SourceDocument(Vendor):
+    filename: str

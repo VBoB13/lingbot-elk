@@ -418,6 +418,29 @@ class LingtelliElastic(Elasticsearch):
                     self.logger.error()
                     raise self.logger
 
+    def delete_source(self, index: str, source_file: str) -> None:
+        """
+        Method for deleting documents based on the name of the file they were imported with.
+        """
+        if self.index_exists(index):
+            try:
+                query = {"match": {"source": source_file}}
+                self.delete_by_query(index=index, query=query)
+            except Exception as err:
+                self.logger.msg = "Could NOT delete documents by query: %s" % (
+                    Fore.MAGENTA + str(query) + Fore.RESET)
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger from err
+            else:
+                self.logger.msg = Fore.LIGHTGREEN_EX + "Successfully" + Fore.RESET + \
+                    " deleted documents from file: '%s'!" % (
+                        Fore.LIGHTCYAN_EX + source_file + Fore.RESET)
+                self.logger.info()
+        else:
+            self.logger.msg = "Index [%s] not found!" % (
+                Fore.LIGHTRED_EX + index + Fore.RESET) + " Aborting..."
+            self.logger.warning()
+
     def get(self, doc: DocID_Must):
         """
         This method attempts to retrieve a single document from Elasticsearch

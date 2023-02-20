@@ -4,6 +4,7 @@ DESCRIPTIONS = {
     "/get": "Endpoint for getting single documents according to vendor_id & doc_id.",
     # Delete
     "/delete": "Endpoint for deleting whole indices.",
+    "/delete_source": "Endpoint for deleting multiple documents inserted into ELK with the help of a source file, e.g. 'EBR.csv', 'Docs.docx' and so on...",
     # Save
     "/save": "Endpoint used for saving a single document.",
     "/save-bulk": "Endpoint for saving multiple documents.",
