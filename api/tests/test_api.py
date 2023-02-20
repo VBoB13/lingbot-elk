@@ -51,7 +51,8 @@ def test_search_gpt():
             "operator": "OR",
             "min_should_match": 1
         },
-        "strict": False
+        "strict": False,
+        "session_id": "test-session"
     }
     # If the index doesn't exist, we create and load it with data.
     if not elk_client.index_exists(index):
