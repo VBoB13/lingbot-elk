@@ -48,7 +48,7 @@ async def delete_source(source: SourceDocument):
     try:
         es = LingtelliElastic()
         es.delete_source(source.vendor_id, source.filename)
-        return ElkServiceResponse(content={"msg": "Documents from source file [%s] deleted!" % (Fore.LIGHTGREEN_EX + source.filename + Fore.RESET), "data": source.vendor_id}, status_code=status.HTTP_200_OK)
+        return ElkServiceResponse(content={"msg": "Documents from source file [%s] deleted!" % source.filename, "data": source.vendor_id}, status_code=status.HTTP_200_OK)
     except Exception as err:
         logger.msg = "Could NOT delete index <%s>!" % source.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
