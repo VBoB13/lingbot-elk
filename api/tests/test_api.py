@@ -117,3 +117,6 @@ def test_delete_source():
         resp = test_client.post('/delete_source', data=data)
         if resp.ok:
             assert resp.json() == check_response
+            resp = delete_index(index)
+            if resp.ok:
+                assert resp.json() == {"msg": "Index deleted.", "data": index}
