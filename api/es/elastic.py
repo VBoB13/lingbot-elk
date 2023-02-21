@@ -268,10 +268,6 @@ class LingtelliElastic(Elasticsearch):
 
             mappings = json.loads((resp.content.decode('utf-8')))
 
-            self.logger.msg = "Mapping loading: " + \
-                Fore.LIGHTGREEN_EX + "SUCCESS" + Fore.RESET + "!"
-            self.logger.info()
-
         final_mapping = {}
         for index in mappings.keys():
             if mappings[index]["mappings"].get('_meta', None):
@@ -286,15 +282,17 @@ class LingtelliElastic(Elasticsearch):
                         elif field == "content":
                             final_mapping.update({index: {"context": field}})
 
-        # self.logger.msg = "Final mapping:\n%s" % final_mapping
-        # self.logger.info()
+        self.logger.msg = "Mapping loading: " + \
+            Fore.LIGHTGREEN_EX + "SUCCESS" + Fore.RESET + "!"
+        self.logger.info()
 
         self.known_indices = final_mapping
-        # self.logger.msg = "New mapping object:"
-        # self.logger.info()
-        # pprint(self.known_indices)
 
-    def _get_query(self, doc) -> dict:
+    def _get_query(self, doc: SearchDocTimeRange | SearchDocument | SearchPhraseDoc) -> dict:
+        """
+        Method that creates query objects (QueryMaker) to easen the process of
+        creating correct queries on-the-fly.
+        """
         queryObj = QueryMaker(self.known_indices)
         if isinstance(doc, SearchDocTimeRange):
             queryObj.create_query_from_timestamps(doc.start, doc.end)
@@ -323,7 +321,7 @@ class LingtelliElastic(Elasticsearch):
         # In the future, this is still going to be added.
         # if doc.doc_id:
         #     document.update({"id": doc.doc_id})
-        today = datetime.now(tz=get_tz())
+        today = datetime.now().astimezone()
         today_str = date_to_str(today)
         if not check_timestamp(today_str):
             self.logger.msg = "Timestamp is not in the correct format!"
