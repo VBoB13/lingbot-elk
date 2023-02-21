@@ -34,7 +34,7 @@ async def delete_index(vendor: Vendor):
     try:
         es = LingtelliElastic()
         es.delete_index(vendor.vendor_id)
-        return ElkServiceResponse(content={"msg": "Index deleted.", "data": vendor.vendor_id}, status_code=status.HTTP_200_OK)
+        return ElkServiceResponse(content={"msg": "Index deleted.", "data": vendor.vendor_id}, status_code=status.HTTP_202_ACCEPTED)
     except Exception as err:
         logger.msg = "Could NOT delete index <%s>!" % vendor.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
@@ -48,7 +48,7 @@ async def delete_source(source: SourceDocument):
     try:
         es = LingtelliElastic()
         es.delete_source(source.vendor_id, source.filename)
-        return ElkServiceResponse(content={"msg": "Documents from source file [%s] deleted!" % source.filename, "data": source.vendor_id}, status_code=status.HTTP_200_OK)
+        return ElkServiceResponse(content={"msg": "Documents from source file [%s] deleted!" % source.filename, "data": source.vendor_id}, status_code=status.HTTP_202_ACCEPTED)
     except Exception as err:
         logger.msg = "Could NOT delete index <%s>!" % source.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
@@ -91,7 +91,7 @@ async def get_doc(doc: DocID_Must):
         return ElkServiceResponse(content={"msg": "Document found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
         if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
-            return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_204_NO_CONTENT)
+            return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_200_OK)
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -106,7 +106,7 @@ async def search_doc(doc: SearchDocument):
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
         if hasattr(err, 'msg') and not es.docs_found:
-            return ElkServiceResponse(content={"error": "{}".format(err.msg)}, status_code=status.HTTP_204_NO_CONTENT)
+            return ElkServiceResponse(content={"error": "{}".format(err.msg)}, status_code=status.HTTP_200_OK)
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -121,7 +121,7 @@ async def search_doc_gpt(doc: SearchGPT):
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
         if hasattr(err, 'msg') and not es.docs_found:
-            return ElkServiceResponse(content={"msg": f"{err.msg}", "data": {"error": str(err)}}, status_code=status.HTTP_204_NO_CONTENT)
+            return ElkServiceResponse(content={"msg": f"{err.msg}", "data": {"error": str(err)}}, status_code=status.HTTP_200_OK)
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -136,7 +136,7 @@ async def search_phrase(doc: SearchPhraseDoc):
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
     except Exception as err:
         if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
-            return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_204_NO_CONTENT)
+            return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_200_OK)
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
