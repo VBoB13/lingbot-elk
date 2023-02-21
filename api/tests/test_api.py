@@ -101,3 +101,19 @@ def test_search():
     if elk_client.index_exists(index):
         response = delete_index(index)
         assert response.json() == {"msg": "Index deleted.", "data": index}
+
+
+def test_delete_source():
+    """
+    Testing the endpoint '/delete_source' for appropriate response.
+    """
+    index = "testing-delete-source-index"
+    resp = create_index_with_data(index)
+    if resp.ok:
+        file = "通用.csv"
+        data = json.dumps({"vendor_id": index, "filename": file})
+        check_response = {
+            "msg": "Documents from source file [%s] deleted!" % file, "data": index}
+        resp = test_client.post('/delete_source', data=data)
+        if resp.ok:
+            assert resp.json() == check_response
