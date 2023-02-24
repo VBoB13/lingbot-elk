@@ -27,6 +27,7 @@ services:
       - .env
     volumes:
       - gpt-service-log:/opt/gpt3/api/log
+      - gpt-service-hist:/opt/gpt3/api/history/saved
     ports:
       - 4200:4200
     expose:
@@ -54,3 +55,4 @@ volumes:
   elk-service-csv:
   elk-api-log:
   gpt-service-log:
+  gpt-service-hist:
