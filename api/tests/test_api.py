@@ -96,7 +96,8 @@ def test_search():
     json_data = json.dumps(data)
     response = test_client.post("/search", data=json_data)
 
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"error": "Could not get any documents!"}
 
     if elk_client.index_exists(index):
         response = delete_index(index)
