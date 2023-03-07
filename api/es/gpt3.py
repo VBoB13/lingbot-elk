@@ -26,19 +26,21 @@ class GPT3Base(object):
                 str(self.res.status_code)))
             raise self.logger
 
-        self.results = self.res.content.decode('utf-8')
-        # Check response content and type
-        self.logger.msg = "Response from GPT-3 service: {}".format(
-            self.results)
-        self.logger.info(extra_msg="Type: {}".format(
-            type(self.results).__name__))
         if format:
+            self.results = self.res.content.decode('utf-8')
+            # Check response content and type
+            self.logger.msg = "Response from GPT-3 service: {}".format(
+                self.results)
+            self.logger.info(extra_msg="Type: {}".format(
+                type(self.results).__name__))
             # String?
             if type(self.results).__name__ == 'str':
                 self.results = self.results.split('":"')[1][:-2]
             # Dict?
             elif type(self.results).__name__ == 'dict':
                 self.results = self.results['data']
+        else:
+            self.results = self.res.json()
 
 
 class GPT3Request(GPT3Base):
