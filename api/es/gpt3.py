@@ -40,7 +40,7 @@ class GPT3Base(object):
             elif type(self.results).__name__ == 'dict':
                 self.results = self.results['data']
         else:
-            self.results = self.res.json()
+            self.results = self.res.json()["data"]
 
 
 class GPT3Request(GPT3Base):
