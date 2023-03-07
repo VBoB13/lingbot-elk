@@ -17,7 +17,7 @@ class GPT3Base(object):
     def __init__(self):
         self.logger = ElasticError(__file__, self.__class__.__name__)
 
-    def get_gpt3_response(self):
+    def get_gpt3_response(self, format: bool = True):
         # Annotating the type of [self.res]
         self.res: Response
         if not self.res.ok:
@@ -32,12 +32,13 @@ class GPT3Base(object):
             self.results)
         self.logger.info(extra_msg="Type: {}".format(
             type(self.results).__name__))
-        # String?
-        if type(self.results).__name__ == 'str':
-            self.results = self.results.split('":"')[1][:-2]
-        # Dict?
-        elif type(self.results).__name__ == 'dict':
-            self.results = self.results['data']
+        if format:
+            # String?
+            if type(self.results).__name__ == 'str':
+                self.results = self.results.split('":"')[1][:-2]
+            # Dict?
+            elif type(self.results).__name__ == 'dict':
+                self.results = self.results['data']
 
 
 class GPT3Request(GPT3Base):
@@ -131,4 +132,4 @@ class GPT3UtilityRequest(GPT3Base):
             # Making the actual request
             self.res = requests.post(
                 self.address, data=json.dumps({"text": self.text}))
-            self.get_gpt3_response()
+            self.get_gpt3_response(format=False)
