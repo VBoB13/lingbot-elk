@@ -9,8 +9,9 @@ from colorama import Fore
 from params import DESCRIPTIONS
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     DocID_Must, BasicResponse, SearchResponse, \
-    SearchPhraseDoc, SearchGPT, Vendor, SourceDocument
+    SearchPhraseDoc, SearchGPT, Vendor, SourceDocument, EntityDocument
 from es.elastic import LingtelliElastic
+from es.gpt3 import GPT3UtilityRequest
 from settings.settings import TEMP_DIR, TIIP_CSV_DIR
 from helpers.reqres import ElkServiceResponse
 from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
@@ -51,6 +52,20 @@ async def delete_source(source: SourceDocument):
         return ElkServiceResponse(content={"msg": "Documents from source file [%s] deleted!" % source.filename, "data": source.vendor_id}, status_code=status.HTTP_202_ACCEPTED)
     except Exception as err:
         logger.msg = "Could NOT delete index <%s>!" % source.vendor_id
+        logger.error(extra_msg=str(err), orgErr=err)
+        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/extract-entities", response_model=BasicResponse, description=DESCRIPTIONS["/extract-entities"])
+async def extract_entities(doc: EntityDocument):
+    global logger
+    logger.cls = "main.py:delete_source"
+    try:
+        gpt = GPT3UtilityRequest(doc.text)
+        return ElkServiceResponse(content={"msg": "Extraction successful!", "data": gpt.results}, status_code=status.HTTP_200_OK)
+    except Exception as err:
+        logger.msg = "Could NOT extract entities from text: [%s]" % str(
+            doc.text[:15] + "...")
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

@@ -98,3 +98,7 @@ class SearchDocTimeRange(Vendor):
 
 class SourceDocument(Vendor):
     filename: str
+
+
+class EntityDocument(BaseModel):
+    text: str
