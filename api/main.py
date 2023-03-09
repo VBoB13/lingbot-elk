@@ -9,7 +9,7 @@ from colorama import Fore
 from params import DESCRIPTIONS
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     DocID_Must, BasicResponse, SearchResponse, \
-    SearchPhraseDoc, SearchGPT, Vendor, SourceDocument, EntityDocument
+    SearchPhraseDoc, SearchGPT, Vendor, SourceDocument, EntityDocument, IntentDocument
 from es.elastic import LingtelliElastic
 from es.gpt3 import GPT3UtilityRequest
 from settings.settings import TEMP_DIR, TIIP_CSV_DIR
@@ -59,9 +59,23 @@ async def delete_source(source: SourceDocument):
 @app.post("/extract-entities", response_model=BasicResponse, description=DESCRIPTIONS["/extract-entities"])
 async def extract_entities(doc: EntityDocument):
     global logger
-    logger.cls = "main.py:delete_source"
+    logger.cls = "main.py:extract-entities"
     try:
         gpt = GPT3UtilityRequest(doc.text)
+        return ElkServiceResponse(content={"msg": "Extraction successful!", "data": gpt.results}, status_code=status.HTTP_200_OK)
+    except Exception as err:
+        logger.msg = "Could NOT extract entities from text: [%s]" % str(
+            doc.text[:15] + "...")
+        logger.error(extra_msg=str(err), orgErr=err)
+        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/intent-flight", response_model=BasicResponse, description=DESCRIPTIONS["/intent-flight"])
+async def intent_flight(doc: IntentDocument):
+    global logger
+    logger.cls = "main.py:intent_flight"
+    try:
+        gpt = GPT3UtilityRequest(doc.query, service="intent:flight")
         return ElkServiceResponse(content={"msg": "Extraction successful!", "data": gpt.results}, status_code=status.HTTP_200_OK)
     except Exception as err:
         logger.msg = "Could NOT extract entities from text: [%s]" % str(

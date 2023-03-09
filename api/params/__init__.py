@@ -7,6 +7,8 @@ DESCRIPTIONS = {
     "/delete_source": "Endpoint for deleting multiple documents inserted into ELK with the help of a source file, e.g. 'EBR.csv', 'Docs.docx' and so on...",
     # Entities
     "/extract-entities": "Endpoint for extracting entities from travel documents such as event descriptions or blog posts about such events.",
+    # Intents
+    "/intent-flight": "Endpoint for returning JSON data about the intents from a user wishing to book a flight.",
     # Save
     "/save": "Endpoint used for saving a single document.",
     "/save-bulk": "Endpoint for saving multiple documents.",

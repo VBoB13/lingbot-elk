@@ -102,3 +102,7 @@ class SourceDocument(Vendor):
 
 class EntityDocument(BaseModel):
     text: str
+
+
+class IntentDocument(BaseModel):
+    query: str

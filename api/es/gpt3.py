@@ -83,8 +83,9 @@ class GPT3UtilityRequest(GPT3Base):
     """
 
     services = {
-        "extract": ['entities', 'event-name', 'event-price', 'date', 'accommodation'],
-        "analyze": ['sentiment']
+        "extract": ['entities', 'intent'],
+        "analyze": ['sentiment'],
+        "intent": ['flight', 'hotel']
     }
 
     def __init__(self, text: str, service: str = "extract:entities"):
@@ -102,7 +103,7 @@ class GPT3UtilityRequest(GPT3Base):
                 self.logger.error(extra_msg="Got: %s" %
                                   str(self.service + "-" + self.subservice))
                 raise self.logger
-
+            # Set request address to be the service that is to be executed
             self.address = self.base_address + "/" + self.service + "-" + self.subservice
         except Exception as err:
             self.logger.msg = "Something went wrong when trying to call the GPT-3 service!"
@@ -110,7 +111,7 @@ class GPT3UtilityRequest(GPT3Base):
             raise self.logger from err
         else:
             try:
-                # No troubles? .exe-cute :)
+                # No troubles? .egg-see-cute :)
                 self._decide_service()
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to send/receive request from GPT3 service!"
@@ -127,11 +128,22 @@ class GPT3UtilityRequest(GPT3Base):
         2. `self.subservice`\n
         provided. Different methods gets executed based on these attribute values.
         """
+        entities = []
         if len(self.text) > 0 and isinstance(self.text, str):
             self.logger.msg = "Asking GPT3 service to execute service: %s" % str(
                 self.service + ":" + self.subservice)
             self.logger.info()
+
+            # Differentiating the services & their behavior
+            if self.service == 'intent' and self.subservice == 'flight':
+                entities = ['Departure airport', 'Departure date',
+                            'Destination airport', 'Return date']
+
+            data = {"text": self.text}
+            if len(entities) > 0:
+                data.update({"entities": entities})
+
             # Making the actual request
-            self.res = requests.post(
-                self.address, data=json.dumps({"text": self.text}))
+            self.res = requests.post(self.address, data=json.dumps(data))
+            # Base class method
             self.get_gpt3_response(format=False)
