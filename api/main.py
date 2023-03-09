@@ -79,7 +79,7 @@ async def intent_flight(doc: IntentDocument):
         return ElkServiceResponse(content={"msg": "Extraction successful!", "data": gpt.results}, status_code=status.HTTP_200_OK)
     except Exception as err:
         logger.msg = "Could NOT extract entities from text: [%s]" % str(
-            doc.text[:15] + "...")
+            doc.query[:15] + "...")
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
