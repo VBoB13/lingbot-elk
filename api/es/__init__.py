@@ -7,7 +7,7 @@ TIIP_INDEX = os.environ["TIIP_INDEX"]
 DEFAULT_ANALYZER = 'icu_analyzer'
 OLD_ANALYZER = 'ik_max_word'
 OLD_SEARCH_ANALYZER = 'ik_smart'
-MIN_DOC_SCORE = 4
+MIN_DOC_SCORE = 5
 MIN_QA_DOC_SCORE = float(1.15)
 MAX_CONTEXT_LENGTH = 1250
 
