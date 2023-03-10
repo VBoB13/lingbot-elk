@@ -9,7 +9,7 @@ OLD_ANALYZER = 'ik_max_word'
 OLD_SEARCH_ANALYZER = 'ik_smart'
 MIN_DOC_SCORE = 5
 MIN_QA_DOC_SCORE = float(1.15)
-MAX_CONTEXT_LENGTH = 1000
+MAX_CONTEXT_LENGTH = 800
 
 TEXT_FIELD_TYPES = ['text', 'keyword']
 NUMBER_FIELD_TYPES = ['long', 'integer', 'short', 'byte',
