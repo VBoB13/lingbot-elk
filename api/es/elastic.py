@@ -38,6 +38,8 @@ class LingtelliElastic(Elasticsearch):
         self.logger.msg = "Elasticsearch client initialized " + \
             Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
         self.logger.info()
+
+        self.search_size = int(20)
         self.docs_found = True
 
     def _check_mappings(self, mappings: dict, language: str = "CH") -> dict:
@@ -556,7 +558,7 @@ class LingtelliElastic(Elasticsearch):
                     doc.vendor_id))
                 raise self.logger
             query = self._get_query(doc)
-            resp = super().search(index=doc.vendor_id, query=query)
+            resp = super().search(index=doc.vendor_id, query=query, size=self.search_size)
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
             resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"], doc)
