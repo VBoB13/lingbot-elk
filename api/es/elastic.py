@@ -41,6 +41,7 @@ class LingtelliElastic(Elasticsearch):
 
         self.search_size = int(20)
         self.docs_found = True
+        self.gpt3_strict = True
 
     def _check_mappings(self, mappings: dict, language: str = "CH") -> dict:
         """
@@ -218,13 +219,39 @@ class LingtelliElastic(Elasticsearch):
         """
         # Here we create a temporary function that we use
         # to filter low score documents out.
+
+        # Grab average length first for normalizing later
+        avg_length = sum([len(hit["source"]["context"])
+                         for hit in hits]) / len(hits)
+
+        # To calculate a normalized score, we need to use a function we can use with map().
+        def normalize_score(doc):
+            doc["score"] = doc["score"] * \
+                (avg_length / len(doc["source"]["context"]))
+            return doc
+
+        # Define the function provided to map() function below.
         def filter_context(doc):
             if doc["score"] >= MIN_DOC_SCORE:
+                if doc["score"] > 10:
+                    self.gpt3_strict = False
                 return doc
+
         context = ""
         if isinstance(hits, list):
             # Turning the irrelevant (low score) documents into 'None'.
-            hits = map(filter_context, hits)
+            try:
+                hits = map(normalize_score, hits)
+            except Exception as err:
+                self.logger.msg = "Could NOT normalize scores for fetched documents!"
+                self.logger.warning(extra_msg=str(err))
+
+            try:
+                hits = map(filter_context, hits)
+            except Exception as err:
+                self.logger.msg = "Could NOT filter documents properly!"
+                self.logger.warning(extra_msg=str(err))
+
             # Then we remove those 'None' values, leaving only relevant documents.
             hits = [hit for hit in hits if hit]
             for hit in hits:
