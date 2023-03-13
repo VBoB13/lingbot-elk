@@ -660,7 +660,7 @@ class LingtelliElastic(Elasticsearch):
                 # self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
 
                 gpt3 = GPT3Request(doc.match.search_term,
-                                   context, doc.vendor_id, self.gpt3_strict, doc.session_id)
+                                   context, doc.vendor_id, self.gpt3_strict, session_id=doc.session_id)
 
                 qa_data = {
                     'vendor_id': qa_doc.vendor_id,

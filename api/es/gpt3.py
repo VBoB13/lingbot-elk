@@ -48,12 +48,12 @@ class GPT3Request(GPT3Base):
     Class designated to handle the communications between the ELK and GPT-3 services.
     """
 
-    def __init__(self, question: str, context: str, vendor_id: str, session_id: str = "test_session"):
+    def __init__(self, question: str, context: str, vendor_id: str, gpt3_strict: bool, session_id: str = "test_session"):
         super().__init__()
         try:
             start = time.time()
             self.res = requests.post("http://" + GPT3_SERVER + ":" + str(
-                GPT3_PORT) + "/question", data=json.dumps({"question": question, "context": context, "vendor_id": vendor_id, "session_id": session_id}))
+                GPT3_PORT) + "/question", data=json.dumps({"question": question, "context": context, "vendor_id": vendor_id, "strict": gpt3_strict, "session_id": session_id}))
         except Exception as err:
             self.logger.msg = "Something went wrong when trying to call the GPT-3 service!"
             self.logger.error(extra_msg=str(err), orgErr=err)
