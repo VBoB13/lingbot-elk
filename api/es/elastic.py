@@ -41,7 +41,7 @@ class LingtelliElastic(Elasticsearch):
 
         self.search_size = int(20)
         self.docs_found = True
-        self.gpt3_strict = True
+        self.gpt3_strict = False
 
     def _check_mappings(self, mappings: dict, language: str = "CH") -> dict:
         """
@@ -234,7 +234,7 @@ class LingtelliElastic(Elasticsearch):
         def filter_context(doc):
             if doc["score"] >= MIN_DOC_SCORE:
                 if doc["score"] > 10:
-                    self.gpt3_strict = False
+                    self.gpt3_strict = True
                 return doc
 
         context = ""
@@ -660,7 +660,7 @@ class LingtelliElastic(Elasticsearch):
                 # self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
 
                 gpt3 = GPT3Request(doc.match.search_term,
-                                   context, doc.vendor_id, doc.session_id)
+                                   context, doc.vendor_id, self.gpt3_strict, doc.session_id)
 
                 qa_data = {
                     'vendor_id': qa_doc.vendor_id,
