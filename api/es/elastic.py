@@ -233,7 +233,9 @@ class LingtelliElastic(Elasticsearch):
         # Define the function provided to map() function below.
         def filter_context(doc):
             if doc["score"] >= MIN_DOC_SCORE:
-                if doc["score"] > 10:
+                if doc["score"] > 10 and not self.gpt3_strict:
+                    self.logger.msg = "Score" + Fore.LIGHTGREEN_EX + "> 10" + Fore.RESET + "found!"
+                    self.logger.info()
                     self.gpt3_strict = True
                 return doc
 
