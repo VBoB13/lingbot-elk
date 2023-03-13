@@ -242,7 +242,7 @@ class LingtelliElastic(Elasticsearch):
             # Turning the irrelevant (low score) documents into 'None'.
             try:
                 hits = map(normalize_score, hits)
-                hits = sorted(hits, key="score", reverse=True)
+                hits = sorted(hits, key=lambda hit: hit["score"], reverse=True)
             except Exception as err:
                 self.logger.msg = "Could NOT normalize scores for fetched documents!"
                 self.logger.warning(extra_msg=str(err))
