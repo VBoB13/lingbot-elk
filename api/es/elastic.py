@@ -245,6 +245,12 @@ class LingtelliElastic(Elasticsearch):
             except Exception as err:
                 self.logger.msg = "Could NOT normalize scores for fetched documents!"
                 self.logger.warning(extra_msg=str(err))
+            else:
+                self.score_data = [doc["score"] for doc in hits]
+                self.logger.msg = "Normalized scores: %s" % str(
+                    self.score_data)
+                self.logger.info(extra_msg="Max: " + Fore.LIGHTGREEN_EX + str(max(self.score_data)) +
+                                 Fore.RESET + "\nMin: " + Fore.LIGHTRED_EX + str(min(self.score_data)) + Fore.RESET)
 
             try:
                 hits = map(filter_context, hits)
