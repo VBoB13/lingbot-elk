@@ -6,6 +6,7 @@
 import glob
 import os
 import json
+import csv
 
 from typing import Iterator, List
 from datetime import datetime, timedelta
@@ -577,10 +578,11 @@ class CSVLoader(object):
 
         # Retrieve file's content from temp. file
         try:
-            with open(temp_name, "rb") as fileObj:
-                for row in fileObj.readlines():
-                    content.append(row.decode(
-                        'utf-8').replace("\n", "").replace("\r", ""))
+            reader = csv.reader(open(temp_name))
+            for stuff in reader:
+                self.logger.msg = "Current 'stuff': %s" % str(stuff)
+                self.logger.info()
+                content.append(stuff)
         except Exception as err:
             self.logger.msg = "Could not create string contents from CSV file!"
             self.logger.error(orgErr=err)
