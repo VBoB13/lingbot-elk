@@ -6,12 +6,13 @@
 import glob
 import os
 import json
-import csv
+
 
 from typing import Iterator, List
 from datetime import datetime, timedelta
 from starlette.datastructures import UploadFile
 
+import pandas as pd
 from colorama import Fore, Back, Style
 from PyPDF2 import PdfReader
 from ftplib import FTP
@@ -578,11 +579,12 @@ class CSVLoader(object):
 
         # Retrieve file's content from temp. file
         try:
-            reader = csv.reader(open(temp_name))
-            for stuff in reader:
+            df = pd.read_csv(temp_name)
+            for stuff in df.iterrows():
                 self.logger.msg = "Current 'stuff': %s" % str(stuff)
                 self.logger.info()
                 content.append(stuff)
+            del df
         except Exception as err:
             self.logger.msg = "Could not create string contents from CSV file!"
             self.logger.error(orgErr=err)
