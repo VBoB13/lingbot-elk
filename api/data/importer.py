@@ -584,8 +584,8 @@ class CSVLoader(object):
                 part_stuff = stuff
                 if isinstance(stuff, tuple):
                     part_stuff = " ".join(stuff[1].values)
-                self.logger.msg = "Current 'stuff': %s" % str(part_stuff)
-                self.logger.info()
+                # self.logger.msg = "Current 'stuff': %s" % str(part_stuff)
+                # self.logger.info()
                 content.append(part_stuff)
             del df
         except Exception as err:
