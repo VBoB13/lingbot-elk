@@ -581,9 +581,12 @@ class CSVLoader(object):
         try:
             df = pd.read_csv(temp_name)
             for stuff in df.iterrows():
+                part_stuff = stuff
                 self.logger.msg = "Current 'stuff': %s" % str(stuff)
                 self.logger.info()
-                content.append(stuff)
+                if isinstance(stuff, tuple):
+                    part_stuff = stuff[1]
+                content.append(part_stuff)
             del df
         except Exception as err:
             self.logger.msg = "Could not create string contents from CSV file!"
