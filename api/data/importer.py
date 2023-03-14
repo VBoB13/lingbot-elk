@@ -583,7 +583,7 @@ class CSVLoader(object):
             for stuff in df.iterrows():
                 part_stuff = stuff
                 if isinstance(stuff, tuple):
-                    part_stuff = stuff[1]
+                    part_stuff = " ".join(stuff[1].values)
                 self.logger.msg = "Current 'stuff': %s" % str(part_stuff)
                 self.logger.info()
                 content.append(part_stuff)
