@@ -3,6 +3,7 @@ import uvicorn
 import shutil
 import logging
 
+import pandas as pd
 from fastapi import FastAPI, status, BackgroundTasks, UploadFile, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -211,10 +212,10 @@ def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
             try:
                 # Copy contents into a temporary file
                 with open(temp_name, 'xb') as f:
-                    logger.msg = "File content loaded!"
-                    logger.info(extra_msg="Content:\n" +
-                                f.read().decode('utf-8'))
                     shutil.copyfileobj(file.file, f)
+                df = pd.read_csv(temp_name)
+                print(df)
+
             except Exception as err:
                 logger.msg = "Something went wrong when trying to copy contents of file!"
                 logger.error(orgErr=err)
