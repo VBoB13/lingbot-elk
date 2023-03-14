@@ -214,7 +214,7 @@ def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
                 with open(temp_name, 'xb') as f:
                     shutil.copyfileobj(file.file, f)
                 df = pd.read_csv(temp_name)
-                print(df)
+                print(df.to_string())
 
             except Exception as err:
                 logger.msg = "Something went wrong when trying to copy contents of file!"
