@@ -582,10 +582,10 @@ class CSVLoader(object):
             df = pd.read_csv(temp_name)
             for stuff in df.iterrows():
                 part_stuff = stuff
-                self.logger.msg = "Current 'stuff': %s" % str(stuff)
-                self.logger.info()
                 if isinstance(stuff, tuple):
                     part_stuff = stuff[1]
+                self.logger.msg = "Current 'stuff': %s" % str(part_stuff)
+                self.logger.info()
                 content.append(part_stuff)
             del df
         except Exception as err:
