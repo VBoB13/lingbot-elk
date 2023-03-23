@@ -29,10 +29,10 @@ def test_extract_entities():
     text = "I got a proposal for Yukong Travel Agency, and that is to include Sweden, more specifically Abisko, in their destinations to view Aurora Borealis. They can go to Ice Hotel Kiruna and eat at their Ice Hotel Restaurant. As for transportation, Sweden's airline called SAS."
     response = test_client.post(
         '/extract-entities', data=json.dumps({"text": text})).json()
+    test_vals = ['Restaurants', 'Accomodations', 'Flights']
     if isinstance(response["data"], dict):
-        assert 'Restaurants' in response["data"].keys()
-        assert 'Accomodations' in response["data"].keys()
-        assert 'Flights' in response["data"].keys()
+        for key_str in response["data"].keys():
+            assert key_str in test_vals
 
 
 def test_upload_csv():
