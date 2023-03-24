@@ -308,17 +308,29 @@ class LingtelliElastic(Elasticsearch):
 
         final_mapping = {}
         for index in mappings.keys():
-            if mappings[index]["mappings"].get('_meta', None):
-                final_mapping.update(
-                    {index: {"context": mappings[index]["mappings"]["_meta"]["main_field"]}})
+            if len(mappings[index].keys()) > 0:
+                if mappings[index]["mappings"].get('_meta', None):
+                    final_mapping.update(
+                        {index: {"context": mappings[index]["mappings"]["_meta"]["main_field"]}})
+                elif mappings[index]["mappings"].get('properties', None):
+                    for field in mappings[index]["mappings"]["properties"].keys():
+                        if mappings[index]["mappings"]["properties"][field].get('type', None) \
+                                and mappings[index]["mappings"]["properties"][field]["type"] == "text":
+                            if index.endswith('-qa') and field == "a":
+                                final_mapping.update(
+                                    {index: {"context": field}})
+                            elif field == "content":
+                                final_mapping.update(
+                                    {index: {"context": field}})
+                else:
+                    self.logger.msg = "Could neither find '_meta' key nor 'properties' keys!"
+                    self.logger.error()
+                    raise self.logger
             else:
-                for field in mappings[index]["mappings"]["properties"].keys():
-                    if mappings[index]["mappings"]["properties"][field].get('type', None) \
-                            and mappings[index]["mappings"]["properties"][field]["type"] == "text":
-                        if index.endswith('-qa') and field == "a":
-                            final_mapping.update({index: {"context": field}})
-                        elif field == "content":
-                            final_mapping.update({index: {"context": field}})
+                self.logger.msg = "No keys in mapping object for index [%s]! Skipping..." % index
+                self.logger.warning(
+                    extra_msg='Mapping keys: [%s]' % str(mappings[index].keys()))
+                continue
 
         self.logger.msg = "Mapping loading: " + \
             Fore.LIGHTGREEN_EX + "SUCCESS" + Fore.RESET + "!"
