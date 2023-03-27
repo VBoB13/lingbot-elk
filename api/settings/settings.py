@@ -40,13 +40,49 @@ SYNONYM_BASES: dict[str, dict[str, list]] = {
 # Constants
 SYNONYM_WORDS: dict[str, dict[str, list[list[str]]]] = {
     "EN": {
-        'travel': [['go', 'head', 'walk', 'move'], ['experience', 'live through', 'bear', 'endure', 'undergo'], ['eat', 'have a meal', 'consume', 'devour'], ['stay at', 'lodging'], ['plan', 'plan ahead', 'scheme', 'project'], ['look for', 'search', 'check', 'examine', 'explore', 'hunt for']],
-        'insurance': ['cover', 'liability', 'credit', 'premium'],
-        'admin': ['subsidy', 'application', 'department', 'money', 'company', 'employee']
+        'travel': [
+            ['go', 'head', 'walk', 'move'],
+            ['experience', 'live through', 'bear', 'endure', 'undergo'],
+            ['eat', 'have a meal', 'consume', 'devour'],
+            ['stay at', 'lodging'],
+            ['plan', 'plan ahead', 'scheme', 'project'],
+            ['look for', 'search', 'check', 'examine', 'explore', 'hunt for']
+        ],
+        'insurance': [
+            ['cover', 'covered by', 'coverage'],
+            ['liability', 'credit'],
+            ['premium', 'insurance fee', 'insurance price']
+        ],
+        'admin': [
+            ['subsidy', 'monetary aid', 'monetary support'],
+            ['application', 'inquiry', 'claim', 'petition', 'form'],
+            ['department', 'division', 'unit', 'office'],
+            ['money', 'capital', 'cash', 'finances'],
+            ['company', 'organization', 'corporation', 'enterprise'],
+            ['employee', 'worker', 'laborer', 'representative']
+        ]
     },
     "CH": {
-        'travel': ['去', '體驗', '吃', '住宿', '計畫', '尋找'],
-        'insurance': ['保險範圍內', '信用', '保險費', '虧空'],
-        'admin': ['申請', '補助', '部門', '錢', '公司', '員工']
+        'travel': [
+            ['去', '前往', '走', '移動'],
+            ['體驗', '撐過', '經驗'],
+            ['吃', '吃飯', '進食', '飲食'],
+            ['住宿', '飯店', '酒店', '民宿', '住'],
+            ['計畫', '規劃', '準備', '安排', '設計'],
+            ['尋找', '搜尋', '蒐尋', '搜索']
+        ],
+        'insurance': [
+            ['保險範圍內', '保險內', '保險內含'],
+            ['信用', '負債', '虧空'],
+            ['保險費', '保險費用', '保險月費', '保險年費', '保險價格'],
+        ],
+        'admin': [
+            ['補助', '貨幣補助', '貨幣援助', '貨幣支持'],
+            ['申請', '詢問', '要求', '表格', '請願'],
+            ['部門', '部署', '單位', '辦公室'],
+            ['錢', '本金', '本錢', '款項', '金款', '金錢'],
+            ['公司', '企業', '廠商', '組織', '機構'],
+            ['員工', '職工', '勞工', '勞動力', '代表人']
+        ]
     }
 }

@@ -109,6 +109,14 @@ class LingtelliElastic(Elasticsearch):
 
         if not self._index_exists(index):
             if language == "CH":
+                try:
+                    synonym_key = 'synonyms'
+                    synonyms = [", ".join(lst) for lst in get_synonymns(
+                        ['去', '尋找', '體驗'], 'travel')]
+                except Exception:
+                    synonym_key = 'synonyms_path'
+                    synonyms = 'analysis/' + language + '/travel-synonyms.txt'
+
                 settings.update({
                     "settings": {
                         "analysis": {
@@ -120,7 +128,7 @@ class LingtelliElastic(Elasticsearch):
                                 "synonym": {
                                     "type": "synonym",
                                     "lenient": True,
-                                    "synonyms": [", ".join(lst) for lst in get_synonymns(['去', '尋找', '體驗'], 'travel')]
+                                    synonym_key: synonyms
                                 }
                             },
                             "analyzer": {
@@ -156,7 +164,7 @@ class LingtelliElastic(Elasticsearch):
                                 "synonym": {
                                     "type": "synonym",
                                     "lenient": True,
-                                    "synonyms": [", ".join(lst) for lst in get_synonymns(['go', 'look for', 'experience'], 'travel')]
+                                    synonym_key: synonyms
                                 }
                             },
                             "analyzer": {

@@ -55,7 +55,7 @@ def get_local_ip(org_ip: str) -> str:
     return IP
 
 
-def get_synonymns(words: list, category: str) -> list[str]:
+def get_synonymns(words: list, category: str) -> list[list[str]]:
     """
     Function that takes a word in a list as parameter and spits out another list of comma-separated words that are each others' synonyms.
     Returns: `list['word1, syn1-1, syn1-2, syn1-3, ...', 'word2, syn2-1, syn2-2, syn2-3, ...', ...]`
@@ -94,7 +94,7 @@ def get_synonymns(words: list, category: str) -> list[str]:
         except Exception as err:
             logger.msg = "Something went wrong when trying to get synonyms from Claude's service."
             logger.warning(extra=str(err))
-            return SYNONYM_WORDS[language][category]
+            raise logger from err
 
         finally:
             logger.name -= "get_synonyms()"
