@@ -15,7 +15,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
     Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT
 from errors.errors import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
-from helpers.helpers import get_language
+from helpers.helpers import get_language, get_synonymns
 from helpers import TODAY
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
@@ -116,12 +116,17 @@ class LingtelliElastic(Elasticsearch):
                                 "nfkc_normalizer": {
                                     "type": "icu_normalizer",
                                     "name": "nfkc"
+                                },
+                                "synonym": {
+                                    "type": "synonym",
+                                    "lenient": True,
+                                    "synonyms": [", ".join(lst) for lst in get_synonymns(['去', '尋找', '體驗'], 'travel')]
                                 }
                             },
                             "analyzer": {
                                 DEFAULT_ANALYZER: {
                                     "tokenizer": "icu_tokenizer",
-                                    "filter":  ["nfkc_normalizer"]
+                                    "filter":  ["nfkc_normalizer", "synonmym"]
                                 }
                             }
                         },
@@ -142,6 +147,25 @@ class LingtelliElastic(Elasticsearch):
                         "properties": final_mapping
                     },
                     "settings": {
+                        "analysis": {
+                            "filter": {
+                                "nfkc_normalizer": {
+                                    "type": "icu_normalizer",
+                                    "name": "nfkc"
+                                },
+                                "synonym": {
+                                    "type": "synonym",
+                                    "lenient": True,
+                                    "synonyms": [", ".join(lst) for lst in get_synonymns(['go', 'look for', 'experience'], 'travel')]
+                                }
+                            },
+                            "analyzer": {
+                                DEFAULT_ANALYZER: {
+                                    "tokenizer": "icu_tokenizer",
+                                    "filter":  ["nfkc_normalizer", "synonmym"]
+                                }
+                            }
+                        },
                         "index": {
                             "number_of_shards": 3,
                             "number_of_replicas": 1
