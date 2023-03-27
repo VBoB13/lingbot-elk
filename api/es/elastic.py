@@ -134,7 +134,7 @@ class LingtelliElastic(Elasticsearch):
                             "analyzer": {
                                 DEFAULT_ANALYZER: {
                                     "tokenizer": "icu_tokenizer",
-                                    "filter":  ["nfkc_normalizer", "synonmym"]
+                                    "filter":  ["nfkc_normalizer", "synonym"]
                                 }
                             }
                         },
@@ -178,7 +178,7 @@ class LingtelliElastic(Elasticsearch):
                             "analyzer": {
                                 DEFAULT_ANALYZER: {
                                     "tokenizer": "icu_tokenizer",
-                                    "filter":  ["nfkc_normalizer", "synonmym"]
+                                    "filter":  ["nfkc_normalizer", "synonym"]
                                 }
                             }
                         },
