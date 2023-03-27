@@ -3,6 +3,7 @@ For helper functions that don't make sense in any other module,
 they get put in this module.
 """
 
+import json
 import re
 import requests
 import socket
@@ -64,30 +65,23 @@ def get_synonymns(words: list, category: str) -> list[list[str]]:
     logger.name += "get_synonyms()"
 
     language = get_language(' '.join(words))
+    lang_key = 'zh_' if language == "CH" else 'en_'
 
     acceptable_categories = ['travel', 'insurance', 'admin']
     final_results = []
-    # Parse through words
-    synonym_dict = {}
 
     if category in acceptable_categories:
         try:
-            for word in words:
-                # Take each word and send to synonym endpoint (Claude's service)
-                response = requests.get(CLAUDES_SERVER + ":" +
-                                        str(CLAUDES_PORT) + "/synonyms")
-                if response.ok:
-                    data = response.json()
-                    synonyms = data["synonyms"]
-                    if synonym_dict.get(word, None) and type(synonym_dict[word]) is list:
-                        synonym_dict[word].extend(synonyms)
-                    else:
-                        synonym_dict.update({word: synonyms})
-
-            # Extend list & convert into string.
-            # E.g. [{'word1': ['syn1-1', 'syn1-2', 'syn1-3', ...]}] --> ['word1, syn1-1, syn1-2, syn1-3', ...]
-            for key, value in synonym_dict.items():
-                final_results.append(', '.join([key].extend(value)))
+            data = {"word_list": words}
+            # Take each word and send to synonym endpoint (Claude's service)
+            response = requests.post(CLAUDES_SERVER + ":" +
+                                     str(CLAUDES_PORT) + "/%s" % lang_key + "synonyms", data=json.dumps(data))
+            if response.ok:
+                data: dict[str, list[dict[str, str | list]]
+                           ] = response.json()
+                synonyms = data["synonym_list"]
+                for word_obj in synonyms:
+                    final_results.append(word_obj['syn_list'])
 
             return final_results
 

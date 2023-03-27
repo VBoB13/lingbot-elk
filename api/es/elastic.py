@@ -112,7 +112,7 @@ class LingtelliElastic(Elasticsearch):
                 try:
                     synonym_key = 'synonyms'
                     synonyms = [", ".join(lst) for lst in get_synonymns(
-                        ['去', '尋找', '體驗'], 'travel')]
+                        ['去', '尋找', '體驗', '吃', '住宿', '規劃'], 'travel')]
                 except Exception:
                     synonym_key = 'synonyms_path'
                     synonyms = 'analysis/' + language + '/travel-synonyms.txt'
@@ -149,6 +149,14 @@ class LingtelliElastic(Elasticsearch):
                     }
                 })
             else:
+                try:
+                    synonym_key = 'synonyms'
+                    synonyms = [", ".join(lst) for lst in get_synonymns(
+                        ['go', 'experience', 'eat', 'stay at', 'plan'], 'travel')]
+                except Exception:
+                    synonym_key = 'synonyms_path'
+                    synonyms = 'analysis/' + language + '/travel-synonyms.txt'
+
                 settings.update({
                     "mappings": {
                         "_meta": {"main_field": main_field},

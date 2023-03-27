@@ -28,7 +28,7 @@ DIC_FILE = os.path.join(DIC_DIR, 'extra_main.dic')
 
 # Servers
 CLAUDES_SERVER = "192.168.1.132"
-CLAUDES_PORT = 8000
+CLAUDES_PORT = 3002
 
 # BASE VARS
 SYNONYM_BASES: dict[str, dict[str, list]] = {
