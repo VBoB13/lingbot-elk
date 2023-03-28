@@ -11,9 +11,17 @@ from logging import Logger
 
 from colorama import Fore
 
-from settings.settings import CLAUDES_SERVER, CLAUDES_PORT, SYNONYM_WORDS
 
 logger = Logger(f"{__file__} : ")
+
+try:
+    from settings.settings import CLAUDES_SERVER, CLAUDES_PORT
+except ImportError:
+    logger.name += ":IMPORT"
+    logger.info()
+    CLAUDES_SERVER = "192.168.1.132"
+    CLAUDES_PORT = 3002
+    logger.name -= ":IMPORT"
 
 
 def get_language(content: str) -> str:
