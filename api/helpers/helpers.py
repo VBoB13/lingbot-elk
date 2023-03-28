@@ -18,7 +18,8 @@ try:
     from settings.settings import CLAUDES_SERVER, CLAUDES_PORT
 except ImportError:
     logger.name += ":IMPORT"
-    logger.info()
+    logger.warning(
+        "Import for CLAUDES_SERVER and CLAUDES_PORT failed! Setting values manually.")
     CLAUDES_SERVER = "192.168.1.132"
     CLAUDES_PORT = 3002
     logger.name -= ":IMPORT"
