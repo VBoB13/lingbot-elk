@@ -23,8 +23,8 @@ try:
     from settings.settings import CLAUDES_SERVER, CLAUDES_PORT
 except ImportError:
     logger.name += "IMPORT"
-    logger.warning(
-        "Import for CLAUDES_SERVER and CLAUDES_PORT failed! Setting values manually.")
+    logger.warning(Fore.LIGHTYELLOW_EX +
+                   "Import for CLAUDES_SERVER and CLAUDES_PORT failed! Setting values manually." + Fore.RESET)
     CLAUDES_SERVER = "192.168.1.132"
     CLAUDES_PORT = 3002
     _reset_logger_name()
