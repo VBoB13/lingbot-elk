@@ -9,6 +9,6 @@ ENV ES_HOME /opt/elasticsearch
 WORKDIR ${ES_HOME}
 ADD ./elasticsearch-analysis-ik-8.3.3 ${ES_HOME}/plugins/elasticsearch-analysis-ik-8.3.3
 ADD ./create_new_dic.sh ${ES_HOME}/create_new_dic.sh
-RUN ${ES_HOME}/create_new_dic.sh
+RUN bash ${ES_HOME}/create_new_dic.sh
 RUN ${ES_HOME}/bin/elasticsearch-plugin install analysis-icu
 ADD ./elasticsearch/config/analysis ${ES_HOME}/config
