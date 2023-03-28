@@ -19,7 +19,7 @@ from helpers.helpers import get_language, get_synonymns
 from helpers import TODAY
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE, MAX_CONTEXT_LENGTH, TEXT_FIELD_TYPES, NUMBER_FIELD_TYPES
+from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, OLD_ANALYZER, OLD_ANALYZER_NAME, OLD_SEARCH_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE, MAX_CONTEXT_LENGTH, TEXT_FIELD_TYPES, NUMBER_FIELD_TYPES
 
 
 class LingtelliElastic(Elasticsearch):
@@ -79,16 +79,23 @@ class LingtelliElastic(Elasticsearch):
 
             final_mappings[key] = value
 
-            if language == "CH":
+            def add_analyzer(analyzer: str, search_analyzer: str):
                 if type_str in ['text', 'keywords']:
                     if not value.get('analyzer', None):
-                        final_mappings[key]['analyzer'] = DEFAULT_ANALYZER
+                        final_mappings[key]['analyzer'] = analyzer
                         self.logger.msg = "Added 'analyzer' key with proper values to mappings."
-                        self.logger.info()
+                        self.logger.info(extra_msg="Analyzer: %s" %
+                                         analyzer)
                     if not value.get('search_analyzer', None):
-                        final_mappings[key]['search_analyzer'] = DEFAULT_ANALYZER
+                        final_mappings[key]['search_analyzer'] = search_analyzer
                         self.logger.msg = "Added 'search_analyzer' key with proper values to mappings."
-                        self.logger.info()
+                        self.logger.info(
+                            extra_msg="Search analyzer: %s" % search_analyzer)
+
+            if language == "CH":
+                add_analyzer(OLD_ANALYZER_NAME, OLD_SEARCH_ANALYZER)
+            elif language == "EN":
+                add_analyzer(DEFAULT_ANALYZER, DEFAULT_ANALYZER)
 
         return final_mappings
 
@@ -132,9 +139,8 @@ class LingtelliElastic(Elasticsearch):
                                 }
                             },
                             "analyzer": {
-                                DEFAULT_ANALYZER: {
-                                    "tokenizer": "icu_tokenizer",
-                                    "filter":  ["nfkc_normalizer", "synonym"]
+                                "ik_analyzer": {
+                                    "type": OLD_ANALYZER
                                 }
                             }
                         },

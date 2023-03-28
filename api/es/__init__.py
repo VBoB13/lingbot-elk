@@ -5,6 +5,7 @@ ELASTIC_PORT = int(os.environ["ELASTIC_PORT"])
 TIIP_INDEX = os.environ["TIIP_INDEX"]
 
 DEFAULT_ANALYZER = 'icu_analyzer'
+OLD_ANALYZER_NAME = 'ik_analyzer'
 OLD_ANALYZER = 'ik_max_word'
 OLD_SEARCH_ANALYZER = 'ik_smart'
 MIN_DOC_SCORE = 5
