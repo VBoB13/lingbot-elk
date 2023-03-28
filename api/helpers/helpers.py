@@ -17,12 +17,12 @@ logger = Logger(f"{__file__} : ")
 try:
     from settings.settings import CLAUDES_SERVER, CLAUDES_PORT
 except ImportError:
-    logger.name += ":IMPORT"
+    logger.name += "IMPORT"
     logger.warning(
         "Import for CLAUDES_SERVER and CLAUDES_PORT failed! Setting values manually.")
     CLAUDES_SERVER = "192.168.1.132"
     CLAUDES_PORT = 3002
-    logger.name -= ":IMPORT"
+    logger.name = f"{__file__} : "
 
 
 def get_language(content: str) -> str:
