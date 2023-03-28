@@ -14,6 +14,11 @@ from colorama import Fore
 
 logger = Logger(f"{__file__} : ")
 
+
+def _reset_logger_name():
+    logger.name = f"{__file__} : "
+
+
 try:
     from settings.settings import CLAUDES_SERVER, CLAUDES_PORT
 except ImportError:
@@ -22,7 +27,7 @@ except ImportError:
         "Import for CLAUDES_SERVER and CLAUDES_PORT failed! Setting values manually.")
     CLAUDES_SERVER = "192.168.1.132"
     CLAUDES_PORT = 3002
-    logger.name = f"{__file__} : "
+    _reset_logger_name()
 
 
 def get_language(content: str) -> str:
@@ -39,7 +44,7 @@ def get_language(content: str) -> str:
     else:
         logger.info("Language: Traditional Chinese (ZH-TW)")
 
-    logger.name -= "get_language()"
+    _reset_logger_name()
 
     return lang
 
@@ -61,7 +66,7 @@ def get_local_ip(org_ip: str) -> str:
         IP = '127.0.0.1'
     finally:
         s.close()
-        logger.name -= "get_local_ip()"
+        _reset_logger_name()
     return IP
 
 
@@ -100,7 +105,7 @@ def get_synonymns(words: list, category: str) -> list[list[str]]:
             raise logger from err
 
         finally:
-            logger.name -= "get_synonyms()"
+            _reset_logger_name()
 
     else:
         logger.error(
