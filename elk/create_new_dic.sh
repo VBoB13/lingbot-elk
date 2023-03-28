@@ -5,7 +5,7 @@
 
 function handle_dics () {
     # Change directory
-    command cd $PWD/elasticsearch-analysis-ik-8.3.3/config/
+    command cd $PWD/plugins/elasticsearch-analysis-ik-8.3.3/config/
     for f in *.dic
     do
         echo "Processing $f"
