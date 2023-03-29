@@ -12,4 +12,5 @@ ADD ./elasticsearch-analysis-ik-8.3.3 ${ES_HOME}/plugins/elasticsearch-analysis-
 ADD ./create_new_dic.sh ${ES_HOME}/create_new_dic.sh
 RUN bash ${ES_HOME}/create_new_dic.sh
 RUN ${ES_HOME}/bin/elasticsearch-plugin install analysis-icu
-ADD ./elasticsearch/config/analysis ${ES_HOME}/config
+RUN mkdir -p ${ES_HOME}/config/analysis
+ADD ./elasticsearch/config/analysis ${ES_HOME}/config/analysis
