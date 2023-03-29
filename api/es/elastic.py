@@ -128,10 +128,6 @@ class LingtelliElastic(Elasticsearch):
                     "settings": {
                         "analysis": {
                             "filter": {
-                                "nfkc_normalizer": {
-                                    "type": "icu_normalizer",
-                                    "name": "nfkc"
-                                },
                                 "synonym": {
                                     "type": "synonym",
                                     "lenient": True,
@@ -139,8 +135,10 @@ class LingtelliElastic(Elasticsearch):
                                 }
                             },
                             "analyzer": {
-                                "ik_analyzer": {
-                                    "type": OLD_ANALYZER
+                                "custom_" + OLD_ANALYZER_NAME: {
+                                    "type": "custom",
+                                    "tokenizer": OLD_ANALYZER,
+                                    "filter": ["synonym"]
                                 }
                             }
                         },
