@@ -122,7 +122,7 @@ class LingtelliElastic(Elasticsearch):
                         ['去', '尋找', '體驗', '吃', '住宿', '規劃'], 'travel')]
                 except Exception:
                     synonym_key = 'synonyms_path'
-                    synonyms = 'analysis/' + language + '/travel-synonyms.txt'
+                    synonyms = 'config/analysis/' + language + '/travel-synonyms.txt'
 
                 settings.update({
                     "settings": {
