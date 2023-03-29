@@ -209,7 +209,8 @@ class LingtelliElastic(Elasticsearch):
             except Exception as err:
                 self.logger.msg = "Could not create a new index (%s)\nReason: %s!" % index, str(
                     err)
-                self.logger.error(orgErr=err)
+                self.logger.error(extra_msg="Reason: " +
+                                  str(response.reason), orgErr=err)
                 raise self.logger from err
             else:
                 if response.ok:
