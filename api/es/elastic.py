@@ -135,7 +135,7 @@ class LingtelliElastic(Elasticsearch):
                                 }
                             },
                             "analyzer": {
-                                "custom_" + OLD_ANALYZER_NAME: {
+                                OLD_ANALYZER_NAME: {
                                     "type": "custom",
                                     "tokenizer": OLD_ANALYZER,
                                     "filter": ["synonym"]
