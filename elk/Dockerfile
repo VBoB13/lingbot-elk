@@ -13,4 +13,4 @@ ADD ./create_new_dic.sh ${ES_HOME}/create_new_dic.sh
 RUN bash ${ES_HOME}/create_new_dic.sh
 RUN ${ES_HOME}/bin/elasticsearch-plugin install analysis-icu
 RUN mkdir -p /etc/elasticsearch/analysis
-ADD ./config/elasticsearch/analysis /etc/elasticsearch/analysis
+ADD ./elasticsearch/config/analysis /etc/elasticsearch/analysis
