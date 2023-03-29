@@ -93,7 +93,7 @@ class LingtelliElastic(Elasticsearch):
                             extra_msg="Search analyzer: %s" % search_analyzer)
 
             if language == "CH":
-                add_analyzer(OLD_ANALYZER_NAME, OLD_SEARCH_ANALYZER)
+                add_analyzer(OLD_ANALYZER_NAME, OLD_ANALYZER_NAME)
             elif language == "EN":
                 add_analyzer(DEFAULT_ANALYZER, DEFAULT_ANALYZER)
 
