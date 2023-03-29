@@ -223,7 +223,8 @@ class LingtelliElastic(Elasticsearch):
 
                 else:
                     self.logger.msg = "Something went wrong when trying to create index!"
-                    extra_msg = "Reason: %s" % response.reason
+                    extra_msg = "Reason: %s" % response.reason + \
+                        "\nDetails: %s" % response.content.decode()
 
                 self.logger.info(extra_msg=extra_msg)
                 self._get_mappings()
