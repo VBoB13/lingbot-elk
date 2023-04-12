@@ -5,7 +5,7 @@
 
 **gpt3-davinci
 api/data/tiip/docs
-
+.env
 
 **/data/*.json
 
