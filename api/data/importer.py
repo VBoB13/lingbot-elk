@@ -6,30 +6,28 @@
 import glob
 import os
 import json
-
-
 from typing import Iterator, List
 from datetime import datetime, timedelta
-from starlette.datastructures import UploadFile
 
 import pandas as pd
-from colorama import Fore, Back, Style
+from starlette.datastructures import UploadFile
+from colorama import Fore
 from PyPDF2 import PdfReader
 from ftplib import FTP
 from docx import Document
-from docx.package import Package
 
-from errors.errors import DataError
-from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR, TEMP_DIR
-from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH, TIIP_FTP_SERVER, TIIP_FTP_ACC, TIIP_FTP_PASS
-from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
-from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
-from es.elastic import LingtelliElastic
-from es import TIIP_INDEX
-from helpers.helpers import get_language
-from helpers.interactive import question_check
-from helpers.times import date_to_str
 from helpers import TODAY, YESTERDAY
+from helpers.times import date_to_str
+from helpers.interactive import question_check
+from helpers.helpers import get_language
+from es import TIIP_INDEX
+from es.elastic import LingtelliElastic
+from data.tiip.doc import TIIPDocument, TIIPDocumentList, DocumentPosSeparatorList, DocumentPosSeparator
+from data.tiip.qa import TIIP_QA_Pair, TIIP_QA_PairList
+from data import Q_SEP, A_SEP, DOC_SEP_LIST_1, DOC_SEP_LIST_2, DOC_SEP_LIST_3, DOC_SEP_LIST_4, DOC_LENGTH, TIIP_FTP_SERVER, TIIP_FTP_ACC, TIIP_FTP_PASS
+from settings.settings import DATA_DIR, TIIP_PDF_DIR, TIIP_CSV_DIR, TIIP_DOC_DIR, TEMP_DIR
+from errors.errors import DataError
+from params.definitions import ElasticDoc, Field
 
 
 class PDFImporter(PdfReader):
@@ -772,7 +770,7 @@ class WordDocumentReader(object):
     logger = DataError(__file__, "WordDocumentReader")
 
     @staticmethod
-    def extract_text(index: str, file: UploadFile | str) -> List[str]:
+    def extract_text(index: str, file: UploadFile) -> List[str]:
         """
         Method that extract the text from a .docx file.
         """
@@ -823,6 +821,95 @@ class WordDocumentReader(object):
                 extra_msg="Limit: 50 >= content <= 500 || Got length: %s" % str(len(chunk)))
 
         return all_text
+
+
+class DocxLoader(object):
+    def __init__(self, file: UploadFile | str, index: str):
+        self.logger = DataError(__file__, self.__class__.__name__)
+
+        # Checking `index`
+        if not self._index_exists(index):
+            self.logger.msg = "Index %s" % (
+                Fore.LIGHTRED_EX + index + Fore.RESET) + " does not exist! Aborting."
+            self.logger.error()
+            raise self.logger
+
+        self.index = index
+
+        # Checking `file`
+        self.text = ""
+        if isinstance(file, str):
+
+            if not file.endswith('.docx'):
+                # Checking if there is a '.' and any file type in file name.
+                try:
+                    num = file.index(".")
+                except ValueError:
+                    self.logger.msg = "Filename must contain a '.' to denote filetype!"
+                else:
+                    if (num + 1) == len(file.split(".")):
+                        self.logger.msg = "No filetype in file name!"
+
+                # We can now establish that there is a filetype;
+                # just not the right one..
+                self.logger.msg = \
+                    f"File you point to must be of type " +\
+                    Fore.LIGHTYELLOW_EX + "docx" + Fore.RESET +\
+                    ", but your file seems to be of type " +\
+                    Fore.LIGHTRED_EX + file.split(".")[1] + Fore.RESET + "."
+
+                self.logger.error()
+                raise self.logger
+
+            # Filenames are OK, but now we check if such file exists
+            elif not os.path.isdir(TEMP_DIR + f'/{index}') or not os.path.isfile(TEMP_DIR + f'/{index}/{file}'):
+                if not os.path.isdir(TEMP_DIR + f'/{index}') and not os.path.isfile(TEMP_DIR + f'/{index}/{file}'):
+                    self.logger.msg = f"\
+Neither folder [{TEMP_DIR}/{Fore.LIGHTRED_EX + index + Fore.RESET}]\
+nor file [{TEMP_DIR}/{index}/{Fore.LIGHTRED_EX + file + Fore.RESET}] exist!"
+
+                elif os.path.isdir(TEMP_DIR + f'/{index}') and not os.path.isfile(TEMP_DIR + f'/{index}/{file}'):
+                    self.logger.msg = f"\
+File [{TEMP_DIR}/{index}/{Fore.LIGHTRED_EX + file + Fore.RESET}] does not exist!"
+
+                self.logger.error()
+                raise self.logger
+
+            else:
+                full_file_path = TEMP_DIR + "/" + index + "/" + file
+                self._extract_content_from_file(full_file_path)
+                if self.text != "":
+                    self.language = get_language(self.text)
+
+    def _index_exists(self, index: str) -> bool:
+        return LingtelliElastic()._index_exists(index)
+
+    def _extract_content(self) -> str:
+        pass
+
+    def _extract_content_from_file(self, filepath: str) -> None:
+        """
+        Assigns content from `filepath` (.docx file) to attribute `.text`
+        """
+        doc = Document(filepath)
+        full_text = []
+        for para in doc.paragraphs:
+            full_text.append(para.text)
+        self.text = '\n'.join(full_text)
+
+    def _to_elk_format(self) -> ElasticDoc:
+        """
+        Method that converts DocxLoader object data into a JSON format
+        suitable for saving the document into Elasticsearch.
+        """
+        doc = ElasticDoc(vendor_id=self.index)
+        doc.fields: list[Field] = [].append({
+            'name': 'content',
+            'value': self.content,
+            'type': 'string',
+            'main': True,
+            # 'searchable': True
+        })
 
 
 if __name__ == "__main__":

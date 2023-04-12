@@ -83,7 +83,7 @@ class GPT3UtilityRequest(GPT3Base):
     """
 
     services = {
-        "extract": ['entities', 'intent'],
+        "extract": ['entities', 'keywords'],
         "analyze": ['sentiment'],
         "intent": ['flight', 'hotel']
     }
