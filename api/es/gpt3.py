@@ -3,6 +3,13 @@ Module designated for the ELK API service to communicate and exchange informatio
 the GPT-3 service.
 """
 
+# TODO:
+# Migrate ALL code from the GPT3 service over here.
+# I will just simplify the whole code by using LangChain.
+# E.g. Utilize the ElasticVectorSearch class to
+# store and search for documents using embeddings from OpenAI.
+# TODO
+
 import requests
 from requests import Response
 import json
