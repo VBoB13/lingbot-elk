@@ -99,10 +99,18 @@ class FileLoader(object):
             self.logger.error(extra_msg=f"Reason: {str(e)}")
             raise self.logger
         else:
-            embeddings = OpenAIEmbeddings()
-            es = ElasticVectorSearch('localhost:9200', self.index, embeddings)
-            es.add_documents(documents)
-            self.logger.msg = f"\
-                {Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} \
-                saved {len(documents)} documents into Elasticsearch!"
-            self.logger.info()
+            try:
+                embeddings = OpenAIEmbeddings()
+                es = ElasticVectorSearch(
+                    'localhost:9200', self.index, embeddings)
+                es.add_documents(documents)
+            except Exception as err:
+                self.logger.msg = "Something went wrong when trying to save documents into ELK!"
+                self.logger.error(
+                    extra_msg=f"{Fore.LIGHTRED_EX + str(err) + Fore.RESET}")
+                raise self.logger from err
+            else:
+                self.logger.msg = f"\
+                    {Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} \
+                    saved {len(documents)} documents into Elasticsearch!"
+                self.logger.info()
