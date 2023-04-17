@@ -50,12 +50,8 @@ class Settings(BaseSettings):
     openai_api_key2: str
     serpapi_api_key: str
 
-    # NER server endpoint
-    ner_en_uri: str
-    ner_ch_uri: str
-
-    class Config:
-        env_file = 'content_check.env'
+    # class Config:
+    #     env_file = 'content_check.env'
 
 
 @lru_cache()

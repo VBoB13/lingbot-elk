@@ -16,6 +16,7 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     SearchPhraseDoc, SearchGPT, Vendor, SourceDocument, EntityDocument, IntentDocument
 from es.elastic import LingtelliElastic
 from es.gpt3 import GPT3UtilityRequest
+from es.lc_service import FileLoader
 from settings.settings import TEMP_DIR, TIIP_CSV_DIR
 from helpers.reqres import ElkServiceResponse
 from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
@@ -197,8 +198,23 @@ async def search_doc_timerange(doc: SearchDocTimeRange):
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@app.post("/upload", description=DESCRIPTIONS["/upload"])
+async def upload(index: str, file: UploadFile):
+    global logger
+    logger.cls = "main.py:upload"
+
+    try:
+        FileLoader(file, index)
+    except Exception as err:
+        logger.msg = "Something went wrong when trying to save file contents into ELK!"
+        logger.error(extra_msg=str(err), orgErr=err)
+        raise logger from err
+    else:
+        return ElkServiceResponse(content={"msg": "Documents successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_202_ACCEPTED)
+
+
 @app.post("/upload/csv", description=DESCRIPTIONS["/upload/csv"])
-def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
+async def upload_csv(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
     global logger
     logger.cls = "main.py:upload_csv"
     try:
