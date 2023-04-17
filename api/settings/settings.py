@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
 
+from functools import lru_cache
+from pydantic import BaseSettings
+
 from helpers.helpers import get_local_ip
 
 BASE_DIR = os.getcwd()
@@ -29,6 +32,36 @@ DIC_FILE = os.path.join(DIC_DIR, 'extra_main.dic')
 # Servers
 CLAUDES_SERVER = "192.168.1.132"
 CLAUDES_PORT = 3002
+
+
+class Settings(BaseSettings):
+    # Path-related
+    base_dir = BASE_DIR
+    log_dir = LOG_DIR
+    csv_dir = CSV_DIR
+    temp_dir = TEMP_DIR
+
+    # App related
+    port: int
+    reload: bool
+
+    # ChatGPT related
+    openai_api_key: str
+    openai_api_key2: str
+    serpapi_api_key: str
+
+    # NER server endpoint
+    ner_en_uri: str
+    ner_ch_uri: str
+
+    class Config:
+        env_file = 'content_check.env'
+
+
+@lru_cache()
+def get_settings():
+    return Settings()
+
 
 # BASE VARS
 SYNONYM_BASES: dict[str, dict[str, list]] = {
