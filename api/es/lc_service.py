@@ -31,37 +31,30 @@ class FileLoader(object):
         # Initialize a default splitter for all documents
         self.splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 
-        if file:
-            temp_name = os.path.join(
-                self.settings.temp_dir, index, file.filename)
-            if not os.path.isdir(os.path.join(self.settings.temp_dir, index)):
-                os.mkdir(os.path.join(self.settings.temp_dir, index))
+        temp_name = os.path.join(
+            self.settings.temp_dir, index, file.filename)
+        if not os.path.isdir(os.path.join(self.settings.temp_dir, index)):
+            os.mkdir(os.path.join(self.settings.temp_dir, index))
 
-            try:
-                # Check if there is a file type in file name
-                self._check_filetype(file.filename)
-                # Copy contents into a temporary file
-                with open(temp_name, 'xb') as f:
-                    shutil.copyfileobj(file.file, f)
+        try:
+            # Check if there is a file type in file name
+            self._check_filetype(file.filename)
+            # Copy contents into a temporary file
+            with open(temp_name, 'xb') as f:
+                shutil.copyfileobj(file.file, f)
 
-            except Exception as err:
-                self.logger.msg = "Something went wrong when trying to copy contents of file!"
-                self.logger.error(orgErr=err)
-                raise self.logger from err
-            else:
-                self._load_file(temp_name)
-            finally:
-                # Close file for read/write
-                file.file.close()
-                # Remove the temp. file afterwards
-                os.remove(temp_name)
-                os.rmdir(os.path.join(self.settings.temp_dir, index))
-
+        except Exception as err:
+            self.logger.msg = "Something went wrong when trying to copy contents of file!"
+            self.logger.error(orgErr=err)
+            raise self.logger from err
         else:
-            self.logger.msg = "File must be of type '.csv'; not '.{}'!".format(
-                file.filename.split(".")[1])
-            self.logger.error()
-            raise self.logger
+            self._load_file(temp_name)
+        finally:
+            # Close file for read/write
+            file.file.close()
+            # Remove the temp. file afterwards
+            os.remove(temp_name)
+            os.rmdir(os.path.join(self.settings.temp_dir, index))
 
     def _check_filetype(self, filename: str) -> str:
         """
@@ -99,6 +92,13 @@ class FileLoader(object):
             self.logger.error(extra_msg=f"Reason: {str(e)}")
             raise self.logger
         else:
+            # Make sure to add meta data to each Document object
+            for no, document in enumerate(documents):
+                document.metadata.update(
+                    {
+                        'source_file': os.path.split(file)[1],
+                        'page': no
+                    })
             try:
                 embeddings = OpenAIEmbeddings()
                 es = ElasticVectorSearch(
