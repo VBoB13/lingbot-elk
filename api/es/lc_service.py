@@ -3,6 +3,7 @@ import shutil
 
 import pandas as pd
 from colorama import Fore
+from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader
 from langchain.document_loaders.csv_loader import CSVLoader
@@ -10,8 +11,8 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch
 
-from errors.errors import DataError
-from settings.settings import TEMP_DIR, get_settings
+from errors.errors import DataError, ElasticError
+from settings.settings import get_settings
 
 
 class FileLoader(object):
@@ -114,3 +115,17 @@ class FileLoader(object):
                     {Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} \
                     saved {len(documents)} documents into Elasticsearch!"
                 self.logger.info()
+
+
+class LingtelliElastic2(Elasticsearch):
+    settings = get_settings()
+    def __init__(self):
+        self.logger = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
+            self.settings.elastic_ip, str(self.settings.elastic_port)))
+        try:
+            super().__init__([{"scheme": "http", "host": self.settings.elastic_ip, "port": self.settings.elastic_port}],
+                             max_retries=30, retry_on_timeout=True, request_timeout=30)
+        except Exception as err:
+            self.logger.msg = "Initialization of Elasticsearch client FAILED!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err

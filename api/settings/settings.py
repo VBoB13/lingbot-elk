@@ -50,8 +50,12 @@ class Settings(BaseSettings):
     openai_api_key2: str
     serpapi_api_key: str
 
-    # class Config:
-    #     env_file = 'content_check.env'
+    # Elasticsearch
+    elastic_ip: str
+    elastic_port: int
+
+    class Config:
+        env_file = '.env'
 
 
 @lru_cache()

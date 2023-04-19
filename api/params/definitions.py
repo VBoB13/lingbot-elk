@@ -82,6 +82,9 @@ class SearchGPT(SearchDocument):
     session_id: str = 'test-session'
 
 
+class SearchGPT2(Vendor):
+    session_id: str = 'test-session'
+
 class SearchPhraseDoc(Vendor):
     match_phrase: str
 
