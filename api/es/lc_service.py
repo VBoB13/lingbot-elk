@@ -2,6 +2,7 @@ import os
 import shutil
 
 import pandas as pd
+from cachetools import TTLCache, cached
 from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
@@ -14,6 +15,7 @@ from langchain.vectorstores import ElasticVectorSearch
 from errors.errors import DataError, ElasticError
 from settings.settings import get_settings
 
+cache = TTLCache(maxsize=100, ttl=86400)
 
 class FileLoader(object):
     settings = get_settings()
@@ -129,3 +131,15 @@ class LingtelliElastic2(Elasticsearch):
             self.logger.msg = "Initialization of Elasticsearch client FAILED!"
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
+    
+    @cached(cache)
+    def _load_memory(self, session: str):
+        """
+        Method that loads memory (if it exists).
+        """
+
+
+    def search_gpt(self, index: str, session: str):
+        """
+        Method that searches for context, provides that context to GPT and asks the model for answer.
+        """
