@@ -171,6 +171,12 @@ class LingtelliElastic2(Elasticsearch):
                 history.chat_memory.add_ai_message(doc['source']['ai'])
         else:
             mappings = {
+                "settings": {
+                    "index": {
+                        "number_of_shards": 2,
+                        "number_of_replicas": 1
+                    }
+                },
                 "mappings": {
                     "properties": {
                         "user": {"type": "text", "index": False},
