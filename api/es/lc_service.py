@@ -1,21 +1,28 @@
 import os
 import shutil
+from datetime import datetime
 
 import pandas as pd
 from cachetools import TTLCache, cached
 from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
+from langchain.chains import ConversationalRetrievalChain
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
+from langchain.chat_models import ChatOpenAI
+from langchain.memory import ConversationBufferWindowMemory
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch
 
 from errors.errors import DataError, ElasticError
+from helpers.times import date_to_str
+from params.definitions import SearchGPT2
 from settings.settings import get_settings
 
 cache = TTLCache(maxsize=100, ttl=86400)
+
 
 class FileLoader(object):
     settings = get_settings()
@@ -121,6 +128,7 @@ class FileLoader(object):
 
 class LingtelliElastic2(Elasticsearch):
     settings = get_settings()
+
     def __init__(self):
         self.logger = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
             self.settings.elastic_ip, str(self.settings.elastic_port)))
@@ -131,15 +139,76 @@ class LingtelliElastic2(Elasticsearch):
             self.logger.msg = "Initialization of Elasticsearch client FAILED!"
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
-    
+
     @cached(cache)
-    def _load_memory(self, session: str):
+    def _load_memory(self, index: str, session: str, query: str):
         """
         Method that loads memory (if it exists).
         """
+        history = ConversationBufferWindowMemory(k=3, return_messages=True)
+        hist_index = index + "_SID_" + session
+        if self.indices.exists(index=hist_index).body:
+            query = {
+                "query": {
+                    "match_all": {}
+                },
+                "sort": [
+                    {
+                        "timestamp ": {
+                            "order": "desc"
+                        }
+                    }
+                ]
+            }
+            results = self.search(index=index, query=query, size=3)
+            hist_docs = results['hits']['hits']
 
+            for doc in hist_docs:
+                history.chat_memory.add_user_message(doc['source']['user'])
+                history.chat_memory.add_ai_message(doc['source']['ai'])
+        else:
+            properties = {
+                "user": {"type": "text", "index": False},
+                "ai": {"type": "text", "index": False},
+                "timestamp": {"type": "text", "index": False}
+            }
+            try:
+                self.indices.create(hist_index, mappings={
+                                    "mappings": properties})
+            except Exception as err:
+                self.logger.msg = "Something went wrong when trying to create index " +\
+                    Fore.LIGHTRED_EX + hist_index + Fore.RESET + "!"
+                self.logger.error(extra_msg=str(err))
+                raise self.logger from err
 
-    def search_gpt(self, index: str, session: str):
+        return history
+
+    def search_gpt(self, gpt_obj: SearchGPT2):
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
+        now = datetime.now().astimezone()
+        timestamp = date_to_str(now)
+        memory = self._load_memory(
+            gpt_obj.vendor_id, gpt_obj.session_id, gpt_obj.query)
+        vectorstore = ElasticVectorSearch(
+            self.settings.elastic_ip + ":" + str(self.settings.elastic_port),
+            gpt_obj.vendor_id,
+            embedding=OpenAIEmbeddings()
+        )
+        llm = ChatOpenAI(temperature=0)
+        chain = ConversationalRetrievalChain(
+            memory=memory).from_llm(llm, vectorstore.as_retriever())
+        result = chain({"question": gpt_obj.query})
+        memory.chat_memory.add_user_message(gpt_obj.query)
+        memory.chat_memory.add_ai_message(result['answer'])
+        history_index = gpt_obj.vendor_id + "_SID_" + gpt_obj.session_id
+        self.index(
+            index=history_index,
+            document={
+                "user": gpt_obj.query,
+                "ai": result['answer'],
+                "timestamp": timestamp
+            }
+        )
+        return result['answer']

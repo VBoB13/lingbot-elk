@@ -83,6 +83,7 @@ class SearchGPT(SearchDocument):
 
 
 class SearchGPT2(Vendor):
+    query: str
     session_id: str = 'test-session'
 
 class SearchPhraseDoc(Vendor):
