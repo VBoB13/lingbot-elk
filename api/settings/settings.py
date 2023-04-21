@@ -41,17 +41,13 @@ class Settings(BaseSettings):
     csv_dir = CSV_DIR
     temp_dir = TEMP_DIR
 
-    # App related
-    port: int
-    reload: bool
-
     # ChatGPT related
     openai_api_key: str
     openai_api_key2: str
     serpapi_api_key: str
 
     # Elasticsearch
-    elastic_ip: str
+    elastic_server: str
     elastic_port: int
 
     class Config:

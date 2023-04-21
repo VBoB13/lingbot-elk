@@ -131,9 +131,9 @@ class LingtelliElastic2(Elasticsearch):
 
     def __init__(self):
         self.logger = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
-            self.settings.elastic_ip, str(self.settings.elastic_port)))
+            self.settings.elastic_server, str(self.settings.elastic_port)))
         try:
-            super().__init__([{"scheme": "http", "host": self.settings.elastic_ip, "port": self.settings.elastic_port}],
+            super().__init__([{"scheme": "http", "host": self.settings.elastic_server, "port": self.settings.elastic_port}],
                              max_retries=30, retry_on_timeout=True, request_timeout=30)
         except Exception as err:
             self.logger.msg = "Initialization of Elasticsearch client FAILED!"
@@ -192,7 +192,8 @@ class LingtelliElastic2(Elasticsearch):
         memory = self._load_memory(
             gpt_obj.vendor_id, gpt_obj.session_id, gpt_obj.query)
         vectorstore = ElasticVectorSearch(
-            self.settings.elastic_ip + ":" + str(self.settings.elastic_port),
+            self.settings.elastic_server + ":" +
+            str(self.settings.elastic_port),
             gpt_obj.vendor_id,
             embedding=OpenAIEmbeddings()
         )
