@@ -173,7 +173,8 @@ class LingtelliElastic2(Elasticsearch):
             settings = {
                 "settings": {
                     "index": {
-                        "number_of_shards": 2
+                        "number_of_shards": 2,
+                        "number_of_replicas": 1
                     }
                 }
             }
@@ -195,9 +196,10 @@ class LingtelliElastic2(Elasticsearch):
                     }
                 }
             }
+            mappings.update(settings)
             try:
                 self.indices.create(
-                    index=hist_index, mappings=mappings, settings=settings)
+                    index=hist_index, mappings=mappings['mappings'], settings=mappings['settings'])
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to create index " +\
                     Fore.LIGHTRED_EX + hist_index + Fore.RESET + "!"
