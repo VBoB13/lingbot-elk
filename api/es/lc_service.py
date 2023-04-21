@@ -171,8 +171,8 @@ class LingtelliElastic2(Elasticsearch):
             self.logger.info(extra_msg=str(hist_docs))
 
             for doc in hist_docs:
-                history.chat_memory.add_user_message(doc['_source']['user'])
-                history.chat_memory.add_ai_message(doc['_source']['ai'])
+                history.chat_memory.add_user_message(doc['_source']['_user'])
+                history.chat_memory.add_ai_message(doc['_source']['_ai'])
         else:
             settings = {
                 "settings": {
