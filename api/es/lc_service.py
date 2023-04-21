@@ -63,7 +63,10 @@ class FileLoader(object):
             # Close file for read/write
             file.file.close()
             # Remove the temp. file afterwards
-            os.remove(temp_name)
+            try:
+                os.remove(temp_name)
+            except Exception:
+                pass
             os.rmdir(os.path.join(self.settings.temp_dir, index))
 
     def _check_filetype(self, filename: str) -> str:
