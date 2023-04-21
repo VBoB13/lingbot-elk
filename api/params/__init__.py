@@ -15,6 +15,7 @@ DESCRIPTIONS = {
     # Search
     "/search": "Endpoint used for searching for documents in Elasticsearch.",
     "/search-gpt": "Endpoint used for searching for documents in Elasticsearch, then providing results as context and retrieving answer from GPT-3 DaVinci AI model.",
+    "/search-gpt-v2": "Endpoint used for searching for documents in Elasticsearch using OpenAI LLM generated vectors for semantic search, then providing results as context and retrieving answer from OpenAI's 'gpt-3.5-turbo' model. This endpoint also has much better, clear and concise code as well as memory (conversation) management.",
     "/search/phrase": "Endpoint used for searching for documents according to a phrase rather than terms.\n" +
     "Rules to be aware about when it comes to searching for a 'phrase' instead of 'terms':\n" +
     "Say we want to search for 'Shape of you' (famous song title), then:\n" +

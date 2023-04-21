@@ -13,10 +13,10 @@ from colorama import Fore
 from params import DESCRIPTIONS
 from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
     DocID_Must, BasicResponse, SearchResponse, \
-    SearchPhraseDoc, SearchGPT, Vendor, SourceDocument, EntityDocument, IntentDocument
+    SearchPhraseDoc, SearchGPT, SearchGPT2, Vendor, SourceDocument, EntityDocument, IntentDocument
 from es.elastic import LingtelliElastic
 from es.gpt3 import GPT3UtilityRequest
-from es.lc_service import FileLoader
+from es.lc_service import FileLoader, LingtelliElastic2
 from settings.settings import TEMP_DIR, TIIP_CSV_DIR
 from helpers.reqres import ElkServiceResponse
 from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
@@ -166,6 +166,19 @@ async def search_doc_gpt(doc: SearchGPT):
     except Exception as err:
         if hasattr(err, 'msg') and not es.docs_found:
             return ElkServiceResponse(content={"msg": f"{err.msg}", "data": {"error": str(err)}}, status_code=status.HTTP_200_OK)
+        logger.error(extra_msg=str(err), orgErr=err)
+        return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/search-gpt-v2", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt-v2"])
+async def search_doc_gpt(doc: SearchGPT2):
+    global logger
+    logger.cls = "main.py:search_doc_gpt"
+    try:
+        es = LingtelliElastic2()
+        result = es.search_gpt(doc)
+        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
+    except Exception as err:
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
