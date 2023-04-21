@@ -227,7 +227,17 @@ class LingtelliElastic2(Elasticsearch):
         chain = ConversationalRetrievalChain.from_llm(
             llm, vectorstore.as_retriever())
         chain.memory = memory
-        result = chain({"question": gpt_obj.query})
+        chat_history = []
+        qa_obj = []
+        for message in memory.chat_memory.messages:
+            if len(qa_obj) < 2:
+                qa_obj.append(message.content)
+            if len(qa_obj) == 2:
+                chat_history.append(tuple(qa_obj))
+                qa_obj.clear()
+
+        result = chain({"question": gpt_obj.query,
+                       "chat_history": chat_history})
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(result['answer'])
         history_index = gpt_obj.vendor_id + "_sid_" + gpt_obj.session_id
