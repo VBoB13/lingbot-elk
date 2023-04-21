@@ -183,16 +183,13 @@ class LingtelliElastic2(Elasticsearch):
                 "mappings": {
                     "properties": {
                         "user": {
-                            "type": "text",
-                            "index": False
+                            "type": "text"
                         },
                         "ai": {
-                            "type": "text",
-                            "index": False
+                            "type": "text"
                         },
                         "timestamp": {
-                            "type": "date",
-                            "index": False
+                            "type": "date"
                         }
                     }
                 }
