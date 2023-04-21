@@ -158,7 +158,8 @@ class LingtelliElastic2(Elasticsearch):
                 "sort": [
                     {
                         "timestamp": {
-                            "order": "desc"
+                            "order": "desc",
+                            "ignore_unmapped": True
                         }
                     }
                 ]
