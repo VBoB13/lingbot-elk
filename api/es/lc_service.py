@@ -157,7 +157,7 @@ class LingtelliElastic2(Elasticsearch):
                 },
                 "sort": [
                     {
-                        "timestamp ": {
+                        "timestamp": {
                             "order": "desc"
                         }
                     }
