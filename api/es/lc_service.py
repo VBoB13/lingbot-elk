@@ -170,13 +170,17 @@ class LingtelliElastic2(Elasticsearch):
                 history.chat_memory.add_user_message(doc['source']['user'])
                 history.chat_memory.add_ai_message(doc['source']['ai'])
         else:
-            properties = {
-                "user": {"type": "text", "index": False},
-                "ai": {"type": "text", "index": False},
-                "timestamp": {"type": "text", "index": False}
+            mappings = {
+                "mappings": {
+                    "properties": {
+                        "user": {"type": "text", "index": False},
+                        "ai": {"type": "text", "index": False},
+                        "timestamp": {"type": "text", "index": False}
+                    }
+                }
             }
             try:
-                self.indices.create(index=hist_index, mappings=properties)
+                self.indices.create(index=hist_index, mappings=mappings)
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to create index " +\
                     Fore.LIGHTRED_EX + hist_index + Fore.RESET + "!"
