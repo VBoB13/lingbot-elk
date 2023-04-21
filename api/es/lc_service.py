@@ -149,7 +149,7 @@ class LingtelliElastic2(Elasticsearch):
         Method that loads memory (if it exists).
         """
         history = ConversationBufferWindowMemory(k=3, return_messages=True)
-        hist_index = index + "_SID_" + session
+        hist_index = index + "_sid_" + session
         if self.indices.exists(index=hist_index).body:
             query = {
                 "query": {
@@ -206,7 +206,7 @@ class LingtelliElastic2(Elasticsearch):
         result = chain({"question": gpt_obj.query})
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(result['answer'])
-        history_index = gpt_obj.vendor_id + "_SID_" + gpt_obj.session_id
+        history_index = gpt_obj.vendor_id + "_sid_" + gpt_obj.session_id
         self.index(
             index=history_index,
             document={
