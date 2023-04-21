@@ -167,10 +167,12 @@ class LingtelliElastic2(Elasticsearch):
             results = self.search(
                 index=index, query=query['query'], size=3, sort=query['sort'])
             hist_docs = results['hits']['hits']
+            self.logger.msg = "Documents found:"
+            self.logger.info(extra_msg=str(hist_docs))
 
             for doc in hist_docs:
-                history.chat_memory.add_user_message(doc['source']['user'])
-                history.chat_memory.add_ai_message(doc['source']['ai'])
+                history.chat_memory.add_user_message(doc['_source']['user'])
+                history.chat_memory.add_ai_message(doc['_source']['ai'])
         else:
             settings = {
                 "settings": {
