@@ -44,7 +44,7 @@ class FileLoader(object):
         temp_name = os.path.join(
             self.settings.temp_dir, index, file.filename)
         if not os.path.isdir(os.path.join(self.settings.temp_dir, index)):
-            os.mkdir(os.path.join(self.settings.temp_dir, index))
+            os.makedirs(os.path.join(self.settings.temp_dir, index))
 
         try:
             # Check if there is a file type in file name
