@@ -163,7 +163,8 @@ class LingtelliElastic2(Elasticsearch):
                     }
                 ]
             }
-            results = self.search(index=index, q=query, size=3)
+            results = self.search(
+                index=index, query=query['query'], size=3, sort=query['sort'])
             hist_docs = results['hits']['hits']
 
             for doc in hist_docs:
