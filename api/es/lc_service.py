@@ -176,7 +176,7 @@ class LingtelliElastic2(Elasticsearch):
                 "timestamp": {"type": "text", "index": False}
             }
             try:
-                self.indices.create(hist_index, mappings={
+                self.indices.create(index=hist_index, mappings={
                                     "mappings": properties})
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to create index " +\
