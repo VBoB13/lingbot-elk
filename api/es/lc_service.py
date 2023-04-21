@@ -75,11 +75,11 @@ class FileLoader(object):
         handler class for that file.
         """
         filetype = filename.split(".")[1]
-        if len(filetype) >= 1:
-            self.filetype = filetype.lower()
-        self.logger.msg = "No filetype was detected!"
-        self.logger.error(extra_msg=f"File name: {filename}")
-        raise self.logger
+        if len(filetype) == 0:
+            self.logger.msg = "No filetype was detected!"
+            self.logger.error(extra_msg=f"File name: {filename}")
+            raise self.logger
+        self.filetype = filetype.lower()
 
     def _load_file(self, file: str):
         """
