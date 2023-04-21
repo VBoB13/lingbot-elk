@@ -159,7 +159,7 @@ class LingtelliElastic2(Elasticsearch):
                     {
                         "timestamp": {
                             "order": "desc",
-                            "unmapped": "date"
+                            "unmapped_type": "date"
                         }
                     }
                 ]
