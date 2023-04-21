@@ -24,6 +24,7 @@ DESCRIPTIONS = {
     "3. The terms must appear next to each other.",
     "/search/timespan": "Endpoint to search for documents according to their timestamp.",
     # Upload
+    "/upload": "Endpoint to upload any of .csv, .pdf or .docx files to be parsed and have its content loaded into Elasticsearch with OpenAI embeddings.",
     "/upload/csv": "Endpoint to upload .csv files to be parsed and have its content loaded into the ELK stack (search engine).",
     "/upload/docx": "Endpoint to upload .docx (MS Word) files to be parsed and have its content loaded into the ELK stack.",
 }
