@@ -137,6 +137,7 @@ stack-data==0.6.2
 starlette==0.26.0.post1
 tenacity==8.2.2
 terminado==0.17.1
+tiktoken==0.3.3
 tinycss2==1.2.1
 tomli==2.0.1
 tornado==6.2
