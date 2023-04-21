@@ -217,8 +217,8 @@ class LingtelliElastic2(Elasticsearch):
         memory = self._load_memory(
             gpt_obj.vendor_id, gpt_obj.session_id, gpt_obj.query)
         vectorstore = ElasticVectorSearch(
-            self.settings.elastic_server + ":" +
-            str(self.settings.elastic_port),
+            "http://" + self.settings.elastic_server +
+            ":" + str(self.settings.elastic_port),
             gpt_obj.vendor_id,
             embedding=OpenAIEmbeddings()
         )
