@@ -221,8 +221,9 @@ class LingtelliElastic2(Elasticsearch):
             embedding=OpenAIEmbeddings()
         )
         llm = ChatOpenAI(temperature=0)
-        chain = ConversationalRetrievalChain(
-            memory=memory).from_llm(llm, vectorstore.as_retriever())
+        chain = ConversationalRetrievalChain.from_llm(
+            llm, vectorstore.as_retriever())
+        chain.memory = memory
         result = chain({"question": gpt_obj.query})
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(result['answer'])
