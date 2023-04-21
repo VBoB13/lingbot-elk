@@ -115,7 +115,7 @@ class FileLoader(object):
             try:
                 embeddings = OpenAIEmbeddings()
                 es = ElasticVectorSearch(
-                    'localhost:9200', self.index, embeddings)
+                    'http://localhost:9200', self.index, embeddings)
                 es.add_documents(documents)
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to save documents into ELK!"
