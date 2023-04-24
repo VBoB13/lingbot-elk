@@ -7,7 +7,7 @@ from cachetools import TTLCache, cached
 from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
-from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import ConversationalRetrievalChain, ConversationChain, RetrievalQA
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
@@ -224,17 +224,17 @@ class LingtelliElastic2(Elasticsearch):
             embedding=OpenAIEmbeddings()
         )
         llm = ChatOpenAI(temperature=0)
-        chain = ConversationalRetrievalChain.from_llm(
-            llm, vectorstore.as_retriever())
-        chain.memory = memory
-        chat_history = []
-        qa_obj = []
-        for message in memory.chat_memory.messages:
-            if len(qa_obj) < 2:
-                qa_obj.append(message.content)
-            if len(qa_obj) == 2:
-                chat_history.append(tuple(qa_obj))
-                qa_obj.clear()
+        chain = RetrievalQA.from_llm(
+            llm=llm, memory=memory, retriever=vectorstore.as_retriever())
+        # chat_history = []
+        # qa_obj = []
+        # for message in memory.chat_memory.messages:
+        #     if len(qa_obj) < 2:
+        #         qa_obj.append(message.content)
+        #     if len(qa_obj) == 2:
+        #         chat_history.append(tuple(qa_obj))
+        #         qa_obj.clear()
+
         # TODO:
         # Fix the DAMN error where it complains both about
         # a) NOT having the 'chat_history' key AND
