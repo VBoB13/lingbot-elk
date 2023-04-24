@@ -168,8 +168,8 @@ class LingtelliElastic2(Elasticsearch):
             results = self.search(
                 index=hist_index, query=query['query'], size=3, sort=query['sort'])
             hist_docs = results['hits']['hits']
-            self.logger.msg = "Documents found:"
-            self.logger.info(extra_msg=str(hist_docs))
+            # self.logger.msg = "Documents found:"
+            # self.logger.info(extra_msg=str(hist_docs))
 
             for doc in hist_docs:
                 history.chat_memory.add_user_message(doc['_source']['user'])
@@ -228,25 +228,11 @@ class LingtelliElastic2(Elasticsearch):
         chain = ConversationalRetrievalChain.from_llm(
             llm=llm, memory=memory, retriever=vectorstore.as_retriever(), return_source_documents=True)
         chat_history = []
-        qa_obj = []
 
         for i in range(0, len(memory.chat_memory.messages), 2):
             chat_history.append(
                 tuple([memory.chat_memory.messages[i], memory.chat_memory.messages[i+1]]))
 
-        # for message in memory.chat_memory.messages:
-        #     if len(qa_obj) < 2:
-        #         qa_obj.append(message.content)
-        #     else:
-        #         chat_history.append(tuple(qa_obj))
-        #         qa_obj.clear()
-        #         qa_obj.append(message.content)
-
-        # TODO:
-        # Fix the DAMN error where it complains both about
-        # a) NOT having the 'chat_history' key AND
-        # b) having more than 1 key...
-        # TODO:
         results = chain({"question": gpt_obj.query,
                         "chat_history": chat_history})
         memory.chat_memory.add_user_message(gpt_obj.query)
