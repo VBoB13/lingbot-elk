@@ -227,21 +227,22 @@ class LingtelliElastic2(Elasticsearch):
         llm = ChatOpenAI(temperature=0)
         chain = ConversationalRetrievalChain.from_llm(
             llm=llm, memory=memory, retriever=vectorstore.as_retriever(), return_source_documents=True)
-        # chat_history = []
-        # qa_obj = []
-        # for message in memory.chat_memory.messages:
-        #     if len(qa_obj) < 2:
-        #         qa_obj.append(message.content)
-        #     if len(qa_obj) == 2:
-        #         chat_history.append(tuple(qa_obj))
-        #         qa_obj.clear()
+        chat_history = []
+        qa_obj = []
+        for message in memory.chat_memory.messages:
+            if len(qa_obj) < 2:
+                qa_obj.append(message.content)
+            if len(qa_obj) == 2:
+                chat_history.append(tuple(qa_obj))
+                qa_obj.clear()
 
         # TODO:
         # Fix the DAMN error where it complains both about
         # a) NOT having the 'chat_history' key AND
         # b) having more than 1 key...
         # TODO:
-        results = chain({"question": gpt_obj.query})
+        results = chain({"question": gpt_obj.query,
+                        "chat_history": chat_history})
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results['result'])
         history_index = gpt_obj.vendor_id + "_sid_" + gpt_obj.session_id
