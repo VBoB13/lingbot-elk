@@ -212,12 +212,12 @@ async def search_doc_timerange(doc: SearchDocTimeRange):
 
 
 @app.post("/upload", description=DESCRIPTIONS["/upload"])
-async def upload(index: str, file: UploadFile):
+async def upload(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
     global logger
     logger.cls = "main.py:upload"
 
     try:
-        FileLoader(file, index)
+        bg_tasks.add_task(FileLoader, file, index)
     except Exception as err:
         logger.msg = "Something went wrong when trying to save file contents into ELK!"
         logger.error(extra_msg=str(err), orgErr=err)
