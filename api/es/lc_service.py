@@ -232,9 +232,10 @@ class LingtelliElastic2(Elasticsearch):
         for message in memory.chat_memory.messages:
             if len(qa_obj) < 2:
                 qa_obj.append(message.content)
-            if len(qa_obj) == 2:
+            else:
                 chat_history.append(tuple(qa_obj))
                 qa_obj.clear()
+                qa_obj.append(message.content)
 
         # TODO:
         # Fix the DAMN error where it complains both about
