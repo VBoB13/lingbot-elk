@@ -94,7 +94,7 @@ class FileLoader(object):
             elif self.filetype == "csv":
                 if self.csv_content_col is not None:
                     documents = DataFrameLoader(pd.read_csv(
-                        file), self.csv_content_col)
+                        file), self.csv_content_col).load_and_split(self.splitter)
                 else:
                     documents = CSVLoader(file).load_and_split(self.splitter)
             elif self.filetype == "pdf":
