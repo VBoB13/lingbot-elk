@@ -18,6 +18,7 @@ from langchain.vectorstores import ElasticVectorSearch
 
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
+from helpers.helpers import get_language
 from params.definitions import SearchGPT2
 from settings.settings import get_settings
 
@@ -83,7 +84,8 @@ class FileLoader(object):
 
     def _load_file(self, file: str):
         """
-        Method that loads CSV documents into attribute `.text`
+        Method that loads documents of type `csv`, `pdf` or `docx` and saves the split document
+        in chunks within Elasticsearch with attached embeddings for each chunk.
         """
         documents: list = []
 
@@ -112,6 +114,9 @@ class FileLoader(object):
                         'source_file': os.path.split(file)[1],
                         'page': no
                     })
+                if get_language(document.page_content) != "EN":
+                    document.page_content = ChatOpenAI(temperature=0).call_as_llm(
+                        message="Translate the information below to English, and respond only with the English translation:\n\n{}".format(document.page_content))
             try:
                 embeddings = OpenAIEmbeddings()
                 es = ElasticVectorSearch(
@@ -144,7 +149,7 @@ class LingtelliElastic2(Elasticsearch):
             raise self.logger from err
 
     @cached(cache)
-    def _load_memory(self, index: str, session: str, query: str):
+    def _load_memory(self, index: str, session: str):
         """
         Method that loads memory (if it exists).
         """
@@ -214,10 +219,14 @@ class LingtelliElastic2(Elasticsearch):
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
+        self.language = get_language(gpt_obj.query)
+        if self.language != "EN":
+            gpt_obj.query = ChatOpenAI(temperature=0).call_as_llm(
+                message="Translate the information below to English, and respond only with the English translation:\n\n{}".format(gpt_obj.query))
         now = datetime.now().astimezone()
         timestamp = date_to_str(now)
         memory = self._load_memory(
-            gpt_obj.vendor_id, gpt_obj.session_id, gpt_obj.query)
+            gpt_obj.vendor_id, gpt_obj.session_id)
         vectorstore = ElasticVectorSearch(
             "http://" + self.settings.elastic_server +
             ":" + str(self.settings.elastic_port),
@@ -246,4 +255,7 @@ class LingtelliElastic2(Elasticsearch):
                 "timestamp": timestamp
             }
         )
+        if self.language != "EN":
+            results['answer'] = ChatOpenAI(temperature=0).call_as_llm(
+                message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results['answer']))
         return results['answer'], sorted([{"content": doc.page_content, "page": doc.metadata['page'], "source_file": doc.metadata['source_file']} for doc in results['source_documents']], key=lambda x: (x['source_file'], x['page']))
