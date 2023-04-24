@@ -260,4 +260,4 @@ class LingtelliElastic2(Elasticsearch):
                 "timestamp": timestamp
             }
         )
-        return results['answer'], [{"content": doc.page_content, "page": doc.metadata['page'], "source_doc": doc.metadata['source_file']} for doc in results['source_documents']]
+        return results['answer'], sorted([{"content": doc.page_content, "page": doc.metadata['page'], "source_file": doc.metadata['source_file']} for doc in results['source_documents']], key=lambda x: (x['source_file'], x['page']))
