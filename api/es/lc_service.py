@@ -148,7 +148,8 @@ class LingtelliElastic2(Elasticsearch):
         """
         Method that loads memory (if it exists).
         """
-        history = ConversationBufferWindowMemory(k=3, return_messages=True)
+        history = ConversationBufferWindowMemory(
+            k=3, return_messages=True, output_key='result', memory_key='chat_history')
         hist_index = index + "_sid_" + session
         if self.indices.exists(index=hist_index).body:
             query = {
@@ -224,8 +225,8 @@ class LingtelliElastic2(Elasticsearch):
             embedding=OpenAIEmbeddings()
         )
         llm = ChatOpenAI(temperature=0)
-        chain = RetrievalQA.from_llm(
-            llm=llm, memory=memory, retriever=vectorstore.as_retriever())
+        chain = ConversationalRetrievalChain.from_llm(
+            llm=llm, memory=memory, retriever=vectorstore.as_retriever(), return_source_documents=True)
         # chat_history = []
         # qa_obj = []
         # for message in memory.chat_memory.messages:
@@ -252,4 +253,4 @@ class LingtelliElastic2(Elasticsearch):
                 "timestamp": timestamp
             }
         )
-        return results['result']
+        return results['result'], results['source_documents']

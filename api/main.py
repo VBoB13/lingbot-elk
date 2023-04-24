@@ -176,8 +176,8 @@ async def search_doc_gpt(doc: SearchGPT2):
     logger.cls = "main.py:search_doc_gpt"
     try:
         es = LingtelliElastic2()
-        answer = es.search_gpt(doc)
-        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": answer}, status_code=status.HTTP_200_OK)
+        answer, source_documents = es.search_gpt(doc)
+        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": answer, "sources": source_documents}, status_code=status.HTTP_200_OK)
     except Exception as err:
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
