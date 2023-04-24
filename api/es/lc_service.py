@@ -232,7 +232,7 @@ class LingtelliElastic2(Elasticsearch):
 
         for i in range(0, len(memory.chat_memory.messages), 2):
             chat_history.append(
-                tuple(memory.chat_memory.messages[i], memory.chat_memory.messages[i+1]))
+                tuple([memory.chat_memory.messages[i], memory.chat_memory.messages[i+1]]))
 
         # for message in memory.chat_memory.messages:
         #     if len(qa_obj) < 2:
