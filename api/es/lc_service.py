@@ -242,14 +242,14 @@ class LingtelliElastic2(Elasticsearch):
         # TODO:
         result = chain({"query": gpt_obj.query})
         memory.chat_memory.add_user_message(gpt_obj.query)
-        memory.chat_memory.add_ai_message(result['answer'])
+        memory.chat_memory.add_ai_message(result)
         history_index = gpt_obj.vendor_id + "_sid_" + gpt_obj.session_id
         self.index(
             index=history_index,
             document={
                 "user": gpt_obj.query,
-                "ai": result['answer'],
+                "ai": result,
                 "timestamp": timestamp
             }
         )
-        return result['answer']
+        return result
