@@ -260,4 +260,4 @@ class LingtelliElastic2(Elasticsearch):
                 "timestamp": timestamp
             }
         )
-        return results['answer'], results['source_documents']
+        return results['answer'], [doc.page_content for doc in results['source_documents']]
