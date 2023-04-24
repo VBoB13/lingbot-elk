@@ -149,7 +149,7 @@ class LingtelliElastic2(Elasticsearch):
         Method that loads memory (if it exists).
         """
         history = ConversationBufferWindowMemory(
-            k=3, return_messages=True, output_key='result', memory_key='chat_history')
+            k=3, return_messages=True, output_key='answer', memory_key='chat_history')
         hist_index = index + "_sid_" + session
         if self.indices.exists(index=hist_index).body:
             query = {
