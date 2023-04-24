@@ -226,7 +226,6 @@ class LingtelliElastic2(Elasticsearch):
         llm = ChatOpenAI(temperature=0)
         chain = ConversationalRetrievalChain.from_llm(
             llm, vectorstore.as_retriever())
-        chain.input_keys = ['question', 'chat_history']
         chain.memory = memory
         chat_history = []
         qa_obj = []
