@@ -240,7 +240,7 @@ class LingtelliElastic2(Elasticsearch):
         # a) NOT having the 'chat_history' key AND
         # b) having more than 1 key...
         # TODO:
-        result = chain({"question": gpt_obj.query})
+        result = chain({"query": gpt_obj.query})
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(result['answer'])
         history_index = gpt_obj.vendor_id + "_sid_" + gpt_obj.session_id
