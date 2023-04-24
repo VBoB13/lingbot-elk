@@ -226,6 +226,7 @@ class LingtelliElastic2(Elasticsearch):
         llm = ChatOpenAI(temperature=0)
         chain = ConversationalRetrievalChain.from_llm(
             llm, vectorstore.as_retriever())
+        chain.input_keys = ['question', 'chat_history']
         chain.memory = memory
         chat_history = []
         qa_obj = []
@@ -235,7 +236,11 @@ class LingtelliElastic2(Elasticsearch):
             if len(qa_obj) == 2:
                 chat_history.append(tuple(qa_obj))
                 qa_obj.clear()
-
+        # TODO:
+        # Fix the DAMN error where it complains both about
+        # a) NOT having the 'chat_history' key AND
+        # b) having more than 1 key...
+        # TODO:
         result = chain({"question": gpt_obj.query,
                        "chat_history": chat_history})
         memory.chat_memory.add_user_message(gpt_obj.query)
