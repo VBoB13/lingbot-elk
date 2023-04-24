@@ -258,4 +258,11 @@ class LingtelliElastic2(Elasticsearch):
         if self.language != "EN":
             results['answer'] = ChatOpenAI(temperature=0).call_as_llm(
                 message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results['answer']))
+
+        # Print out the results (query + answer)
+        self.logger.msg = Fore.LIGHTCYAN_EX + "Question: " + Fore.RESET + gpt_obj.query
+        self.logger.msg += "\n" + Fore.LIGHTGREEN_EX + \
+            "Answer: " + Fore.RESET + results['answer']
+        self.logger.info()
+
         return results['answer'], sorted([{"content": doc.page_content, "page": doc.metadata['page'], "source_file": doc.metadata['source_file']} for doc in results['source_documents']], key=lambda x: (x['source_file'], x['page']))
