@@ -8,7 +8,7 @@ from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
 from langchain.chains import ConversationalRetrievalChain, ConversationChain, RetrievalQA
-from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader
+from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
@@ -101,6 +101,8 @@ class FileLoader(object):
                     documents = CSVLoader(file).load_and_split(self.splitter)
             elif self.filetype == "pdf":
                 documents = PyPDFLoader(file).load_and_split(self.splitter)
+            elif self.filetype == "txt":
+                documents = TextLoader(file).load_and_split(self.splitter)
 
         except Exception as e:
             self.logger.msg = f"Could not load the {Fore.LIGHTYELLOW_EX + '.docx' + Fore.RESET} file!"
@@ -114,9 +116,6 @@ class FileLoader(object):
                         'source_file': os.path.split(file)[1],
                         'page': no
                     })
-                if get_language(document.page_content) != "EN":
-                    document.page_content = ChatOpenAI(temperature=0).call_as_llm(
-                        message="Translate the information below to English, and respond only with the English translation:\n\n{}".format(document.page_content))
             try:
                 embeddings = OpenAIEmbeddings()
                 es = ElasticVectorSearch(
@@ -219,10 +218,6 @@ class LingtelliElastic2(Elasticsearch):
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
-        self.language = get_language(gpt_obj.query)
-        if self.language != "EN":
-            gpt_obj.query = ChatOpenAI(temperature=0).call_as_llm(
-                message="Translate the information below to English, and respond only with the English translation:\n\n{}".format(gpt_obj.query))
         now = datetime.now().astimezone()
         timestamp = date_to_str(now)
         memory = self._load_memory(
