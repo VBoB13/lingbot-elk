@@ -37,12 +37,15 @@ def get_language(content: str) -> str:
     global logger
     logger.name += "get_language()"
 
+    language = {
+        "CH": "Traditional Chinese (ZH-TW)",
+        "EN": "English (EN)"
+    }
     lang = "CH"
     if (len(re.findall(r'[\u4e00-\u9fff]', content)) / len(content)) < 0.5:
-        logger.info("Language: English (EN)")
         lang = "EN"
-    else:
-        logger.info("Language: Traditional Chinese (ZH-TW)")
+
+    logger.info("Language: {}".format(language[lang]))
 
     _reset_logger_name()
 
