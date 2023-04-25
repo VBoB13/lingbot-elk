@@ -230,7 +230,7 @@ class LingtelliElastic2(Elasticsearch):
         )
         llm = ChatOpenAI(temperature=0)
         chain = ConversationalRetrievalChain.from_llm(
-            llm=llm, memory=memory, retriever=vectorstore.as_retriever(), return_source_documents=True)
+            llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=2500, return_source_documents=True)
         chat_history = []
 
         for i in range(0, len(memory.chat_memory.messages), 2):
