@@ -250,13 +250,38 @@ class LingtelliElastic2(Elasticsearch):
             )
 
         chat_history = []
+        results = {}
 
         for i in range(0, len(memory.chat_memory.messages), 2):
             chat_history.append(
                 tuple([memory.chat_memory.messages[i], memory.chat_memory.messages[i+1]]))
 
-        results = chain({"question": gpt_obj.query,
-                        "chat_history": chat_history})
+        try:
+            results = chain({"question": gpt_obj.query,
+                            "chat_history": chat_history})
+        except Exception as err:
+            llm = ChatOpenAI(temperature=0, model_name='gpt-4')
+            if self.language == "EN":
+                chain = ConversationalRetrievalChain.from_llm(
+                    llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True)
+            else:
+                chain = ConversationalRetrievalChain.from_llm(
+                    llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
+                )
+
+            chat_history = []
+
+            for i in range(0, len(memory.chat_memory.messages), 2):
+                chat_history.append(
+                    tuple([memory.chat_memory.messages[i], memory.chat_memory.messages[i+1]]))
+            try:
+                results = chain({"question": gpt_obj.query,
+                                 "chat_history": chat_history})
+            except Exception as e:
+                self.logger.msg = "Could NOT get answer through LangChain / OpenAI!"
+                self.logger.error(extra_msg=str(e))
+                raise self.logger from e
+
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results['answer'])
         history_index = gpt_obj.vendor_id + "_sid_" + gpt_obj.session_id
