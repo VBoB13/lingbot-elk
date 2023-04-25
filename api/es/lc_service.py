@@ -137,7 +137,7 @@ class FileLoader(object):
 class LingtelliElastic2(Elasticsearch):
     settings = get_settings()
     chinese_template = """\
-給定以下對話和後續問題，重新詞述後續問題成為一個獨立的問題。
+給定以下對話和後續問題，重新詞述後續問題成為一個又是繁體中文又是獨立的問題。回覆時，請以繁體中文回答。
 
 聊天記錄：
 {chat_history}
