@@ -218,6 +218,7 @@ class LingtelliElastic2(Elasticsearch):
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
+        self.language = get_language(gpt_obj.query)
         now = datetime.now().astimezone()
         timestamp = date_to_str(now)
         memory = self._load_memory(
@@ -250,9 +251,9 @@ class LingtelliElastic2(Elasticsearch):
                 "timestamp": timestamp
             }
         )
-        if self.language != "EN":
-            results['answer'] = ChatOpenAI(temperature=0).call_as_llm(
-                message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results['answer']))
+        # if self.language != "EN":
+        #     results['answer'] = ChatOpenAI(temperature=0).call_as_llm(
+        #         message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results['answer']))
 
         # Print out the results (query + answer)
         self.logger.msg = Fore.LIGHTCYAN_EX + "Question: " + Fore.RESET + gpt_obj.query
