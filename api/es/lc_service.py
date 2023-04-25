@@ -300,7 +300,9 @@ class LingtelliElastic2(Elasticsearch):
         #         message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results['answer']))
 
         # Print out the results (query + answer)
-        self.logger.msg = Fore.LIGHTCYAN_EX + "Question: " + Fore.RESET + gpt_obj.query
+        self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + gpt_obj.vendor_id + Fore.RESET
+        self.logger.msg += "\n" + Fore.LIGHTCYAN_EX + \
+            "Question: " + Fore.RESET + gpt_obj.query
         self.logger.msg += "\n" + Fore.LIGHTGREEN_EX + \
             "Answer: " + Fore.RESET + results['answer']
         self.logger.info()
