@@ -216,6 +216,12 @@ async def upload(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
     global logger
     logger.cls = "main.py:upload"
 
+    # Make sure index (vendor_id) is lowercase (Elasticsearch)
+    if index != index.lower():
+        logger.msg = "Index needs to be lowercase!"
+        logger.error()
+        return ElkServiceResponse(content={"error": "{}".format(logger.msg)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     try:
         bg_tasks.add_task(FileLoader, file, index)
     except Exception as err:
