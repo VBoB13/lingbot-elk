@@ -260,7 +260,9 @@ class LingtelliElastic2(Elasticsearch):
             results = chain({"question": gpt_obj.query,
                             "chat_history": chat_history})
         except Exception as err:
-            llm = ChatOpenAI(temperature=0, model_name='gpt-4')
+            self.logger.msg = "Could NOT get an answer through normal means: trying another model..."
+            self.logger.warning(extra_msg=str(err))
+            llm = ChatOpenAI(temperature=0, model_name='gpt-4-0314')
             if self.language == "EN":
                 chain = ConversationalRetrievalChain.from_llm(
                     llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True)
