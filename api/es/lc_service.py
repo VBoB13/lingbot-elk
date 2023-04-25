@@ -8,11 +8,12 @@ from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
 from langchain.chains import ConversationalRetrievalChain, ConversationChain, RetrievalQA
+from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferWindowMemory
+from langchain.prompts.prompt import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch
 
@@ -135,6 +136,14 @@ class FileLoader(object):
 
 class LingtelliElastic2(Elasticsearch):
     settings = get_settings()
+    chinese_template = """\
+給定以下對話和後續問題，重新詞述後續問題成為一個獨立的問題。
+
+聊天記錄：
+{chat_history}
+後續輸入：{question}
+獨立問題：
+"""
 
     def __init__(self):
         self.logger = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
@@ -230,8 +239,16 @@ class LingtelliElastic2(Elasticsearch):
             embedding=OpenAIEmbeddings()
         )
         llm = ChatOpenAI(temperature=0)
-        chain = ConversationalRetrievalChain.from_llm(
-            llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=2500, return_source_documents=True)
+
+        # Language specific actions
+        if self.language == "EN":
+            chain = ConversationalRetrievalChain.from_llm(
+                llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=2500, return_source_documents=True)
+        else:
+            chain = ConversationalRetrievalChain.from_llm(
+                llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=2500, return_source_documents=True, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
+            )
+
         chat_history = []
 
         for i in range(0, len(memory.chat_memory.messages), 2):
@@ -251,7 +268,7 @@ class LingtelliElastic2(Elasticsearch):
                 "timestamp": timestamp
             }
         )
-        # if self.language != "EN":
+        # if self.language != "EN" and get_language(results['answer']) != "EN":
         #     results['answer'] = ChatOpenAI(temperature=0).call_as_llm(
         #         message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results['answer']))
 
