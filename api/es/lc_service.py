@@ -238,7 +238,7 @@ class LingtelliElastic2(Elasticsearch):
             gpt_obj.vendor_id,
             embedding=OpenAIEmbeddings()
         )
-        llm = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo-0301')
+        llm = ChatOpenAI(temperature=0)
 
         # Language specific actions
         if self.language == "EN":
