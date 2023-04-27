@@ -134,12 +134,14 @@ class FileLoader(object):
                     extra_msg=f"{Fore.LIGHTRED_EX + str(err) + Fore.RESET}")
                 raise self.logger from err
             else:
+                self.logger.msg = f"{Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} saved {len(documents)} documents into Elasticsearch!"
+                self.logger.info()
                 summary = summarize_text(
                     full_text,
                     language=get_language(full_text)
                 )
-                self.logger.msg = f"{Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} saved {len(documents)} documents into Elasticsearch!"
-                self.logger.info(extra_msg="Summary of text:\n%s" % summary)
+                self.logger.msg = "Summary of text:\n%s" % summary
+                self.logger.info()
 
                 client = LingtelliElastic2()
                 client.indices.put_mapping(
