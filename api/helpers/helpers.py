@@ -130,11 +130,8 @@ def summarize_text(text: str, language: str = "EN") -> str:
     ['EN' | 'CH'] to summarize the text accordingly.
     """
     if language == "CH":
-        split_text = text.split("。")
-        num_sentences = len(
-            split_text) // 15 if len(split_text) > 45 else 3
-        num_keywords = len(
-            text) // 50 if len(text) > 500 else 7
+        num_sentences = 5
+        num_keywords = 7
         keywords = extract_tags(text, topK=num_keywords, withWeight=True)
 
         sent_scores = {}
@@ -170,8 +167,8 @@ def summarize_text(text: str, language: str = "EN") -> str:
                         else:
                             sent_scores[sentence] += word_freq[word]
 
-        num_sentences = len(sentences) // 15 if len(sentences) > 60 else 3
-        num_keywords = len(text) // 50 if len(text) > 500 else 7
+        num_sentences = 5
+        num_keywords = 7
         summary_sentences = nlargest(
             num_sentences, sent_scores, key=sent_scores.get)
 
