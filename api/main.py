@@ -3,21 +3,16 @@ import uvicorn
 import shutil
 import logging
 
-import pandas as pd
 from fastapi import FastAPI, status, BackgroundTasks, UploadFile, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
-from colorama import Fore
 
 from params import DESCRIPTIONS
-from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument, \
-    DocID_Must, BasicResponse, SearchResponse, \
-    SearchPhraseDoc, SearchGPT, SearchGPT2, Vendor, SourceDocument, EntityDocument, IntentDocument
+from params.definitions import BasicResponse, SearchGPT2, SourceDocument, VendorFileSession
 from es.elastic import LingtelliElastic
-from es.gpt3 import GPT3UtilityRequest
 from es.lc_service import FileLoader, LingtelliElastic2
-from settings.settings import TEMP_DIR, TIIP_CSV_DIR
+from settings.settings import TEMP_DIR
 from helpers.reqres import ElkServiceResponse
 from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
 from errors.errors import BaseError
@@ -43,16 +38,17 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.post("/delete", response_model=BasicResponse, description=DESCRIPTIONS["/delete"])
-async def delete_index(vendor: Vendor):
+@app.post("/delete_bot", response_model=BasicResponse, description=DESCRIPTIONS["/delete_bot"])
+async def delete_bot(delete_obj: VendorFileSession):
     global logger
-    logger.cls = "main.py:delete_index"
+    logger.cls = "main.py:delete_bot"
     try:
-        es = LingtelliElastic()
-        es.delete_index(vendor.vendor_id)
-        return ElkServiceResponse(content={"msg": "Index deleted.", "data": vendor.vendor_id}, status_code=status.HTTP_202_ACCEPTED)
+        es = LingtelliElastic2()
+        es.delete_bot(delete_obj.vendor_id,
+                      delete_obj.file, delete_obj.session)
+        return ElkServiceResponse(content={"msg": "Deleted bot data successfully!", "data": {"vendor_id": delete_obj.vendor_id, "file": delete_obj.file, "session": delete_obj.session}}, status_code=status.HTTP_200_OK)
     except Exception as err:
-        logger.msg = "Could NOT delete index <%s>!" % vendor.vendor_id
+        logger.msg = "Could NOT delete data from bot ID: <%s>!" % delete_obj.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -62,115 +58,22 @@ async def delete_source(source: SourceDocument):
     global logger
     logger.cls = "main.py:delete_source"
     try:
-        es = LingtelliElastic()
-        es.delete_source(source.vendor_id, source.filename)
-        return ElkServiceResponse(content={"msg": "Documents from source file [%s] deleted!" % source.filename, "data": source.vendor_id}, status_code=status.HTTP_202_ACCEPTED)
+        es = LingtelliElastic2()
+        es.delete_bot(source.vendor_id,
+                      source.filename)
+        return ElkServiceResponse(
+            content={
+                "msg": "Deleted bot INFO data successfully!",
+                "data": {"vendor_id": source.vendor_id, "file": source.filename}},
+            status_code=status.HTTP_200_OK
+        )
     except Exception as err:
-        logger.msg = "Could NOT delete index <%s>!" % source.vendor_id
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/extract-entities", response_model=BasicResponse, description=DESCRIPTIONS["/extract-entities"])
-async def extract_entities(doc: EntityDocument):
-    global logger
-    logger.cls = "main.py:extract-entities"
-    try:
-        gpt = GPT3UtilityRequest(doc.text)
-        return ElkServiceResponse(content={"msg": "Extraction successful!", "data": gpt.results}, status_code=status.HTTP_200_OK)
-    except Exception as err:
-        logger.msg = "Could NOT extract entities from text: [%s]" % str(
-            doc.text[:15] + "...")
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/intent-flight", response_model=BasicResponse, description=DESCRIPTIONS["/intent-flight"])
-async def intent_flight(doc: IntentDocument):
-    global logger
-    logger.cls = "main.py:intent_flight"
-    try:
-        gpt = GPT3UtilityRequest(doc.query, service="intent:flight")
-        return ElkServiceResponse(content={"msg": "Extraction successful!", "data": gpt.results}, status_code=status.HTTP_200_OK)
-    except Exception as err:
-        logger.msg = "Could NOT extract entities from text: [%s]" % str(
-            doc.query[:15] + "...")
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/save", response_model=BasicResponse, description=DESCRIPTIONS["/save"])
-async def save_doc(doc: ElasticDoc):
-    global logger
-    logger.cls = "main.py:save_doc"
-    try:
-        es = LingtelliElastic()
-        result = es.save(doc)
-        return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
-    except Exception as err:
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/save-bulk", response_model=BasicResponse, description=DESCRIPTIONS["/save-bulk"])
-async def save_bulk(docs: list[ElasticDoc]):
-    global logger
-    logger.cls = "main.py:save_bulk"
-    try:
-        es = LingtelliElastic()
-        result = es.save_bulk(docs)
-        return ElkServiceResponse(content={"msg": "Document saved.", "data": result}, status_code=status.HTTP_201_CREATED)
-    except Exception as err:
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/get", description=DESCRIPTIONS["/get"])
-async def get_doc(doc: DocID_Must):
-    global logger
-    logger.cls = "main.py:get_doc"
-    try:
-        es = LingtelliElastic()
-        result = es.get(doc)
-        return ElkServiceResponse(content={"msg": "Document found!", "data": result}, status_code=status.HTTP_200_OK)
-    except Exception as err:
-        if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
-            return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_200_OK)
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/search", response_model=BasicResponse, description=DESCRIPTIONS["/search"])
-async def search_doc(doc: SearchDocument):
-    global logger
-    logger.cls = "main.py:search_doc"
-    try:
-        es = LingtelliElastic()
-        result = es.search(doc)
-        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
-    except Exception as err:
-        if hasattr(err, 'msg') and not es.docs_found:
-            return ElkServiceResponse(content={"error": "{}".format(err.msg)}, status_code=status.HTTP_200_OK)
+        logger.msg = "Could NOT delete INFO data from bot ID: <%s>!" % source.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])
-async def search_doc_gpt(doc: SearchGPT):
-    global logger
-    logger.cls = "main.py:search_doc_gpt"
-    try:
-        es = LingtelliElastic()
-        result = es.search_gpt(doc)
-        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
-    except Exception as err:
-        if hasattr(err, 'msg') and not es.docs_found:
-            return ElkServiceResponse(content={"msg": f"{err.msg}", "data": {"error": str(err)}}, status_code=status.HTTP_200_OK)
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/search-gpt-v2", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt-v2"])
 async def search_doc_gpt(doc: SearchGPT2):
     global logger
     logger.cls = "main.py:search_doc_gpt"
@@ -181,34 +84,6 @@ async def search_doc_gpt(doc: SearchGPT2):
     except Exception as err:
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/search/phrase", description=DESCRIPTIONS["/search/phrase"])
-async def search_phrase(doc: SearchPhraseDoc):
-    global logger
-    logger.cls = "main.py:search_phrase"
-    try:
-        es = LingtelliElastic()
-        result = es.search_phrase(doc)
-        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
-    except Exception as err:
-        if hasattr(err, 'msg') and err.msg == "Could not get any documents!":
-            return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_200_OK)
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@app.post("/search/timespan", response_model=SearchResponse, description=DESCRIPTIONS["/search/timespan"])
-async def search_doc_timerange(doc: SearchDocTimeRange):
-    global logger
-    logger.cls = "main.py:search_doc_timerange"
-    try:
-        es = LingtelliElastic()
-        result = es.search_timerange(doc)
-        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": result}, status_code=status.HTTP_200_OK)
-    except Exception as err:
-        logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/upload", description=DESCRIPTIONS["/upload"])

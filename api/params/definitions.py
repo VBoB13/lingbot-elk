@@ -46,6 +46,18 @@ class Vendors(BaseModel):
     vendor_ids: list[str]
 
 
+class Session(BaseModel):
+    session: str
+
+
+class VendorFile(Vendor):
+    file: str
+
+
+class VendorFileSession(VendorFile, Session):
+    pass
+
+
 class DocID(BaseModel):
     doc_id: str | None = None
 
@@ -85,6 +97,7 @@ class SearchGPT(SearchDocument):
 class SearchGPT2(Vendor):
     query: str
     session_id: str = 'test-session'
+
 
 class SearchPhraseDoc(Vendor):
     match_phrase: str

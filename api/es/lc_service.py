@@ -7,7 +7,7 @@ from cachetools import TTLCache, cached
 from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
-from langchain.chains import ConversationalRetrievalChain, ConversationChain, RetrievalQA
+from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
 from langchain.document_loaders.csv_loader import CSVLoader
@@ -19,7 +19,7 @@ from langchain.vectorstores import ElasticVectorSearch
 
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
-from helpers.helpers import get_language
+from helpers.helpers import get_language, summarize_text
 from params.definitions import SearchGPT2
 from settings.settings import get_settings
 
@@ -76,11 +76,13 @@ class FileLoader(object):
         Method that checks filetype and returns the corresponding
         handler class for that file.
         """
-        filetype = filename.split(".")[1]
+        file = filename.split(".")
+        filetype = file[1]
         if len(filetype) == 0:
             self.logger.msg = "No filetype was detected!"
             self.logger.error(extra_msg=f"File name: {filename}")
             raise self.logger
+        self.filename = filename[0].lower()
         self.filetype = filetype.lower()
 
     def _load_file(self, file: str):
@@ -110,8 +112,10 @@ class FileLoader(object):
             self.logger.error(extra_msg=f"Reason: {str(e)}")
             raise self.logger
         else:
+            full_text = ""
             # Make sure to add meta data to each Document object
             for no, document in enumerate(documents):
+                full_text += document.page_content
                 document.metadata.update(
                     {
                         'source_file': os.path.split(file)[1],
@@ -119,8 +123,10 @@ class FileLoader(object):
                     })
             try:
                 embeddings = OpenAIEmbeddings()
+                full_index = '_'.join(
+                    ["info", self.index, self.filename, self.filetype])
                 es = ElasticVectorSearch(
-                    'http://localhost:9200', self.index, embeddings)
+                    'http://localhost:9200', full_index, embeddings)
                 es.add_documents(documents)
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to save documents into ELK!"
@@ -128,10 +134,20 @@ class FileLoader(object):
                     extra_msg=f"{Fore.LIGHTRED_EX + str(err) + Fore.RESET}")
                 raise self.logger from err
             else:
+                summary = summarize_text(
+                    full_text,
+                    language=get_language(full_text)
+                )
                 self.logger.msg = f"\
                     {Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} \
                     saved {len(documents)} documents into Elasticsearch!"
-                self.logger.info()
+                self.logger.info(extra_msg="Summary of text:\n%s" % summary)
+
+                client = LingtelliElastic2()
+                client.indices.put_mapping(
+                    index=full_index,
+                    meta={"description": summary}
+                )
 
 
 class LingtelliElastic2(Elasticsearch):
@@ -163,7 +179,7 @@ class LingtelliElastic2(Elasticsearch):
         """
         history = ConversationBufferWindowMemory(
             k=3, return_messages=True, output_key='answer', memory_key='chat_history')
-        hist_index = index + "_sid_" + session
+        hist_index = "_".join(["hist", index, session])
         if self.indices.exists(index=hist_index).body:
             query = {
                 "query": {
@@ -222,6 +238,31 @@ class LingtelliElastic2(Elasticsearch):
                 raise self.logger from err
 
         return history
+
+    def delete_bot(self, vendor_id: str, file: str, session: str = None):
+        if "/" in file:
+            file = os.path.split(file)[1]
+
+        file_name_and_type = file.split(".")
+        filename, filetype = file_name_and_type[0], file_name_and_type[1]
+        # Add first essential index
+        indices = ["_".join(["info", vendor_id, filename, filetype])]
+        # If session is provided, history index is deleted too
+        if session is not None and isinstance(session, str):
+            indices.append("_".join(["hist", vendor_id, session]))
+        try:
+            # Delete indices
+            self.indices.delete(
+                index=indices
+            )
+        except Exception as err:
+            self.logger.msg = "Could NOT delete index/indices!"
+            self.logger.error(
+                extra_msg="Could NOT delete at least ONE of the following indices: %s" % str(indices), orgErr=err)
+        else:
+            self.logger.msg = Fore.LIGHTGREEN_EX + \
+                "Successfully " + Fore.RESET + "deleted indices!"
+            self.logger.info(extra_msg="Indices: %s" % str(indices))
 
     def search_gpt(self, gpt_obj: SearchGPT2):
         """
@@ -286,7 +327,8 @@ class LingtelliElastic2(Elasticsearch):
 
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results['answer'])
-        history_index = gpt_obj.vendor_id + "_sid_" + gpt_obj.session_id
+        history_index = "_".join(
+            ["hist", gpt_obj.vendor_id, gpt_obj.session_id])
         self.index(
             index=history_index,
             document={

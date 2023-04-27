@@ -5,6 +5,8 @@ DESCRIPTIONS = {
     # Delete
     "/delete": "Endpoint for deleting whole indices.",
     "/delete_source": "Endpoint for deleting multiple documents inserted into ELK with the help of a source file, e.g. 'EBR.csv', 'Docs.docx' and so on...",
+    "/delete_source_v2": "Endpoint for deleting documents from a file within a specific vendor_id's Elasticsearch.",
+    "/delete_bot": "Endpoint for deleting EVERYTHING ('info' AND 'history' indices) that relates to any newer Lingbot (e.g. created using V2 endpoints).",
     # Entities
     "/extract-entities": "Endpoint for extracting entities from travel documents such as event descriptions or blog posts about such events.",
     # Intents

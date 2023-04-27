@@ -7,7 +7,13 @@ import json
 import re
 import requests
 import socket
+from heapq import nlargest
 from logging import Logger
+
+from nltk import FreqDist
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize, sent_tokenize
+from jieba.analyse import extract_tags
 
 from colorama import Fore
 
@@ -116,3 +122,65 @@ def get_synonymns(words: list, category: str) -> list[list[str]]:
                 acceptable_categories)
         )
         raise logger
+
+
+def summarize_text(text: str, language: str = "EN") -> str:
+    """
+    Takes a longer text as `str` and a `language` parameter as
+    ['EN' | 'CH'] to summarize the text accordingly.
+    """
+    if language == "CH":
+        split_text = text.split("。")
+        num_sentences = len(
+            split_text) // 15 if len(split_text) > 45 else 3
+        num_keywords = len(
+            text) // 50 if len(text) > 500 else 7
+        keywords = extract_tags(text, topK=num_keywords, withWeight=True)
+
+        sent_scores = {}
+        for sentence in text.split("。"):
+            score = 0
+            for keyword, weight in keywords:
+                if keyword in sentence:
+                    score += weight
+            sent_scores[sentence] = score
+
+        summary_sentences = nlargest(
+            num_sentences, sent_scores, key=sent_scores.get)
+        summary = "。".join(summary_sentences)
+
+    elif language == "EN":
+        sentences = sent_tokenize(text)
+        words = word_tokenize(text)
+
+        stop_words = set(stopwords.words('english'))
+        filtered_words = [
+            word for word in words if word.casefold() not in stop_words]
+
+        word_freq = FreqDist(filtered_words)
+
+        most_freq = nlargest(10, word_freq, key=word_freq.get)
+        sent_scores = {}
+        for sentence in sentences:
+            for word in word_tokenize(sentence.lower()):
+                if word in most_freq.keys():
+                    if len(sentence.split(' ')) < 30:
+                        if sentence not in sent_scores.keys():
+                            sent_scores[sentence] = word_freq[word]
+                        else:
+                            sent_scores[sentence] += word_freq[word]
+
+        num_sentences = len(sentences) // 15 if len(sentences) > 60 else 3
+        num_keywords = len(text) // 50 if len(text) > 500 else 7
+        summary_sentences = nlargest(
+            num_sentences, sent_scores, key=sent_scores.get)
+
+        summary = ' '.join(summary_sentences)
+
+    else:
+        global logger
+        logger.name += "summarize_text()"
+        msg = "Cannot summarize text in any other language than these: English (EN), Traditional Chinese (ZH_TW)."
+        logger.error(msg)
+
+    return summary
