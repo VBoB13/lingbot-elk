@@ -138,9 +138,7 @@ class FileLoader(object):
                     full_text,
                     language=get_language(full_text)
                 )
-                self.logger.msg = f"\
-                    {Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} \
-                    saved {len(documents)} documents into Elasticsearch!"
+                self.logger.msg = f"{Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} saved {len(documents)} documents into Elasticsearch!"
                 self.logger.info(extra_msg="Summary of text:\n%s" % summary)
 
                 client = LingtelliElastic2()
