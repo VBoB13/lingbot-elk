@@ -130,7 +130,7 @@ def summarize_text(text: str, language: str = "EN") -> str:
     ['EN' | 'CH'] to summarize the text accordingly.
     """
     if language == "CH":
-        num_sentences = 5
+        num_sentences = 4
         num_keywords = 7
         keywords = extract_tags(text, topK=num_keywords, withWeight=True)
 
@@ -180,4 +180,4 @@ def summarize_text(text: str, language: str = "EN") -> str:
         msg = "Cannot summarize text in any other language than these: English (EN), Traditional Chinese (ZH_TW)."
         logger.error(msg)
 
-    return summary
+    return summary.replace('\n', '')
