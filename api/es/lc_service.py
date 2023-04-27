@@ -20,7 +20,7 @@ from langchain.vectorstores import ElasticVectorSearch
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
 from helpers.helpers import get_language, summarize_text
-from params.definitions import SearchGPT2
+from params.definitions import VendorFileSession
 from settings.settings import get_settings
 
 cache = TTLCache(maxsize=100, ttl=86400)
@@ -264,19 +264,25 @@ class LingtelliElastic2(Elasticsearch):
                 "Successfully " + Fore.RESET + "deleted indices!"
             self.logger.info(extra_msg="Indices: %s" % str(indices))
 
-    def search_gpt(self, gpt_obj: SearchGPT2):
+    def search_gpt(self, gpt_obj: VendorFileSession):
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
+        if "/" in gpt_obj.file:
+            gpt_obj.file = os.path.split()[1]
+        filename, filetype = gpt_obj.file.split(
+            ".")[0].lower(), gpt_obj.file.split(".")[1].lower()
         self.language = get_language(gpt_obj.query)
         now = datetime.now().astimezone()
         timestamp = date_to_str(now)
+        lookup_index = "_".join(
+            ["info", gpt_obj.vendor_id, filename, filetype])
         memory = self._load_memory(
-            gpt_obj.vendor_id, gpt_obj.session_id)
+            gpt_obj.vendor_id, gpt_obj.session)
         vectorstore = ElasticVectorSearch(
             "http://" + self.settings.elastic_server +
             ":" + str(self.settings.elastic_port),
-            gpt_obj.vendor_id,
+            lookup_index,
             embedding=OpenAIEmbeddings()
         )
         llm = ChatOpenAI(temperature=0)
