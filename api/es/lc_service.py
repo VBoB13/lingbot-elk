@@ -138,7 +138,7 @@ class FileLoader(object):
                 self.logger.msg = f"{Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} saved {len(documents)} documents into Elasticsearch!"
                 self.logger.info()
                 client = LingtelliElastic2()
-                if not client.indices.exists(index=full_index):
+                if not client.indices.exists(index=full_index).body:
                     summary = summarize_text(
                         full_text,
                         language=get_language(full_text)
