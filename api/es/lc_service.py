@@ -301,6 +301,7 @@ class LingtelliElastic2(Elasticsearch):
         else:
             # Else, we look through all file-indices
             lookup_index = "_".join(["info", gpt_obj.vendor_id]) + "*"
+
         memory = self._load_memory(
             gpt_obj.vendor_id, gpt_obj.session, filename, filetype)
         vectorstore = ElasticVectorSearch(
