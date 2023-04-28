@@ -87,6 +87,9 @@ class FileLoader(object):
         self.filename = filename.lower()
         self.filetype = filetype.lower()
 
+        self.logger.msg = f"Filename: {self.filename}, Filetype: {self.filetype}"
+        self.logger.info()
+
     def _load_file(self, file: str):
         """
         Method that loads documents of type `csv`, `pdf` or `docx` and saves the split document
