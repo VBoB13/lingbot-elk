@@ -185,13 +185,16 @@ class LingtelliElastic2(Elasticsearch):
             raise self.logger from err
 
     @cached(cache)
-    def _load_memory(self, index: str, session: str):
+    def _load_memory(self, index: str, session: str, filename: str = "", filetype: str = ""):
         """
         Method that loads memory (if it exists).
         """
         history = ConversationBufferWindowMemory(
             k=3, return_messages=True, output_key='answer', memory_key='chat_history')
-        hist_index = "_".join(["hist", index, session])
+        if filename and filetype:
+            hist_index = "_".join(["hist", index, filename, filetype, session])
+        else:
+            hist_index = "_".join(["hist", index, session])
         if self.indices.exists(index=hist_index).body:
             query = {
                 "query": {
@@ -280,17 +283,26 @@ class LingtelliElastic2(Elasticsearch):
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
-        if "/" in gpt_obj.file:
-            gpt_obj.file = os.path.split()[1]
-        filename, filetype = gpt_obj.file.split(
-            ".")[0].lower(), gpt_obj.file.split(".")[1].lower()
+        if len(gpt_obj.file) > 0:
+            if "/" in gpt_obj.file:
+                gpt_obj.file = os.path.split()[1]
+            filename, filetype = gpt_obj.file.split(
+                ".")[0].lower(), gpt_obj.file.split(".")[1].lower()
+        else:
+            filename = ""
+            filetype = ""
         self.language = get_language(gpt_obj.query)
         now = datetime.now().astimezone()
         timestamp = date_to_str(now)
-        lookup_index = "_".join(
-            ["info", gpt_obj.vendor_id, filename, filetype])
+        if filename != "":
+            # If there's a filename, we look for index associated with file
+            lookup_index = "_".join(
+                ["info", gpt_obj.vendor_id, filename, filetype])
+        else:
+            # Else, we look through all file-indices
+            lookup_index = "_".join(["info", gpt_obj.vendor_id]) + "*"
         memory = self._load_memory(
-            gpt_obj.vendor_id, gpt_obj.session)
+            gpt_obj.vendor_id, gpt_obj.session, filename, filetype)
         vectorstore = ElasticVectorSearch(
             "http://" + self.settings.elastic_server +
             ":" + str(self.settings.elastic_port),

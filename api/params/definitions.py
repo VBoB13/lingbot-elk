@@ -51,7 +51,7 @@ class Session(BaseModel):
 
 
 class VendorFile(Vendor):
-    file: str
+    file: str = ""
 
 
 class VendorFileSession(VendorFile, Session):
