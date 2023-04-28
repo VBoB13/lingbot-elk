@@ -87,7 +87,7 @@ async def search_doc_gpt(doc: VendorFileSession):
 
 
 @app.post("/upload", description=DESCRIPTIONS["/upload"])
-async def upload(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
+async def upload(index: str, file: UploadFile):
     global logger
     logger.cls = "main.py:upload"
 
@@ -98,7 +98,7 @@ async def upload(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
         return ElkServiceResponse(content={"error": "{}".format(logger.msg)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     try:
-        bg_tasks.add_task(FileLoader, file, index)
+        FileLoader(file, index)
     except Exception as err:
         logger.msg = "Something went wrong when trying to save file contents into ELK!"
         logger.error(extra_msg=str(err), orgErr=err)
