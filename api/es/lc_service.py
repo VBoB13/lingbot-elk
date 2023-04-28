@@ -185,16 +185,13 @@ class LingtelliElastic2(Elasticsearch):
             raise self.logger from err
 
     @cached(cache)
-    def _load_memory(self, index: str, session: str, filename: str = "", filetype: str = ""):
+    def _load_memory(self, index: str, session: str):
         """
         Method that loads memory (if it exists).
         """
         history = ConversationBufferWindowMemory(
             k=3, return_messages=True, output_key='answer', memory_key='chat_history')
-        if filename and filetype:
-            hist_index = "_".join(["hist", index, filename, filetype, session])
-        else:
-            hist_index = "_".join(["hist", index, session])
+        hist_index = "_".join(["hist", index, session])
         if self.indices.exists(index=hist_index).body:
             query = {
                 "query": {
@@ -303,7 +300,7 @@ class LingtelliElastic2(Elasticsearch):
             lookup_index = "_".join(["info", gpt_obj.vendor_id]) + "*"
 
         memory = self._load_memory(
-            gpt_obj.vendor_id, gpt_obj.session, filename, filetype)
+            gpt_obj.vendor_id, gpt_obj.session)
         vectorstore = ElasticVectorSearch(
             "http://" + self.settings.elastic_server +
             ":" + str(self.settings.elastic_port),
