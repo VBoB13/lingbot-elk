@@ -126,6 +126,7 @@ class FileLoader(object):
                 embeddings = OpenAIEmbeddings()
                 full_index = '_'.join(
                     ["info", self.index, self.filename, self.filetype])
+                client = LingtelliElastic2()
                 index_exists = client.indices.exists(index=full_index).body
                 es = ElasticVectorSearch(
                     'http://localhost:9200', full_index, embeddings)
@@ -138,7 +139,6 @@ class FileLoader(object):
             else:
                 self.logger.msg = f"{Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} saved {len(documents)} documents into Elasticsearch!"
                 self.logger.info()
-                client = LingtelliElastic2()
                 if not index_exists:
                     summary = summarize_text(
                         full_text,
