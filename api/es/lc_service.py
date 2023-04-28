@@ -14,6 +14,7 @@ from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts.prompt import PromptTemplate
+from langchain.schema import BaseMessage
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch
 
@@ -142,6 +143,12 @@ class FileLoader(object):
                 )
                 self.logger.msg = "Summary of text:\n%s" % summary
                 self.logger.info()
+
+                if get_language(full_text) != "EN":
+                    es = LingtelliElastic2()
+                    summary = es.translate(full_text)
+                    self.logger.msg = "Summary was translated!"
+                    self.logger.info(extra_msg=summary)
 
                 client = LingtelliElastic2()
                 client.indices.put_mapping(
@@ -356,3 +363,13 @@ class LingtelliElastic2(Elasticsearch):
         self.logger.info()
 
         return results['answer'], sorted([{"content": doc.page_content, "page": doc.metadata['page'], "source_file": doc.metadata['source_file']} for doc in results['source_documents']], key=lambda x: (x['source_file'], x['page']))
+
+    def translate(self, text: str) -> str:
+        """
+        Method translating a piece of text to English.
+        """
+        llm = ChatOpenAI(temperature=0, model_name='gpt-4-0314')
+        results = llm.generate([[BaseMessage(
+            content=f"Here is some content in Traditional Chinese:\n\n{text}\n\nIt is sentences that are extracted from a larger text through keyword ranking; thus it makes little sense trying to read it like normal text, but it is an extraction that tells you a little bit about the content of a file. Based on this extraction, please generate a summary for this file in English and respond with the translation only.")]])
+
+        return results.generations[0][0].text
