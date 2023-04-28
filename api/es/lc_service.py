@@ -147,8 +147,8 @@ class FileLoader(object):
                     self.logger.msg = "Summary of text:\n%s" % summary
                     self.logger.info()
 
-                    if get_language(full_text) != "EN":
-                        summary = client.translate(full_text)
+                    if get_language(summary) != "EN":
+                        summary = client.translate(summary)
                         self.logger.msg = "Summary was translated!"
                         self.logger.info(extra_msg=summary)
 
