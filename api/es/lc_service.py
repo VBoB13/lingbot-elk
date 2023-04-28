@@ -119,7 +119,7 @@ class FileLoader(object):
                 full_text += document.page_content
                 document.metadata.update(
                     {
-                        'source_file': os.path.split(file)[1],
+                        'source': os.path.split(file)[1],
                         'page': no
                     })
             try:
