@@ -371,6 +371,6 @@ class LingtelliElastic2(Elasticsearch):
         """
         llm = ChatOpenAI(temperature=0.3)
         results = llm.generate([[SystemMessage(
-            content="The user will provide some content in Traditional Chinese and it is sentences that are extracted from a larger text through keyword ranking; thus it makes little sense trying to read it like normal text, but it is an extraction that tells you a little bit about the content of a file as a whole. Based on this extraction, please generate a summary for this file in English and respond with the English summary only."), HumanMessage(content=f"Hi Mr. Chatbot! Here is some content in Traditional Chinese:\n\n{text}")]])
+            content="The user will provide some content in Traditional Chinese and it is sentences that are extracted from a larger text through keyword ranking; thus it makes little sense trying to read it like normal text, but it is an extraction that tells you a little bit about the content of a file as a whole. Based on this extraction, please generate a summary for this file in English from the viewpoint of what information you can expect to find within the document, e.g. start with something like 'Useful when you need answer about ...', and respond with the English summary only."), HumanMessage(content=f"Hi Mr. Chatbot! Here is some content in Traditional Chinese:\n\n{text}")]])
 
         return results.generations[0][0].text
