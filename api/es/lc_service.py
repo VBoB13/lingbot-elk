@@ -14,7 +14,7 @@ from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts.prompt import PromptTemplate
-from langchain.schema import BaseMessage
+from langchain.schema import SystemMessage, HumanMessage
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch
 
@@ -137,24 +137,24 @@ class FileLoader(object):
             else:
                 self.logger.msg = f"{Fore.LIGHTGREEN_EX + 'Successfully' + Fore.RESET} saved {len(documents)} documents into Elasticsearch!"
                 self.logger.info()
-                summary = summarize_text(
-                    full_text,
-                    language=get_language(full_text)
-                )
-                self.logger.msg = "Summary of text:\n%s" % summary
-                self.logger.info()
-
-                if get_language(full_text) != "EN":
-                    es = LingtelliElastic2()
-                    summary = es.translate(full_text)
-                    self.logger.msg = "Summary was translated!"
-                    self.logger.info(extra_msg=summary)
-
                 client = LingtelliElastic2()
-                client.indices.put_mapping(
-                    index=full_index,
-                    meta={"description": summary}
-                )
+                if not client.indices.exists(index=full_index):
+                    summary = summarize_text(
+                        full_text,
+                        language=get_language(full_text)
+                    )
+                    self.logger.msg = "Summary of text:\n%s" % summary
+                    self.logger.info()
+
+                    if get_language(full_text) != "EN":
+                        summary = client.translate(full_text)
+                        self.logger.msg = "Summary was translated!"
+                        self.logger.info(extra_msg=summary)
+
+                    client.indices.put_mapping(
+                        index=full_index,
+                        meta={"description": summary}
+                    )
 
 
 class LingtelliElastic2(Elasticsearch):
@@ -369,7 +369,7 @@ class LingtelliElastic2(Elasticsearch):
         Method translating a piece of text to English.
         """
         llm = ChatOpenAI(temperature=0, model_name='gpt-4-0314')
-        results = llm.generate([[BaseMessage(
-            content=f"Here is some content in Traditional Chinese:\n\n{text}\n\nIt is sentences that are extracted from a larger text through keyword ranking; thus it makes little sense trying to read it like normal text, but it is an extraction that tells you a little bit about the content of a file. Based on this extraction, please generate a summary for this file in English and respond with the translation only.")]])
+        results = llm.generate([[SystemMessage(
+            content="The user will provide some content in Traditional Chinese and it is sentences that are extracted from a larger text through keyword ranking; thus it makes little sense trying to read it like normal text, but it is an extraction that tells you a little bit about the content of a file as a whole. Based on this extraction, please generate a summary for this file in English and respond with the English summary only."), HumanMessage(content=f"Hi Mr. Chatbot! Here is some content in Traditional Chinese:\n\n{text}")]])
 
         return results.generations[0][0].text
