@@ -7,6 +7,7 @@ from cachetools import TTLCache, cached
 from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
+from langchain.agents import initialize_agent, Tool
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
@@ -25,6 +26,16 @@ from params.definitions import VendorFileSession
 from settings.settings import get_settings
 
 cache = TTLCache(maxsize=100, ttl=86400)
+
+
+def generate_index_tools(vendor_id: str) -> list[Tool]:
+    """
+    Function that fetches mappings for all indices under the provided `vendor_id`
+    and returns a list of tools for a LangChain agent to use.
+    """
+    # TODO:
+    # Implement the actual code for generating tools for LangChain agents.
+    # TODO:
 
 
 class FileLoader(object):
