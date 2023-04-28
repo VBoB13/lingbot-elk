@@ -72,18 +72,19 @@ class FileLoader(object):
                 pass
             os.rmdir(os.path.join(self.settings.temp_dir, index))
 
-    def _check_filetype(self, filename: str) -> str:
+    def _check_filetype(self, file: str) -> str:
         """
         Method that checks filetype and returns the corresponding
         handler class for that file.
         """
-        file = filename.split(".")
-        filetype = file[1]
+        file = file.split(".")
+        filename = file[0]
+        filetype = filename[1]
         if len(filetype) == 0:
             self.logger.msg = "No filetype was detected!"
-            self.logger.error(extra_msg=f"File name: {filename}")
+            self.logger.error(extra_msg=f"File name: {'.'.join(file)}")
             raise self.logger
-        self.filename = filename[0].lower()
+        self.filename = filename.lower()
         self.filetype = filetype.lower()
 
     def _load_file(self, file: str):
