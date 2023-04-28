@@ -74,7 +74,7 @@ async def delete_source(source: SourceDocument):
 
 
 @app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])
-async def search_doc_gpt(doc: SearchGPT2):
+async def search_doc_gpt(doc: VendorFileSession):
     global logger
     logger.cls = "main.py:search_doc_gpt"
     try:
