@@ -283,7 +283,6 @@ class LingtelliElastic2(Elasticsearch):
                 "Successfully " + Fore.RESET + "deleted indices!"
             self.logger.info(extra_msg="Indices: %s" % str(indices))
 
-    @cached(cache)
     def generate_index_tools(self, vendor_id: str, memory: ConversationBufferWindowMemory) -> list[Tool]:
         """
         Function that fetches mappings for all indices under the provided `vendor_id`
