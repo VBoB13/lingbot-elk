@@ -319,7 +319,7 @@ class LingtelliElastic2(Elasticsearch):
 
                 tools.append(Tool(
                     name=f"Tool #{i}",
-                    func=chain.run,
+                    func=chain,
                     description=all_mappings[index]['mappings']['_meta']['description'],
                     args_schema=QAInput
                 ))
