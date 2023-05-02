@@ -364,7 +364,7 @@ class LingtelliElastic2(Elasticsearch):
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results)
         history_index = "_".join(
-            ["hist", gpt_obj.vendor_id, gpt_obj.session_id])
+            ["hist", gpt_obj.vendor_id, gpt_obj.session])
         self.index(
             index=history_index,
             document={
