@@ -358,7 +358,7 @@ class LingtelliElastic2(Elasticsearch):
                                  "chat_history": chat_history})
         except Exception as err:
             self.logger.msg = "Could NOT get an answer from agent..."
-            self.logger.error(orgErr=err)
+            self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
 
         memory.chat_memory.add_user_message(gpt_obj.query)
