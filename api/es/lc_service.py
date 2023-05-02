@@ -294,7 +294,7 @@ class LingtelliElastic2(Elasticsearch):
         all_mappings: dict[str, str] = es.indices.get_mapping(
             index=lookup_index).body
 
-        for index in all_mappings:
+        for i, index in enumerate(all_mappings):
             if all_mappings.get(index, None) and \
                     all_mappings.get(index, None).get('mappings', None) and \
                     all_mappings.get(index, None).get('mappings', None).get('_meta', None) and \
@@ -318,7 +318,7 @@ class LingtelliElastic2(Elasticsearch):
                     )
 
                 tools.append(Tool(
-                    name=".".join(index.split("_")[-2:]),
+                    name=f"Tool #{i}",
                     func=chain.run,
                     description=all_mappings[index]['mappings']['_meta']['description'],
                     args_schema=QAInput
