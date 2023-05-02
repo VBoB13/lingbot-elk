@@ -311,10 +311,10 @@ class LingtelliElastic2(Elasticsearch):
                 # Language specific actions
                 if self.language == "EN":
                     chain = ConversationalRetrievalChain.from_llm(
-                        llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True)
+                        llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000)
                 else:
                     chain = ConversationalRetrievalChain.from_llm(
-                        llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
+                        llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
                     )
 
                 tools.append(Tool(
