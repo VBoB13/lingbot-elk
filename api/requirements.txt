@@ -108,6 +108,7 @@ pycparser==2.21
 pydantic==1.10.2
 Pygments==2.14.0
 pypandoc==1.11
+pypdf==3.8.1
 PyPDF2==2.11.1
 pyrsistent==0.19.3
 pytest==7.2.1
