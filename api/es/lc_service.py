@@ -406,6 +406,6 @@ class LingtelliElastic2(Elasticsearch):
         """
         llm = ChatOpenAI(temperature=0)
         results = llm.generate([[SystemMessage(
-            content="The user will provide some content in English, and I need you to translate the content to Traditional Mandarin as spoken in Taiwan, then respond with the translated content only."), HumanMessage(content=f"Hi! Here is some content in English:\n\n{text}")]])
+            content="The user will provide some content in English, and I need you to translate the content to Traditional Mandarin as spoken in Taiwan, then respond with the translated content only - no additional comments needed."), HumanMessage(content=f"Here is some content in English:\n\n{text}")]])
 
         return results.generations[0][0].text
