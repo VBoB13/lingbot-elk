@@ -354,7 +354,7 @@ class LingtelliElastic2(Elasticsearch):
         )
 
         try:
-            results = agent.run({"question": gpt_obj.query,
+            results = agent.run({"input": gpt_obj.query,
                                  "chat_history": chat_history})
         except Exception as err:
             self.logger.msg = "Could NOT get an answer from agent..."
