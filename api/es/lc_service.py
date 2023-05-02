@@ -115,7 +115,7 @@ class FileLoader(object):
                 documents = TextLoader(file).load_and_split(self.splitter)
 
         except Exception as e:
-            self.logger.msg = f"Could not load the {Fore.LIGHTYELLOW_EX + '.docx' + Fore.RESET} file!"
+            self.logger.msg = f"Could not load the {Fore.LIGHTYELLOW_EX + self.filetype + Fore.RESET} file!"
             self.logger.error(extra_msg=f"Reason: {str(e)}")
             raise self.logger
         else:
