@@ -7,7 +7,7 @@ from cachetools import TTLCache, cached
 from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
-from langchain.agents import initialize_agent, Tool
+from langchain.agents import initialize_agent, Tool, AgentType
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
@@ -18,6 +18,7 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain.schema import SystemMessage, HumanMessage
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch
+from pydantic import BaseModel, Field
 
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
@@ -26,16 +27,6 @@ from params.definitions import VendorFileSession
 from settings.settings import get_settings
 
 cache = TTLCache(maxsize=100, ttl=86400)
-
-
-def generate_index_tools(vendor_id: str) -> list[Tool]:
-    """
-    Function that fetches mappings for all indices under the provided `vendor_id`
-    and returns a list of tools for a LangChain agent to use.
-    """
-    # TODO:
-    # Implement the actual code for generating tools for LangChain agents.
-    # TODO:
 
 
 class FileLoader(object):
@@ -173,6 +164,11 @@ class FileLoader(object):
                     )
 
 
+class QAInput(BaseModel):
+    question: str = Field()
+    chat_history: list[tuple] = []
+
+
 class LingtelliElastic2(Elasticsearch):
     settings = get_settings()
     chinese_template = """\
@@ -287,108 +283,109 @@ class LingtelliElastic2(Elasticsearch):
                 "Successfully " + Fore.RESET + "deleted indices!"
             self.logger.info(extra_msg="Indices: %s" % str(indices))
 
-    def search_gpt(self, gpt_obj: VendorFileSession):
+    @cached(cache)
+    def generate_index_tools(self, vendor_id: str, memory: ConversationBufferWindowMemory) -> list[Tool]:
+        """
+        Function that fetches mappings for all indices under the provided `vendor_id`
+        and returns a list of tools for a LangChain agent to use.
+        """
+        tools = []
+        es = LingtelliElastic2()
+        lookup_index = "_".join(["info", vendor_id]) + "*"
+        all_mappings: dict[str, str] = es.indices.get_mapping(
+            index=lookup_index).body
+
+        for index in all_mappings:
+            if all_mappings.get(index, None) and \
+                    all_mappings.get(index, None).get('mappings', None) and \
+                    all_mappings.get(index, None).get('mappings', None).get('_meta', None) and \
+                    all_mappings.get(index, None).get('mappings', None).get('_meta', None).get('description', None):
+
+                vectorstore = ElasticVectorSearch(
+                    "http://" + self.settings.elastic_server +
+                    ":" + str(self.settings.elastic_port),
+                    index,
+                    embedding=OpenAIEmbeddings()
+                )
+                llm = ChatOpenAI(temperature=0)
+
+                # Language specific actions
+                if self.language == "EN":
+                    chain = ConversationalRetrievalChain.from_llm(
+                        llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True)
+                else:
+                    chain = ConversationalRetrievalChain.from_llm(
+                        llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
+                    )
+
+                tools.append(Tool(
+                    name=".".join(index.split("_")[-2:]),
+                    func=chain.run,
+                    description=all_mappings[index]['mappings']['_meta']['description'],
+                    args_schema=QAInput
+                ))
+        return tools
+
+    def search_gpt(self, gpt_obj: VendorFileSession) -> str:
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
-        if len(gpt_obj.file) > 0:
-            if "/" in gpt_obj.file:
-                gpt_obj.file = os.path.split()[1]
-            filename, filetype = gpt_obj.file.split(
-                ".")[0].lower(), gpt_obj.file.split(".")[1].lower()
-        else:
-            filename = ""
-            filetype = ""
         self.language = get_language(gpt_obj.query)
         now = datetime.now().astimezone()
         timestamp = date_to_str(now)
-        if filename != "":
-            # If there's a filename, we look for index associated with file
-            lookup_index = "_".join(
-                ["info", gpt_obj.vendor_id, filename, filetype])
-        else:
-            # Else, we look through all file-indices
-            lookup_index = "_".join(["info", gpt_obj.vendor_id]) + "*"
 
         memory = self._load_memory(
             gpt_obj.vendor_id, gpt_obj.session)
-        vectorstore = ElasticVectorSearch(
-            "http://" + self.settings.elastic_server +
-            ":" + str(self.settings.elastic_port),
-            lookup_index,
-            embedding=OpenAIEmbeddings()
-        )
-        llm = ChatOpenAI(temperature=0)
 
-        # Language specific actions
-        if self.language == "EN":
-            chain = ConversationalRetrievalChain.from_llm(
-                llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True)
-        else:
-            chain = ConversationalRetrievalChain.from_llm(
-                llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
-            )
+        tools = self.generate_index_tools(gpt_obj.vendor_id, memory)
 
-        chat_history = []
         results = {}
 
+        chat_history = []
         for i in range(0, len(memory.chat_memory.messages), 2):
             chat_history.append(
                 tuple([memory.chat_memory.messages[i], memory.chat_memory.messages[i+1]]))
 
+        agent = initialize_agent(
+            tools=tools,
+            memory=memory,
+            llm=ChatOpenAI(temperature=0),
+            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+            verbose=True
+        )
+
         try:
-            results = chain({"question": gpt_obj.query,
-                            "chat_history": chat_history})
+            results = agent.run({"question": gpt_obj.query,
+                                 "chat_history": chat_history})
         except Exception as err:
             self.logger.msg = "Could NOT get an answer through normal means: trying another model..."
             self.logger.warning(extra_msg=str(err))
-            llm = ChatOpenAI(temperature=0, model_name='gpt-4-0314')
-            if self.language == "EN":
-                chain = ConversationalRetrievalChain.from_llm(
-                    llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True)
-            else:
-                chain = ConversationalRetrievalChain.from_llm(
-                    llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=3000, return_source_documents=True, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
-                )
-
-            chat_history = []
-
-            for i in range(0, len(memory.chat_memory.messages), 2):
-                chat_history.append(
-                    tuple([memory.chat_memory.messages[i], memory.chat_memory.messages[i+1]]))
-            try:
-                results = chain({"question": gpt_obj.query,
-                                 "chat_history": chat_history})
-            except Exception as e:
-                self.logger.msg = "Could NOT get answer through LangChain / OpenAI!"
-                self.logger.error(extra_msg=str(e))
-                raise self.logger from e
 
         memory.chat_memory.add_user_message(gpt_obj.query)
-        memory.chat_memory.add_ai_message(results['answer'])
+        memory.chat_memory.add_ai_message(results)
         history_index = "_".join(
             ["hist", gpt_obj.vendor_id, gpt_obj.session_id])
         self.index(
             index=history_index,
             document={
                 "user": gpt_obj.query,
-                "ai": results['answer'],
+                "ai": results,
                 "timestamp": timestamp
             }
         )
-        # if self.language != "EN" and get_language(results['answer']) != "EN":
-        #     results['answer'] = ChatOpenAI(temperature=0).call_as_llm(
-        #         message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results['answer']))
+        # if self.language != "EN" and get_language(results) != "EN":
+        #     results = ChatOpenAI(temperature=0).call_as_llm(
+        #         message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results))
 
         # Print out the results (query + answer)
         self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + gpt_obj.vendor_id + Fore.RESET
         self.logger.msg += "\n" + Fore.LIGHTCYAN_EX + \
             "Question: " + Fore.RESET + gpt_obj.query
         self.logger.msg += "\n" + Fore.LIGHTGREEN_EX + \
-            "Answer: " + Fore.RESET + results['answer']
+            "Answer: " + Fore.RESET + results
         self.logger.info()
 
-        return results['answer'], sorted([{"content": doc.page_content, "page": doc.metadata['page'], "source_file": doc.metadata['source_file']} for doc in results['source_documents']], key=lambda x: (x['source_file'], x['page']))
+        return results
 
     def translate(self, text: str) -> str:
         """
