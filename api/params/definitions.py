@@ -58,6 +58,10 @@ class VendorSession(Vendor, Session):
     pass
 
 
+class VendorFileSession(VendorSession):
+    file: str = ""
+
+
 class DocID(BaseModel):
     doc_id: str | None = None
 

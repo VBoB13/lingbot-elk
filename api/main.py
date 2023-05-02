@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
-from params.definitions import BasicResponse, SearchGPT2, SourceDocument, VendorSession
+from params.definitions import BasicResponse, SearchGPT2, SourceDocument, VendorSession, VendorFileSession
 from es.elastic import LingtelliElastic
 from es.lc_service import FileLoader, LingtelliElastic2
 from settings.settings import TEMP_DIR
