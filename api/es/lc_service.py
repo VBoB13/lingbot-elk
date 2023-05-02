@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
 from helpers.helpers import get_language, summarize_text
-from params.definitions import VendorSession
+from params.definitions import VendorSession, QueryVendorSession
 from settings.settings import get_settings
 
 cache = TTLCache(maxsize=100, ttl=86400)
@@ -326,7 +326,7 @@ class LingtelliElastic2(Elasticsearch):
                 ))
         return tools
 
-    def search_gpt(self, gpt_obj: VendorSession) -> str:
+    def search_gpt(self, gpt_obj: QueryVendorSession) -> str:
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """

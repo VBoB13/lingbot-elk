@@ -58,6 +58,10 @@ class VendorSession(Vendor, Session):
     pass
 
 
+class QueryVendorSession(VendorSession):
+    query: str
+
+
 class VendorFileSession(VendorSession):
     file: str = ""
 
