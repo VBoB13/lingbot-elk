@@ -358,8 +358,9 @@ class LingtelliElastic2(Elasticsearch):
             results = agent.run({"question": gpt_obj.query,
                                  "chat_history": chat_history})
         except Exception as err:
-            self.logger.msg = "Could NOT get an answer through normal means: trying another model..."
-            self.logger.warning(extra_msg=str(err))
+            self.logger.msg = "Could NOT get an answer from agent..."
+            self.logger.error()
+            raise self.logger from err
 
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results)

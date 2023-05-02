@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
-from params.definitions import BasicResponse, SearchGPT2, SourceDocument, VendorFileSession
+from params.definitions import BasicResponse, SearchGPT2, SourceDocument, VendorSession
 from es.elastic import LingtelliElastic
 from es.lc_service import FileLoader, LingtelliElastic2
 from settings.settings import TEMP_DIR
@@ -74,7 +74,7 @@ async def delete_source(source: SourceDocument):
 
 
 @app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])
-async def search_doc_gpt(doc: VendorFileSession):
+async def search_doc_gpt(doc: VendorSession):
     global logger
     logger.cls = "main.py:search_doc_gpt"
     try:

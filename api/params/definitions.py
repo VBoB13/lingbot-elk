@@ -54,7 +54,7 @@ class VendorFile(Vendor):
     file: str = ""
 
 
-class VendorFileSession(VendorFile, Session):
+class VendorSession(Vendor, Session):
     pass
 
 
