@@ -113,6 +113,14 @@ class FileLoader(object):
                 documents = PyPDFLoader(file).load_and_split(self.splitter)
             elif self.filetype == "txt":
                 documents = TextLoader(file).load_and_split(self.splitter)
+            else:
+                # None of the accepted filetypes? ERROR!
+                self.logger.msg = "Unable to detect any of the acceptable filetypes!"
+                self.logger.error(
+                    extra_msg=f"\
+Acceptable filetypes: .docx (Word), .csv, .pdf & .txt\n\
+Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
+                raise self.logger
 
             # If no documents, do NOT attempt to save.
             if len(documents) == 0:
