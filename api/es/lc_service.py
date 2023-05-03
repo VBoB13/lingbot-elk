@@ -81,7 +81,7 @@ class FileLoader(object):
         """
         file = os.path.splitext(file)
         filename = file[0]
-        filetype = file[1]
+        filetype = file[1] if file[1][0] != "." else file[1][1:]
         if len(filetype) == 0:
             self.logger.msg = "No filetype was detected!"
             self.logger.error(extra_msg=f"File name: {'.'.join(file)}")
