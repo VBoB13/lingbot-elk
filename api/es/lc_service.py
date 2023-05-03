@@ -403,7 +403,7 @@ class LingtelliElastic2(Elasticsearch):
             "Answer: " + Fore.RESET + results
         self.logger.info()
         log_string = f"{gpt_obj.vendor_id}\nQ: {gpt_obj.query}\nA: {results}\n\n"
-        self.logger.save_log(data=log_string)
+        self.logger.save_log(index=None, data=log_string)
 
         return results
 
