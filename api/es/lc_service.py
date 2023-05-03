@@ -118,7 +118,7 @@ class FileLoader(object):
             if len(documents) == 0:
                 self.logger.msg = "Unable to split file into chunks!"
                 self.logger.error(
-                    extra_msg=f"Length of 'documents': {Fore.LIGHTRED_EX + len(documents) + Fore.RESET}")
+                    extra_msg=f"Length of 'documents': {Fore.LIGHTRED_EX + str(len(documents)) + Fore.RESET}")
                 raise self.logger
 
         except Exception as e:
