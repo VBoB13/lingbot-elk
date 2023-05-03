@@ -79,7 +79,7 @@ class FileLoader(object):
         Method that checks filetype and returns the corresponding
         handler class for that file.
         """
-        file = file.split(".")
+        file = os.path.splitext(file)
         filename = file[0]
         filetype = file[1]
         if len(filetype) == 0:
