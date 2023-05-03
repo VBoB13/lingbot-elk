@@ -16,8 +16,7 @@ services:
       - 9200:9200
       - 9300:9300
       - 9600:9600
-    restart:
-      - on-failure:3
+    restart: on-failure:3
 
   gpt3:
     container_name: elk_gpt3
@@ -35,8 +34,7 @@ services:
       - 4200:4200
     expose:
       - 5000
-    restart:
-      - on-failure:3
+    restart: on-failure:3
 
   api:
     container_name: elk_api
@@ -54,8 +52,7 @@ services:
       - 420:420
     expose:
       - 5000
-    restart:
-      - on-failure:3
+    restart: on-failure:3
 volumes:
   elk-service-data:
   elk-service-csv:
