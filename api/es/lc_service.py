@@ -114,10 +114,17 @@ class FileLoader(object):
             elif self.filetype == "txt":
                 documents = TextLoader(file).load_and_split(self.splitter)
 
+            # If no documents, do NOT attempt to save.
+            if len(documents) == 0:
+                self.logger.msg = "Unable to split file into chunks!"
+                self.logger.error(
+                    extra_msg=f"Length of 'documents': {Fore.LIGHTRED_EX + len(documents) + Fore.RESET}")
+                raise self.logger
+
         except Exception as e:
             self.logger.msg = f"Could not load the {Fore.LIGHTYELLOW_EX + self.filetype + Fore.RESET} file!"
             self.logger.error(extra_msg=f"Reason: {str(e)}")
-            raise self.logger
+            raise self.logger from e
         else:
             full_text = ""
             # Make sure to add meta data to each Document object
