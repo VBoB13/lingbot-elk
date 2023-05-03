@@ -60,17 +60,19 @@ class BaseError(Exception):
         Log a message (.msg attribute) to a log file and save onto system.
         This method is meant to be called from within any of the class methods.
         """
+        timestamp = datetime.now().strftime('%Y-%m-%d')
         if index is not None:
             file_name = LOG_DIR + \
-                f"/{index}/{datetime.now().strftime('%Y-%m-%d')}.log"
+                f"/{index}/{timestamp}.log"
         else:
-            file_name = LOG_DIR + f"/{datetime.now().strftime('%Y-%m-%d')}.log"
+            file_name = LOG_DIR + f"/{timestamp}.log"
         try:
             if data is not None:
                 self.msg = "Found data: {}".format(data)
                 self.info()
-                if not os.path.isdir(LOG_DIR + "/" + index):
-                    os.mkdir(LOG_DIR + "/" + index)
+                folder = os.path.split(file_name)[0]
+                if not os.path.isdir(folder):
+                    os.mkdir(folder)
                 with open(file_name, 'a+') as log_file:
                     log_file.write(data)
             else:
