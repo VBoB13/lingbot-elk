@@ -276,6 +276,15 @@ class HelperError(BaseError):
         super().__init__(file, cls, msg, *args)
 
 
+class LogError(BaseError):
+    """
+    Error raised by the 'log' package within the API project.
+    """
+
+    def __init__(self, file: str, cls: str, msg: str = "", *args):
+        super().__init__(file, cls, msg, *args)
+
+
 class TestError(BaseError):
     """
     Error raised by the 'helpers' package within the API project.
