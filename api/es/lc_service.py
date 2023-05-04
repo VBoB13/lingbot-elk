@@ -298,7 +298,7 @@ class LingtelliElastic2(Elasticsearch):
                 "Successfully " + Fore.RESET + "deleted indices!"
             self.logger.info(extra_msg="Indices: %s" % str(indices))
 
-    def generate_index_tools(self, vendor_id: str, memory: ConversationBufferWindowMemory) -> list[Tool]:
+    def generate_index_tools(self, vendor_id: str) -> list[Tool]:
         """
         Function that fetches mappings for all indices under the provided `vendor_id`
         and returns a list of tools for a LangChain agent to use.
@@ -326,10 +326,10 @@ class LingtelliElastic2(Elasticsearch):
                 # Language specific actions
                 if self.language == "EN":
                     chain = ConversationalRetrievalChain.from_llm(
-                        llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=1000)
+                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=1500)
                 else:
                     chain = ConversationalRetrievalChain.from_llm(
-                        llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=1000, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
+                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=1500, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
                     )
                 filename = index.split("_")[2]
                 tools.append(Tool(
@@ -351,7 +351,7 @@ class LingtelliElastic2(Elasticsearch):
         memory = self._load_memory(
             gpt_obj.vendor_id, gpt_obj.session)
 
-        tools = self.generate_index_tools(gpt_obj.vendor_id, memory)
+        tools = self.generate_index_tools(gpt_obj.vendor_id)
 
         results = {}
 
@@ -364,7 +364,7 @@ class LingtelliElastic2(Elasticsearch):
             tools=tools,
             memory=memory,
             llm=ChatOpenAI(temperature=0),
-            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
             verbose=True
         )
 
