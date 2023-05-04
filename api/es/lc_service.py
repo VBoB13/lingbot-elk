@@ -8,7 +8,7 @@ from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
 from langchain.agents import initialize_agent, Tool, AgentType
-from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import RetrievalQA, RetrievalQAWithSourcesChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
 from langchain.document_loaders.csv_loader import CSVLoader
@@ -324,11 +324,11 @@ class LingtelliElastic2(Elasticsearch):
 
                 # Language specific actions
                 if self.language == "EN":
-                    chain = ConversationalRetrievalChain.from_llm(
-                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=1500)
+                    chain = RetrievalQAWithSourcesChain.from_llm(
+                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000)
                 else:
-                    chain = ConversationalRetrievalChain.from_llm(
-                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=1500, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
+                    chain = RetrievalQAWithSourcesChain.from_llm(
+                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
                     )
                 filename = index.split("_")[2]
                 tools.append(Tool(
