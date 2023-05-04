@@ -181,7 +181,6 @@ Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
 
 class QAInput(BaseModel):
     question: str = Field()
-    chat_history: list[tuple] = []
 
 
 class LingtelliElastic2(Elasticsearch):
