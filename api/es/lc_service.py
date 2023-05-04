@@ -80,7 +80,7 @@ class FileLoader(object):
         handler class for that file.
         """
         file = os.path.splitext(file)
-        filename = file[0]
+        filename = file[0].replace("_", "")
         filetype = file[1] if file[1][0] != "." else file[1][1:]
         if len(filetype) == 0:
             self.logger.msg = "No filetype was detected!"
@@ -331,9 +331,9 @@ class LingtelliElastic2(Elasticsearch):
                     chain = ConversationalRetrievalChain.from_llm(
                         llm=llm, memory=memory, retriever=vectorstore.as_retriever(), max_tokens_limit=1000, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
                     )
-
+                filename = index.split("_")[2]
                 tools.append(Tool(
-                    name=f"Tool #{i}",
+                    name=f"{filename}: Tool #{i}",
                     func=chain,
                     description=all_mappings[index]['mappings']['_meta']['description'],
                     args_schema=QAInput
