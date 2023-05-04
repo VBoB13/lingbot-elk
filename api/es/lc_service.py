@@ -333,7 +333,7 @@ class LingtelliElastic2(Elasticsearch):
                     )
                 filename = index.split("_")[2]
                 tools.append(Tool(
-                    name=f"{filename}: Tool #{i}",
+                    name=f"{filename} - Tool#{i}",
                     func=chain,
                     description=all_mappings[index]['mappings']['_meta']['description'],
                     args_schema=QAInput
