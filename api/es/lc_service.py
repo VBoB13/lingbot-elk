@@ -364,7 +364,7 @@ class LingtelliElastic2(Elasticsearch):
             tools=tools,
             memory=memory,
             llm=ChatOpenAI(temperature=0),
-            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True
         )
 
