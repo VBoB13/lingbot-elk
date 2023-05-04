@@ -328,8 +328,7 @@ class LingtelliElastic2(Elasticsearch):
                         llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000)
                 else:
                     chain = RetrievalQAWithSourcesChain.from_llm(
-                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, condense_question_prompt=PromptTemplate.from_template(self.chinese_template)
-                    )
+                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000)
                 filename = index.split("_")[2]
                 tools.append(Tool(
                     name=f"{filename} - Tool#{i}",
