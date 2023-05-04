@@ -212,7 +212,7 @@ class LingtelliElastic2(Elasticsearch):
         Method that loads memory (if it exists).
         """
         history = ConversationBufferWindowMemory(
-            k=3, return_messages=True, memory_key='chat_history')
+            k=2, return_messages=True, memory_key='chat_history')
         hist_index = "_".join(["hist", index, session])
         if self.indices.exists(index=hist_index).body:
             query = {
@@ -229,7 +229,7 @@ class LingtelliElastic2(Elasticsearch):
                 ]
             }
             results = self.search(
-                index=hist_index, query=query['query'], size=3, sort=query['sort'])
+                index=hist_index, query=query['query'], size=2, sort=query['sort'])
             hist_docs = results['hits']['hits']
             # self.logger.msg = "Documents found:"
             # self.logger.info(extra_msg=str(hist_docs))
