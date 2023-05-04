@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime
 from logging import Logger
 from traceback import print_tb, format_tb
@@ -140,10 +141,60 @@ class BaseError(Exception):
         """
         Save data into a .log file for later reference.
         `index: str` Which index to store data under.
-        This will save the log file within './log/<index>/<date>.log'
+        This will save the log file within './log[/<index>]/<date>.log'
         `data: str` What data (text) to save into log file.
         """
         self._save_log(index, data)
+
+    def save_message_log(self, data: dict[str, str]):
+        """
+        Save data into a .log file for later reference.
+
+        This will save the log file within './log/<date>.json'
+        `data: dict[str, str]` What data (messages) to save into log file.
+        Example of data:
+        ```python
+        data = {
+            'Q': 'Question asked.',
+            'A': 'Answer provided by LangChain (OpenAI).',
+            'T': 32
+        }
+        ```
+        """
+        timestamp = datetime.now().strftime('%Y-%m-%d')
+        file_name = LOG_DIR + f"/{timestamp}.json"
+        folder = os.path.split(file_name)[0]
+        messages = []
+        try:
+            self.validate_message_data(data)
+            if not os.path.isdir(folder):
+                os.mkdir(folder)
+            else:
+                with open(file_name) as json_log_file:
+                    messages = json.loads(json_log_file.read())
+
+            messages.append(data)
+
+            with open(file_name, 'w+') as log_file:
+                log_file.write(json.dumps(messages))
+        except Exception as err:
+            self.msg = "Could not save log into .log file!"
+            self.error(extra_msg=str(err), orgErr=err)
+            raise self from err
+        else:
+            self.msg = "Saved file {}".format(
+                os.path.split(file_name)[1]) + Fore.LIGHTGREEN_EX + " successfully" + Fore.RESET + "!"
+            self.info(extra_msg="Saved in path: {}".format(file_name))
+
+    def validate_message_data(self, data: dict[str, str]) -> None:
+        """
+        Method to validate the data object passed to save messages.
+        """
+        if not data.get('Q', None) or not data.get('A', None) or not data.get('T', None):
+            self.msg = "Missing on of the 3 vital keys to save messages to log file!"
+            self.error(
+                extra_msg=f"Looking for: ['Q', 'A', 'T'], got {str(data.keys())}")
+            raise self
 
 
 class CSVError(BaseError):

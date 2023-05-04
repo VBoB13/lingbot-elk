@@ -379,6 +379,10 @@ class LingtelliElastic2(Elasticsearch):
             if self.language == "CH":
                 results = self.translate_ch(results)
 
+        finish_timestamp = datetime.now().astimezone()
+
+        finish_time = (finish_timestamp - now).seconds
+
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results)
         history_index = "_".join(
@@ -402,8 +406,8 @@ class LingtelliElastic2(Elasticsearch):
         self.logger.msg += "\n" + Fore.LIGHTGREEN_EX + \
             "Answer: " + Fore.RESET + results
         self.logger.info()
-        log_string = f"{gpt_obj.vendor_id}\nQ: {gpt_obj.query}\nA: {results}\n\n"
-        self.logger.save_log(index=None, data=log_string)
+        log_dict = {"Q": gpt_obj.query, "A": results, "T": finish_time}
+        self.logger.save_message_log(data=log_dict)
 
         return results
 
