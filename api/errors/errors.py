@@ -170,8 +170,9 @@ class BaseError(Exception):
             if not os.path.isdir(folder):
                 os.mkdir(folder)
             else:
-                with open(file_name) as json_log_file:
-                    messages = json.loads(json_log_file.read())
+                if os.path.exists(file_name):
+                    with open(file_name) as json_log_file:
+                        messages = json.loads(json_log_file.read())
 
             messages.append(data)
 
