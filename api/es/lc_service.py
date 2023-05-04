@@ -406,7 +406,8 @@ class LingtelliElastic2(Elasticsearch):
         self.logger.msg += "\n" + Fore.LIGHTGREEN_EX + \
             "Answer: " + Fore.RESET + results
         self.logger.info()
-        log_dict = {"Q": gpt_obj.query, "A": results, "T": finish_time}
+        log_dict = {"vendor_id": gpt_obj.vendor_id,
+                    "Q": gpt_obj.query, "A": results, "T": finish_time}
         self.logger.save_message_log(data=log_dict)
 
         return results

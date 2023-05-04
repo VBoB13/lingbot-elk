@@ -42,13 +42,15 @@ class LogPrinter(object):
             self.logger.error()
             raise self.logger
 
-        questions, answers, times = [], [], []
+        vendors, questions, answers, times = [], [], [], []
         for entry in org_data:
+            vendors.append(entry['vendor_id'])
             questions.append(entry['Q'])
             answers.append(entry['A'])
             times.append(entry['T'])
 
         data_obj = {
+            "Vendor ID": vendors,
             "Questions": questions,
             "Answers": answers,
             "Time(s)": times
