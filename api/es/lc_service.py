@@ -351,7 +351,7 @@ class LingtelliElastic2(Elasticsearch):
 
         tools = self.generate_index_tools(gpt_obj.vendor_id)
 
-        results = {}
+        results = ""
 
         chat_history = []
         for i in range(0, len(memory.chat_memory.messages), 2):
