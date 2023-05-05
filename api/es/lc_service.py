@@ -80,7 +80,7 @@ class FileLoader(object):
         handler class for that file.
         """
         file = os.path.splitext(file)
-        filename = file[0].replace("_", "")
+        filename = file[0].replace("_", "").replace(" ", "-")
         filetype = file[1] if file[1][0] != "." else file[1][1:]
         if len(filetype) == 0:
             self.logger.msg = "No filetype was detected!"
