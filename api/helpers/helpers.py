@@ -160,7 +160,7 @@ def summarize_text(text: str, language: str = "EN") -> str:
         sent_scores = {}
         for sentence in sentences:
             for word in word_tokenize(sentence.lower()):
-                if word in most_freq.keys():
+                if word in most_freq:
                     if len(sentence.split(' ')) < 30:
                         if sentence not in sent_scores.keys():
                             sent_scores[sentence] = word_freq[word]
