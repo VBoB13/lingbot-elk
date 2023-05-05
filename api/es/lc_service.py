@@ -362,13 +362,12 @@ class LingtelliElastic2(Elasticsearch):
             tools=tools,
             memory=memory,
             llm=ChatOpenAI(temperature=0),
-            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
             verbose=True
         )
 
         try:
-            results = agent.run({"input": gpt_obj.query,
-                                 "chat_history": chat_history})
+            results = agent.run({"input": gpt_obj.query})
         except Exception as err:
             self.logger.msg = "Could NOT get an answer from agent..."
             self.logger.error(extra_msg=str(err), orgErr=err)
