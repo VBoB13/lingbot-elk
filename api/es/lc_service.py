@@ -373,10 +373,12 @@ class LingtelliElastic2(Elasticsearch):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
         else:
+            translate_time = 0
+            finish_timestamp = datetime.now().astimezone()
             if self.language == "CH":
                 results = self.translate_ch(results)
-
-        finish_timestamp = datetime.now().astimezone()
+                translate_time = (
+                    datetime.now().astimezone() - finish_timestamp).seconds
 
         finish_time = (finish_timestamp - now).seconds
 
@@ -404,7 +406,7 @@ class LingtelliElastic2(Elasticsearch):
             "Answer: " + Fore.RESET + results
         self.logger.info()
         log_dict = {"vendor_id": gpt_obj.vendor_id,
-                    "Q": gpt_obj.query, "A": results, "T": finish_time}
+                    "Q": gpt_obj.query, "A": results, "T": finish_time, "Translate": translate_time}
         self.logger.save_message_log(data=log_dict)
 
         return results
