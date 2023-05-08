@@ -378,10 +378,6 @@ class LingtelliElastic2(Elasticsearch):
         else:
             translate_time = 0
             finish_timestamp = datetime.now().astimezone()
-        #     if self.language == "CH":
-        #         results = self.translate_ch(results)
-        #         translate_time = (
-        #             datetime.now().astimezone() - finish_timestamp).seconds
 
         finish_time = (finish_timestamp - now).seconds
 
@@ -397,11 +393,6 @@ class LingtelliElastic2(Elasticsearch):
                 "timestamp": timestamp
             }
         )
-        # if self.language != "EN" and get_language(results) != "EN":
-        #     results = ChatOpenAI(temperature=0).call_as_llm(
-        #         message="Translate the information below to Traditional Mandarin as spoken in Taiwan and respond only with the Traditional Mandarin translation:\n\n{}".format(results))
-
-        # Print out the results (query + answer)
         self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + gpt_obj.vendor_id + Fore.RESET
         self.logger.msg += "\n" + Fore.LIGHTCYAN_EX + \
             "Question: " + Fore.RESET + gpt_obj.query
