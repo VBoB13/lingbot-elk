@@ -52,10 +52,9 @@ class Settings(BaseSettings):
     elastic_port: int
 
     # Dates
-    today: datetime.date = datetime.today().astimezone().date()
+    today = datetime.today().astimezone().date()
     today_str: str = datetime.today().astimezone().strftime("%Y-%m-%d")
-    first_day: datetime = datetime.strptime(
-        "2023-05-01", "%Y-%m-%d").astimezone()
+    first_day = datetime.strptime("2023-05-01", "%Y-%m-%d").astimezone()
 
     class Config:
         env_file = '.env'
