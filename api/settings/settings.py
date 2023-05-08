@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     # Dates
     today = datetime.today().astimezone().date()
     today_str: str = datetime.today().astimezone().strftime("%Y-%m-%d")
-    first_day = datetime.strptime("2023-05-01", "%Y-%m-%d").astimezone()
+    first_day = datetime.strptime("2023-05-05", "%Y-%m-%d").astimezone()
 
     class Config:
         env_file = '.env'
