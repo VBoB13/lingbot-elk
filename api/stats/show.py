@@ -25,7 +25,7 @@ class LogPrinter(object):
     def _get_files(self):
         first_day = settings.first_day
         today = settings.today
-        day = first_day
+        day = first_day.date()
         all_days = []
 
         # Print out the DATES we try to analyze data from
