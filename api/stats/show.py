@@ -73,20 +73,20 @@ class LogPrinter(object):
             self.logger.error()
             raise self.logger
 
-        vendors, questions, answers, times, translation_times = [], [], [], [], []
+        vendors, questions, answers, times, verified = [], [], [], [], []
         for entry in org_data:
             vendors.append(entry['vendor_id'])
             questions.append(entry['Q'])
             answers.append(entry['A'])
             times.append(entry['T'])
-            translation_times.append(entry['Translate'])
+            verified.append(entry.get('verified', False))
 
         data_obj = {
             "Vendor ID": vendors,
             "Questions": questions,
             "Answers": answers,
             "Time(s)": times,
-            "Translation(s)": translation_times
+            "Verified Q/A": verified
         }
 
         df = pd.DataFrame(data=data_obj)
