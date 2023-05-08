@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 from functools import lru_cache
@@ -49,6 +50,12 @@ class Settings(BaseSettings):
     # Elasticsearch
     elastic_server: str
     elastic_port: int
+
+    # Dates
+    today: datetime.date = datetime.today().astimezone().date()
+    today_str: str = datetime.today().astimezone().strftime("%Y-%m-%d")
+    first_day: datetime = datetime.strptime(
+        "2023-05-01", "%Y-%m-%d").astimezone()
 
     class Config:
         env_file = '.env'

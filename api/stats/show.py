@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 from colorama import Fore
@@ -19,22 +19,53 @@ class LogPrinter(object):
 
     def __init__(self):
         self.logger = LogError(__file__, self.__class__.__name__)
-        self.file = self._get_file()
+        self.files = self._get_files()
         self.data = self._arrange_data()
 
-    def _get_file(self):
-        today = datetime.today().astimezone().strftime("%Y-%m-%d")
-        file = os.path.join(settings.log_dir, today+'.json')
-        if os.path.isdir(settings.log_dir) and os.path.exists(file):
-            return file
-        self.logger.msg = f"Unable to find logger file: {Fore.LIGHTRED_EX + file + Fore.RESET}!"
-        self.logger.error()
-        raise self.logger
+    def _get_files(self):
+        first_day = settings.first_day
+        today = settings.today
+        day = first_day
+        all_days = []
+
+        # Print out the DATES we try to analyze data from
+        self.logger.info()
+        self.logger.msg = "Going through log files for all dates between " + Fore.LIGHTCYAN_EX + \
+            first_day.strftime("%Y-%m-%d") + Fore.RESET + " to " + \
+            Fore.LIGHTMAGENTA_EX + \
+            today.strftime("%Y-%m-%d") + Fore.RESET + "!"
+
+        while day < today:
+            all_days.append(day.strftime("%Y-%m-%d"))
+            day += timedelta(days=1)
+
+        validated_files: list = []
+        for file_date in all_days:
+            file = os.path.join(settings.log_dir, file_date+'.json')
+            if os.path.exists(file):
+                validated_files.append(file)
+
+        if len(validated_files) == 0:
+            self.logger.msg = f"Unable to find logger file: {Fore.LIGHTRED_EX + file + Fore.RESET}!"
+            self.logger.error()
+            raise self.logger
+
+        return validated_files
 
     def _arrange_data(self):
-        org_data = None
-        with open(self.file) as json_log_file:
-            org_data = json.loads(json_log_file.read())
+        org_data = []
+
+        for file in self.files:
+            with open(file) as json_log_file:
+                data = json.loads(json_log_file.read())
+                if isinstance(data, list):
+                    org_data.extend(data)
+                elif isinstance(data, dict):
+                    org_data.append(data)
+                else:
+                    self.logger.msg = "Could NOT append data for analysis!"
+                    self.logger.warning(
+                        extra_msg=f"Not of type 'list' or 'dict'! Got type: '{str(type(data))}'")
 
         if org_data is None:
             self.logger.msg = "Could " + Fore.LIGHTRED_EX + "NOT" + Fore.RESET + \
