@@ -35,7 +35,7 @@ class LogPrinter(object):
             Fore.LIGHTMAGENTA_EX + \
             today.strftime("%Y-%m-%d") + Fore.RESET + "!"
 
-        while day < today:
+        while day <= today:
             all_days.append(day.strftime("%Y-%m-%d"))
             day += timedelta(days=1)
 
