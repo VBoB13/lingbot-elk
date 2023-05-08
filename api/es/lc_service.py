@@ -367,20 +367,23 @@ class LingtelliElastic2(Elasticsearch):
         )
 
         try:
-            results = agent.run({"input": gpt_obj.query})
+            translate_str = ""
+            if self.language == "CH":
+                translate_str += "最後，一定得用繁體中文（台灣）答覆。"
+            results = agent.run({"input": gpt_obj.query + translate_str})
         except Exception as err:
             self.logger.msg = "Could NOT get an answer from agent..."
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
-        else:
-            translate_time = 0
-            finish_timestamp = datetime.now().astimezone()
-            if self.language == "CH":
-                results = self.translate_ch(results)
-                translate_time = (
-                    datetime.now().astimezone() - finish_timestamp).seconds
+        # else:
+        #     translate_time = 0
+        #     finish_timestamp = datetime.now().astimezone()
+        #     if self.language == "CH":
+        #         results = self.translate_ch(results)
+        #         translate_time = (
+        #             datetime.now().astimezone() - finish_timestamp).seconds
 
-        finish_time = (finish_timestamp - now).seconds
+        # finish_time = (finish_timestamp - now).seconds
 
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results)
