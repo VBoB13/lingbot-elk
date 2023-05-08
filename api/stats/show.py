@@ -79,7 +79,7 @@ class LogPrinter(object):
             questions.append(entry['Q'])
             answers.append(entry['A'])
             times.append(entry['T'])
-            verified.append(entry.get('verified', False))
+            verified.append(entry.get('verified', None))
 
         data_obj = {
             "Vendor ID": vendors,
