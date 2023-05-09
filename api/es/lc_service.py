@@ -424,3 +424,15 @@ class LingtelliElastic2(Elasticsearch):
             content="The user will provide some content in English, and I need you to translate the content to Traditional Chinese as spoken in Taiwan, then respond with the translated content only - no additional comments needed and NO simplified chinese; only Traditional Chinese is allowed."), HumanMessage(content=f"Here is some content in English:\n\n{text}")]])
 
         return results.generations[0][0].text
+    
+    def summarize_text(self, text: str) -> str:
+        """
+        Method that takes a full text from an uploaded file as argument in an attempt
+        to summarize the WHOLE content and then save into different indices depending
+        on which cluster the documents 'belong to' in the end.
+        """
+        llm = ChatOpenAI(model_name="gpt-4", temperature=0.2, max_tokens=1000)
+        tokens = llm.get_num_tokens(text)
+        if tokens > 50000:
+            num_clusters = tokens % 10000
+
