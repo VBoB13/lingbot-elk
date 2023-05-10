@@ -319,15 +319,15 @@ class LingtelliElastic2(Elasticsearch):
                     index,
                     embedding=OpenAIEmbeddings()
                 )
-                llm = ChatOpenAI(temperature=0)
+                llm = ChatOpenAI(temperature=0, max_retries=2)
 
                 # Language specific actions
                 if self.language == "EN":
                     chain = RetrievalQAWithSourcesChain.from_llm(
-                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000)
+                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, reduce_k_below_max_tokens=True)
                 else:
                     chain = RetrievalQAWithSourcesChain.from_llm(
-                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000)
+                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, reduce_k_below_max_tokens=True)
                 filename = index.split("_")[2]
                 tools.append(Tool(
                     name=f"{filename} - Tool#{i}",
@@ -360,7 +360,7 @@ class LingtelliElastic2(Elasticsearch):
         agent = initialize_agent(
             tools=tools,
             memory=memory,
-            llm=ChatOpenAI(temperature=0),
+            llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
             agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
             verbose=True
         )
