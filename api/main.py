@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
-from params.definitions import BasicResponse, SearchGPT2, SourceDocument, QueryVendorSession, VendorFileSession
+from params.definitions import BasicResponse, SearchGPT2, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery
 from es.elastic import LingtelliElastic
 from es.lc_service import FileLoader, LingtelliElastic2
 from settings.settings import TEMP_DIR
@@ -71,6 +71,19 @@ async def delete_source(source: SourceDocument):
         logger.msg = "Could NOT delete INFO data from bot ID: <%s>!" % source.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/search-file", response_model=BasicResponse, description=DESCRIPTIONS["/search-file"])
+async def search_doc_file(doc: VendorFileQuery):
+    global logger
+    logger.cls = "main.py:search_doc_gpt"
+    try:
+        es = LingtelliElastic2()
+        answer, finish_time = es.embed_search_with_sources(doc)
+        return ElkServiceResponse(content={"msg": "Document(s) found!", "data": answer, "Time": str(finish_time)+"s"}, status_code=status.HTTP_200_OK)
+    except Exception as err:
+        logger.error(extra_msg=str(err), orgErr=err)
+        return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])

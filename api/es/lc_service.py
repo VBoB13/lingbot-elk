@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
 from helpers.helpers import get_language, summarize_text
-from params.definitions import VendorSession, QueryVendorSession
+from params.definitions import VendorSession, QueryVendorSession, VendorFileQuery
 from settings.settings import get_settings
 
 cache = TTLCache(maxsize=100, ttl=86400)
@@ -303,9 +303,8 @@ class LingtelliElastic2(Elasticsearch):
         and returns a list of tools for a LangChain agent to use.
         """
         tools = []
-        es = LingtelliElastic2()
         lookup_index = "_".join(["info", vendor_id]) + "*"
-        all_mappings: dict[str, str] = es.indices.get_mapping(
+        all_mappings: dict[str, str] = self.indices.get_mapping(
             index=lookup_index).body
 
         for i, index in enumerate(all_mappings):
@@ -376,7 +375,6 @@ class LingtelliElastic2(Elasticsearch):
             self.logger.error(extra_msg=str(err), orgErr=err)
             raise self.logger from err
         else:
-            translate_time = 0
             finish_timestamp = datetime.now().astimezone()
 
         finish_time = (finish_timestamp - now).seconds
@@ -435,4 +433,29 @@ class LingtelliElastic2(Elasticsearch):
         tokens = llm.get_num_tokens(text)
         if tokens > 50000:
             num_clusters = tokens % 10000
+
+    def embed_search_with_sources(self, query_obj: VendorFileQuery) -> tuple[list[str], float]:
+        """
+        Method that queries an index for source documents and return those as a list of strings.
+        Returns: Source documents (`list[str]`) and execution time (`float`)
+        """
+        if os.path.isfile(os.path.join(self.settings.csv_dir, query_obj.file)):
+            file_split = os.path.splitext(query_obj.file)
+            filename, filetype = file_split[0], file_split[1]
+            self.language = get_language(query_obj.query)
+            now = datetime.now().astimezone()
+            index = "_".join(["info", query_obj.vendor_id, filename, filetype])
+            vectorstore = ElasticVectorSearch(
+                self.settings.elastic_server + str(self.settings.elastic_port),
+                index,
+                OpenAIEmbeddings()
+            )
+            results = [doc.page_content for doc in vectorstore.similarity_search(query_obj.query, k=3)]
+            finish_time = round((datetime.now().astimezone() - now).microseconds / 1000000, 2)
+            return results, finish_time
+        else:
+            self.logger.msg = "Could not locate file '{}'!".format(Fore.LIGHTRED_EX + query_obj.file + Fore.RESET)
+            self.logger.error()
+            raise self.logger
+
 

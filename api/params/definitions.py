@@ -54,6 +54,9 @@ class VendorFile(Vendor):
     file: str = ""
 
 
+class VendorFileQuery(VendorFile):
+    query: str = ""
+
 class VendorSession(Vendor, Session):
     pass
 
