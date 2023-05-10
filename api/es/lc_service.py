@@ -368,7 +368,7 @@ class LingtelliElastic2(Elasticsearch):
         try:
             translate_str = ""
             if self.language == "CH":
-                translate_str += "最後，一定得用繁體中文（台灣）答覆。"
+                translate_str += " You must answer in Traditional Chinese as written in Taiwan (繁體中文, zh_TW)."
             results = agent.run({"input": gpt_obj.query + translate_str})
         except Exception as err:
             self.logger.msg = "Could NOT get an answer from agent..."
