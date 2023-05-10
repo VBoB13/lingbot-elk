@@ -441,7 +441,7 @@ class LingtelliElastic2(Elasticsearch):
         """
         if os.path.isfile(os.path.join(self.settings.csv_dir, query_obj.file)):
             file_split = os.path.splitext(query_obj.file)
-            filename, filetype = file_split[0], file_split[1]
+            filename, filetype = file_split[0], file_split[1][1:]
             self.language = get_language(query_obj.query)
             now = datetime.now().astimezone()
             index = "_".join(["info", query_obj.vendor_id, filename, filetype])
