@@ -95,8 +95,6 @@ class LogPrinter(object):
     def show_stats(self):
         if isinstance(self.data, pd.DataFrame):
             self.data.info()
-            self.data.head()
-            self.data.tail()
             print(self.data)
 
 
