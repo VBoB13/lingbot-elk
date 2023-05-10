@@ -452,6 +452,8 @@ class LingtelliElastic2(Elasticsearch):
             )
             results = [doc.page_content for doc in vectorstore.similarity_search(query_obj.query, k=3)]
             finish_time = round((datetime.now().astimezone() - now).microseconds / 1000000, 2)
+            self.logger.msg = "Embedded search complete!"
+            self.logger.info(extra_msg="Finished in {}s".format(finish_time))
             return results, finish_time
         else:
             self.logger.msg = "Could not locate file '{}'!".format(Fore.LIGHTRED_EX + query_obj.file + Fore.RESET)
