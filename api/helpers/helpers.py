@@ -130,7 +130,7 @@ def summarize_text(text: str, language: str = "EN") -> str:
     ['EN' | 'CH'] to summarize the text accordingly.
     """
     if language == "CH":
-        num_sentences = 4
+        num_sentences = 3
         num_keywords = 7
         keywords = extract_tags(text, topK=num_keywords, withWeight=True)
 
