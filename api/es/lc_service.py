@@ -446,7 +446,7 @@ class LingtelliElastic2(Elasticsearch):
             now = datetime.now().astimezone()
             index = "_".join(["info", query_obj.vendor_id, filename, filetype])
             vectorstore = ElasticVectorSearch(
-                self.settings.elastic_server + str(self.settings.elastic_port),
+                "http://" + self.settings.elastic_server + str(self.settings.elastic_port),
                 index,
                 OpenAIEmbeddings()
             )
