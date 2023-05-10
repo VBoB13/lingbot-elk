@@ -29,11 +29,11 @@ class LogPrinter(object):
         all_days = []
 
         # Print out the DATES we try to analyze data from
-        self.logger.info()
         self.logger.msg = "Going through log files for all dates between " + Fore.LIGHTCYAN_EX + \
             first_day.strftime("%Y-%m-%d") + Fore.RESET + " to " + \
             Fore.LIGHTMAGENTA_EX + \
             today.strftime("%Y-%m-%d") + Fore.RESET + "!"
+        self.logger.info()
 
         while day <= today:
             all_days.append(day.strftime("%Y-%m-%d"))
