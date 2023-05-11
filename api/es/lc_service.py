@@ -368,7 +368,7 @@ class LingtelliElastic2(Elasticsearch):
         try:
             translate_str = ""
             if self.language == "CH":
-                translate_str += " You must answer in Traditional Chinese as written in Taiwan (繁體中文, zh_TW)."
+                translate_str += " You must answer this question in Traditional Chinese as written in Taiwan (繁體中文, zh_TW)."
             results = agent.run({"input": gpt_obj.query + translate_str})
         except Exception as err:
             self.logger.msg = "Could NOT get an answer from agent..."
@@ -422,7 +422,7 @@ class LingtelliElastic2(Elasticsearch):
             content="The user will provide some content in English, and I need you to translate the content to Traditional Chinese as spoken in Taiwan, then respond with the translated content only - no additional comments needed and NO simplified chinese; only Traditional Chinese is allowed."), HumanMessage(content=f"Here is some content in English:\n\n{text}")]])
 
         return results.generations[0][0].text
-    
+
     def summarize_text(self, text: str) -> str:
         """
         Method that takes a full text from an uploaded file as argument in an attempt
@@ -446,18 +446,20 @@ class LingtelliElastic2(Elasticsearch):
             now = datetime.now().astimezone()
             index = "_".join(["info", query_obj.vendor_id, filename, filetype])
             vectorstore = ElasticVectorSearch(
-                "http://" + self.settings.elastic_server + ":" + str(self.settings.elastic_port),
+                "http://" + self.settings.elastic_server +
+                ":" + str(self.settings.elastic_port),
                 index,
                 OpenAIEmbeddings()
             )
-            results = [doc.page_content for doc in vectorstore.similarity_search(query_obj.query, k=3)]
-            finish_time = round((datetime.now().astimezone() - now).microseconds / 1000000, 2)
+            results = [doc.page_content for doc in vectorstore.similarity_search(
+                query_obj.query, k=3)]
+            finish_time = round(
+                (datetime.now().astimezone() - now).microseconds / 1000000, 2)
             self.logger.msg = "Embedded search complete!"
             self.logger.info(extra_msg="Finished in {}s".format(finish_time))
             return results, finish_time
         else:
-            self.logger.msg = "Could not locate file '{}'!".format(Fore.LIGHTRED_EX + query_obj.file + Fore.RESET)
+            self.logger.msg = "Could not locate file '{}'!".format(
+                Fore.LIGHTRED_EX + query_obj.file + Fore.RESET)
             self.logger.error()
             raise self.logger
-
-
