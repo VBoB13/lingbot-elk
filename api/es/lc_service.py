@@ -201,9 +201,13 @@ class LingtelliElastic2(Elasticsearch):
             super().__init__([{"scheme": "http", "host": self.settings.elastic_server, "port": self.settings.elastic_port}],
                              max_retries=30, retry_on_timeout=True, request_timeout=30)
         except Exception as err:
-            self.logger.msg = "Initialization of Elasticsearch client FAILED!"
-            self.logger.error(extra_msg=str(err), orgErr=err)
-            raise self.logger from err
+            try:
+                super().__init__([{"scheme": "http", "host": os.environ.get('ELASTIC_SERVER'), "port": int(os.environ.get('ELASTIC_PORT'))}],
+                                 max_retries=30, retry_on_timeout=True, request_timeout=30)
+            except Exception as err:
+                self.logger.msg = "Initialization of Elasticsearch client FAILED!"
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger from err
 
     @cached(cache)
     def _load_memory(self, index: str, session: str):
@@ -321,13 +325,8 @@ class LingtelliElastic2(Elasticsearch):
                 )
                 llm = ChatOpenAI(temperature=0, max_retries=2)
 
-                # Language specific actions
-                if self.language == "EN":
-                    chain = RetrievalQAWithSourcesChain.from_llm(
-                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, reduce_k_below_max_tokens=True)
-                else:
-                    chain = RetrievalQAWithSourcesChain.from_llm(
-                        llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, reduce_k_below_max_tokens=True)
+                chain = RetrievalQAWithSourcesChain.from_llm(
+                    llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, reduce_k_below_max_tokens=True)
                 filename = index.split("_")[2]
                 tools.append(Tool(
                     name=f"{filename} - Tool#{i}",
