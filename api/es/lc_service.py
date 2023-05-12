@@ -374,7 +374,7 @@ Here is the user's input (remember to respond with a markdown code snippet of a 
 {{{{input}}}}"""
 
         if self.language == "CH":
-            suffix.format(language_instruction="When you choose to provide the final answer to the user,\
+            suffix.replace("{language_instruction}", "When you choose to provide the final answer to the user,\
 please provide that answer in Traditional Chinese as written in Taiwan (繁體中文, ZH_TW).")
         else:
             suffix.replace("{language_instruction}", "")
