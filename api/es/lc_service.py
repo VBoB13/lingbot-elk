@@ -8,14 +8,12 @@ from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
 from langchain.agents import initialize_agent, Tool, AgentType
-from langchain.chains import RetrievalQA, RetrievalQAWithSourcesChain, ConversationalRetrievalChain
-from langchain.chains.question_answering import load_qa_chain
+from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import ConversationBufferWindowMemory
-from langchain.prompts.prompt import PromptTemplate
 from langchain.schema import SystemMessage, HumanMessage
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.utilities import SerpAPIWrapper
@@ -24,8 +22,8 @@ from pydantic import BaseModel, Field
 
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
-from helpers.helpers import get_language, summarize_text
-from params.definitions import VendorSession, QueryVendorSession, VendorFileQuery
+from helpers.helpers import get_language, includes_chinese, summarize_text
+from params.definitions import QueryVendorSession, VendorFileQuery
 from settings.settings import get_settings
 
 cache = TTLCache(maxsize=100, ttl=86400)
@@ -47,6 +45,14 @@ class FileLoader(object):
 
         # Initialize a default splitter for all documents
         self.splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+
+        # As filenames in Chinese will disrupt ElasticSearch and the indexing procedure,
+        # we make sure that there's NO Chinese within the filename
+        if includes_chinese(file.filename):
+            self.logger.msg = "NO Chinese characters allowed within filename!"
+            self.logger.error(
+                extra_msg="Elasticsearch will complain otherwise...")
+            raise self.logger
 
         temp_name = os.path.join(
             self.settings.temp_dir, index, file.filename)

@@ -124,6 +124,13 @@ def get_synonymns(words: list, category: str) -> list[list[str]]:
         raise logger
 
 
+def includes_chinese(text: str) -> bool:
+    """
+    Returns `True` if text has ANY Chinese characters within.
+    """
+    return len(re.findall(r'[\u4e00-\u9fff]', text)) >= 1
+
+
 def summarize_text(text: str, language: str = "EN") -> str:
     """
     Takes a longer text as `str` and a `language` parameter as
