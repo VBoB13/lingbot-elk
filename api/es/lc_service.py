@@ -350,7 +350,7 @@ class LingtelliElastic2(Elasticsearch):
                 ))
 
         # Add default Tools after specialized ones
-        tools.append(serpapi_tool)
+        # tools.append(serpapi_tool)
 
         return tools
 
