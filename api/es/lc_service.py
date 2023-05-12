@@ -356,10 +356,11 @@ Assistant is a large language model trained by OpenAI.
 
 Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
 
-Answer the following questions as best you can. You have access to the following tools:"""
+Respond to the human as helpfully and accurately as possible. You have access to the following tools:"""
 
-        suffix = """
-Begin! Reminder to always use the exact characters `Final Answer` when responding."""
+        suffix = """\
+Begin! Reminder to ALWAYS respond with a valid json blob of a single action. Use tools if necessary. Respond directly if appropriate. Format is Action:```$JSON_BLOB```then Observation:.
+Thought:"""
 
         if self.language == "CH":
             suffix = "When you choose to provide the final answer to the user,\
@@ -371,7 +372,7 @@ please provide that answer in Traditional Chinese as written in Taiwan (繁體�
             prefix=prefix,
             suffix=suffix,
             llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
-            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+            agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True
         )
 
