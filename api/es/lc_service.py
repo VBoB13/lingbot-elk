@@ -325,8 +325,11 @@ class LingtelliElastic2(Elasticsearch):
                 )
                 llm = ChatOpenAI(temperature=0, max_retries=2)
 
-                chain = RetrievalQAWithSourcesChain.from_llm(
-                    llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, reduce_k_below_max_tokens=True)
+                chain = RetrievalQA(
+                    llm=llm, retriever=vectorstore.as_retriever())
+
+                # chain = RetrievalQAWithSourcesChain.from_llm(
+                #     llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, reduce_k_below_max_tokens=True)
                 filename = index.split("_")[2]
                 tools.append(Tool(
                     name=f"{filename} - Tool#{i}",
