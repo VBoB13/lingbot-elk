@@ -354,25 +354,38 @@ class LingtelliElastic2(Elasticsearch):
         prefix = """\
 Assistant is a large language model trained by OpenAI.
 
-Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
-
-Respond to the human as helpfully and accurately as possible. You have access to the following tools:"""
+Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand."""
 
         suffix = """\
-Begin! Reminder to ALWAYS respond with a valid json blob of a single action. Use tools if necessary. Respond directly if appropriate. Format is Action:```$JSON_BLOB```then Observation:.
-Thought:"""
+TOOLS
+------
+Assistant can ask the user to use tools to look up information that may be helpful in answering the users original question. The tools the human can use are:
+
+{{tools}}
+
+{format_instructions}
+
+USER'S INPUT
+--------------------
+{language_instruction}
+
+Here is the user's input (remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else):
+
+{{{{input}}}}"""
 
         if self.language == "CH":
-            suffix = "When you choose to provide the final answer to the user,\
-please provide that answer in Traditional Chinese as written in Taiwan (繁體中文, ZH_TW). " + suffix
+            suffix.format(language_instruction="When you choose to provide the final answer to the user,\
+please provide that answer in Traditional Chinese as written in Taiwan (繁體中文, ZH_TW).")
+        else:
+            suffix.replace("{language_instruction}", "")
 
         agent = initialize_agent(
             tools=tools,
             memory=memory,
-            prefix=prefix,
-            suffix=suffix,
+            system_message=prefix,
+            human_message=suffix,
             llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
-            agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
             verbose=True
         )
 
