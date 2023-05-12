@@ -359,6 +359,9 @@ class LingtelliElastic2(Elasticsearch):
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
         self.language = get_language(gpt_obj.query)
+        self.logger.msg = f"Query language: {Fore.LIGHTBLUE_EX + self.language + Fore.RESET}"
+        self.logger.info()
+
         now = datetime.now().astimezone()
         timestamp = date_to_str(now)
 
