@@ -358,10 +358,18 @@ Assistant is designed to be able to assist with a wide range of tasks, from answ
 
 Answer the following questions as best you can. You have access to the following tools:"""
 
+        suffix = """
+Begin! Reminder to always use the exact characters `Final Answer` when responding."""
+
+        if self.language == "CH":
+            suffix = "When you choose to provide the final answer to the user,\
+please provide that answer in Traditional Chinese as written in Taiwan (繁體中文, ZH_TW). " + suffix
+
         agent = initialize_agent(
             tools=tools,
             memory=memory,
             prefix=prefix,
+            suffix=suffix,
             llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
             agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True
