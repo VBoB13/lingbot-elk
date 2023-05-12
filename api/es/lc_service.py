@@ -18,6 +18,7 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts.prompt import PromptTemplate
 from langchain.schema import SystemMessage, HumanMessage
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.utilities import SerpAPIWrapper
 from langchain.vectorstores import ElasticVectorSearch
 from pydantic import BaseModel, Field
 
@@ -308,6 +309,12 @@ class LingtelliElastic2(Elasticsearch):
         and returns a list of tools for a LangChain agent to use.
         """
         tools = []
+        search = SerpAPIWrapper()
+        serpapi_tool = Tool(
+            "SerpAPI",
+            search.run,
+            "Useful tool when out of other better options to gather information about anything that cannot be found within the other tools."
+        )
         lookup_index = "_".join(["info", vendor_id]) + "*"
         all_mappings: dict[str, str] = self.indices.get_mapping(
             index=lookup_index).body
@@ -335,6 +342,10 @@ class LingtelliElastic2(Elasticsearch):
                     description=all_mappings[index]['mappings']['_meta']['description'],
                     args_schema=QAInput
                 ))
+
+        # Add default Tools after specialized ones
+        tools.append(serpapi_tool)
+
         return tools
 
     def search_gpt(self, gpt_obj: QueryVendorSession) -> str:
