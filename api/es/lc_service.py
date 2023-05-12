@@ -351,16 +351,19 @@ class LingtelliElastic2(Elasticsearch):
 
         results = ""
 
-        chat_history = []
-        for i in range(0, len(memory.chat_memory.messages), 2):
-            chat_history.append(
-                tuple([memory.chat_memory.messages[i], memory.chat_memory.messages[i+1]]))
+        prefix = """\
+Assistant is a large language model trained by OpenAI.
+
+Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
+
+Answer the following questions as best you can. You have access to the following tools:"""
 
         agent = initialize_agent(
             tools=tools,
             memory=memory,
+            prefix=prefix,
             llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
-            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True
         )
 
