@@ -390,10 +390,7 @@ please provide that answer in Traditional Chinese as written in Taiwan (繁體�
         )
 
         try:
-            translate_str = ""
-            if self.language == "CH":
-                translate_str += " You must answer this question in Traditional Chinese as written in Taiwan (繁體中文, zh_TW)."
-            results = agent.run({"input": gpt_obj.query + translate_str})
+            results = agent.run({"input": gpt_obj.query})
         except Exception as err:
             self.logger.msg = "Could NOT get an answer from agent..."
             self.logger.error(extra_msg=str(err), orgErr=err)
