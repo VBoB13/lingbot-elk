@@ -398,7 +398,7 @@ Here is the user's input (remember to respond with a markdown code snippet of a 
             suffix.replace("{language_instruction}", """When you choose to provide the 'Final Answer' to the user,\
 you MUST provide that answer in Traditional Chinese as spoken and written in Taiwan, R.O.C. (繁體中文, ZH_TW). E.g. if this was going to be the English answer:
 "This is the final answer."
-Then, you MUST write it this way:
+Then, it's critical and you MUST, MUST MUST(!) write it in Traditional Mandarin as spoken in Taiwan (繁體中文):
 "這是最終答案"
 """)
         else:
