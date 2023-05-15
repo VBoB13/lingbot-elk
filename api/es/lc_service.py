@@ -385,14 +385,15 @@ Assistant can use tools to look up information that may be helpful in answering 
 {{tools}}
 
 {format_instructions}
-{language_instruction}
 
 USER'S INPUT
 --------------------
+{language_instruction}
 
 Here is the user's input (remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else):
 
-{{{{input}}}}"""
+{{{{input}}}}
+"""
 
         if self.language == "CH":
             suffix.replace("{language_instruction}", """When you choose to provide the 'Final Answer' to the user,\
