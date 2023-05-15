@@ -398,11 +398,10 @@ Here is the user's input (remember to respond with a markdown code snippet of a 
 
         if self.language == "CH":
             suffix.replace("{language_instruction}", """\
-When you decide to respond directly to the human with Option #2,\
-you MUST provide the `"action_input"` within the json blob in Traditional Chinese \
+It is CRITICAL and you MUST provide value of the json blob's "action_input" in Traditional Chinese \
 as spoken and written in Taiwan: 繁體中文(ZH_TW).
-For example, if this was going to be the answer within `"action_input"`: "This is the final answer."
-Then, your final `"action_input"` should be: "這是最終答案"\
+For example, if this was going to be the answer within "action_input": "This is the final answer."
+Then, your final "action_input" should be: "這是最終答案"\
 """)
         else:
             suffix.replace("{language_instruction}", "")
