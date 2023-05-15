@@ -8,14 +8,14 @@ from cachetools import TTLCache, cached
 from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
-from langchain.agents import initialize_agent, Tool, AgentType
+from langchain.agents import initialize_agent, Tool, AgentType, AgentOutputParser
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import ConversationBufferWindowMemory
-from langchain.schema import SystemMessage, HumanMessage, BaseOutputParser
+from langchain.schema import SystemMessage, HumanMessage
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.utilities import SerpAPIWrapper
 from langchain.vectorstores import ElasticVectorSearch
@@ -194,28 +194,12 @@ class QAInput(BaseModel):
 
 
 
-class LingtelliOutputParser(BaseOutputParser):
+class LingtelliOutputParser(AgentOutputParser):
     
     settings = get_settings()
 
     def get_format_instructions(self) -> str:
         return self.settings.format_instructions
-
-    def parse(self, text: str) -> Any:
-        cleaned_output = text.strip()
-        if "```json" in cleaned_output:
-            _, cleaned_output = cleaned_output.split("```json")
-        if "```" in cleaned_output:
-            cleaned_output, _ = cleaned_output.split("```")
-        if cleaned_output.startswith("```json"):
-            cleaned_output = cleaned_output[len("```json") :]
-        if cleaned_output.startswith("```"):
-            cleaned_output = cleaned_output[len("```") :]
-        if cleaned_output.endswith("```"):
-            cleaned_output = cleaned_output[: -len("```")]
-        cleaned_output = cleaned_output.strip()
-        response = json.loads(cleaned_output)
-        return {"action": response["action"], "action_input": response["action_input"]}
 
 
 class LingtelliElastic2(Elasticsearch):
