@@ -396,10 +396,10 @@ Here is the user's input (remember to respond with a markdown code snippet of a 
 """
 
         if self.language == "CH":
-            suffix.replace("{language_instruction}", """When you choose to provide the 'Final Answer' to the user,\
-you MUST provide that answer in Traditional Chinese as spoken and written in Taiwan, R.O.C. (繁體中文, ZH_TW). E.g. if this was going to be the English answer:
+            suffix.replace("{language_instruction}", """When your current action is 'Final Answer',\
+you MUST provide the 'action input' in Traditional Chinese as spoken and written in Taiwan, R.O.C. (繁體中文, ZH_TW). E.g. if this was going to be the English answer:
 "This is the final answer."
-Then, it's critical and you MUST, MUST MUST(!) write it in Traditional Mandarin as spoken in Taiwan (繁體中文):
+Then, your final 'action input' should instead be:
 "這是最終答案"
 """)
         else:
