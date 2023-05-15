@@ -201,6 +201,22 @@ class LingtelliOutputParser(AgentOutputParser):
 
     def get_format_instructions(self) -> str:
         return self.settings.format_instructions
+    
+    def parse(self, text: str) -> Any:
+        cleaned_output = text.strip()
+        if "```json" in cleaned_output:
+            _, cleaned_output = cleaned_output.split("```json")
+        if "```" in cleaned_output:
+            cleaned_output, _ = cleaned_output.split("```")
+        if cleaned_output.startswith("```json"):
+            cleaned_output = cleaned_output[len("```json") :]
+        if cleaned_output.startswith("```"):
+            cleaned_output = cleaned_output[len("```") :]
+        if cleaned_output.endswith("```"):
+            cleaned_output = cleaned_output[: -len("```")]
+        cleaned_output = cleaned_output.strip()
+        response = json.loads(cleaned_output)
+        return {"action": response["action"], "action_input": response["action_input"]}
 
 
 class LingtelliElastic2(Elasticsearch):
