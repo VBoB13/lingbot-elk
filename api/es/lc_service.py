@@ -8,7 +8,8 @@ from cachetools import TTLCache, cached
 from colorama import Fore
 from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
-from langchain.agents import initialize_agent, Tool, AgentType, AgentOutputParser
+from langchain.agents import initialize_agent, Tool, AgentType
+from langchain.agents.conversational_chat.base import AgentOutputParser
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
