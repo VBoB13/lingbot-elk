@@ -203,7 +203,7 @@ class LingtelliOutputParser(AgentOutputParser):
         return self.settings.format_instructions
     
     def parse(self, text: str) -> Any:
-        super().parse(text)
+        return super().parse(text)
 
 
 class LingtelliElastic2(Elasticsearch):
