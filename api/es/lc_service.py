@@ -20,6 +20,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.utilities import SerpAPIWrapper
 from langchain.vectorstores import ElasticVectorSearch
 from pydantic import BaseModel, Field
+from pydantic.typing import Any
 
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
@@ -200,7 +201,7 @@ class LingtelliOutputParser(BaseOutputParser):
     def get_format_instructions(self) -> str:
         return self.settings.format_instructions
 
-    def parse(self, text: str):
+    def parse(self, text: str) -> Any:
         cleaned_output = text.strip()
         if "```json" in cleaned_output:
             _, cleaned_output = cleaned_output.split("```json")
