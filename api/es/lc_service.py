@@ -380,7 +380,7 @@ Assistant is designed to be able to assist with a wide range of tasks, from answ
         suffix = """\
 TOOLS
 ------
-Assistant can use tools to look up information that may be helpful in answering the human's original question. The tools the assistant can use are:
+Assistant should use tools to look up information that may be helpful in answering the human's original question. The tools the assistant can use are:
 
 {{tools}}
 
