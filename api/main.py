@@ -115,7 +115,7 @@ async def upload(index: str, file: UploadFile):
     except Exception as err:
         logger.msg = "Something went wrong when trying to save file contents into ELK!"
         logger.error(extra_msg=str(err), orgErr=err)
-        raise logger from err
+        ElkServiceResponse(content={"error": "{}: {}".format(logger.msg, err.__getattribute__('msg', 'N/A'))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return ElkServiceResponse(content={"msg": "Documents successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_202_ACCEPTED)
 
