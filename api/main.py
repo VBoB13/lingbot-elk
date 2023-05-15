@@ -96,7 +96,7 @@ async def search_doc_gpt(doc: QueryVendorSession):
         return ElkServiceResponse(content={"msg": "Document(s) found!", "data": answer}, status_code=status.HTTP_200_OK)
     except Exception as err:
         logger.error(extra_msg=str(err), orgErr=err)
-        return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "data": {"error": str(err)}}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": str(err)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/upload", description=DESCRIPTIONS["/upload"])
@@ -108,14 +108,14 @@ async def upload(index: str, file: UploadFile):
     if index != index.lower():
         logger.msg = "Index needs to be lowercase!"
         logger.error()
-        return ElkServiceResponse(content={"error": "{}".format(logger.msg)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": "{}".format(logger.msg)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     try:
         FileLoader(file, index)
     except Exception as err:
         logger.msg = "Something went wrong when trying to save file contents into ELK!"
         logger.error(extra_msg=str(err), orgErr=err)
-        ElkServiceResponse(content={"error": "{}: {}".format(logger.msg, err.__getattribute__('msg', str(err)))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": "{}: {}".format(logger.msg, err.__getattribute__('msg', str(err)))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return ElkServiceResponse(content={"msg": "Documents successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_202_ACCEPTED)
 
