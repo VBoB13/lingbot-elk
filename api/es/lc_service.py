@@ -200,7 +200,8 @@ class LingtelliOutputParser(AgentOutputParser):
     settings = get_settings()
 
     def get_format_instructions(self) -> str:
-        return self.settings.format_instructions
+        # return self.settings.format_instructions
+        return super().get_format_instructions()
     
     def parse(self, text: str) -> Any:
         return super().parse(text)
@@ -433,7 +434,7 @@ Then, your final "action_input" should be: "這是最終答案"\
             agent_kwargs={
                 "system_message": prefix,
                 "human_message": suffix,
-                "output_parser": parser
+                # "output_parser": parser
             },
             verbose=True
         )
