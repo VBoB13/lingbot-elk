@@ -385,18 +385,31 @@ Assistant can use tools to look up information that may be helpful in answering 
 {{tools}}
 
 {format_instructions}
+{language_instruction}
 
 USER'S INPUT
 --------------------
-{language_instruction}
 
 Here is the user's input (remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else):
 
 {{{{input}}}}"""
 
         if self.language == "CH":
-            suffix.replace("{language_instruction}", "When you choose to provide the final answer to the user,\
-you MUST provide that answer in Traditional Chinese as spoken and written in Taiwan, R.O.C. (繁體中文, ZH_TW).")
+            suffix.replace("{language_instruction}", """When you choose to provide the 'Final Answer' to the user,\
+you MUST provide that answer in Traditional Chinese as spoken and written in Taiwan, R.O.C. (繁體中文, ZH_TW). E.g. if this was going to be the English answer:
+```json
+{{{{
+    "action": "Final Answer",
+    "action_input": "This is the final answer"
+}}}}
+```
+Then, you will now need to provide it this way instead:
+```json
+{{{{
+    "action": "Final Answer",
+    "action_input": "這是最終答案"
+}}}}
+```""")
         else:
             suffix.replace("{language_instruction}", "")
 
