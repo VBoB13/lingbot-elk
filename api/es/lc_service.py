@@ -1,4 +1,5 @@
 import os
+import json
 import shutil
 from datetime import datetime
 
@@ -14,7 +15,7 @@ from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoad
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import ConversationBufferWindowMemory
-from langchain.schema import SystemMessage, HumanMessage
+from langchain.schema import SystemMessage, HumanMessage, BaseOutputParser
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.utilities import SerpAPIWrapper
 from langchain.vectorstores import ElasticVectorSearch
@@ -189,6 +190,31 @@ Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
 
 class QAInput(BaseModel):
     question: str = Field()
+
+
+
+class LingtelliOutputParser(BaseOutputParser):
+    
+    settings = get_settings()
+
+    def get_format_instructions(self) -> str:
+        return self.settings.format_instructions
+
+    def parse(self, text: str):
+        cleaned_output = text.strip()
+        if "```json" in cleaned_output:
+            _, cleaned_output = cleaned_output.split("```json")
+        if "```" in cleaned_output:
+            cleaned_output, _ = cleaned_output.split("```")
+        if cleaned_output.startswith("```json"):
+            cleaned_output = cleaned_output[len("```json") :]
+        if cleaned_output.startswith("```"):
+            cleaned_output = cleaned_output[len("```") :]
+        if cleaned_output.endswith("```"):
+            cleaned_output = cleaned_output[: -len("```")]
+        cleaned_output = cleaned_output.strip()
+        response = json.loads(cleaned_output)
+        return {"action": response["action"], "action_input": response["action_input"]}
 
 
 class LingtelliElastic2(Elasticsearch):
@@ -398,13 +424,15 @@ Here is the user's input (remember to respond with a markdown code snippet of a 
 
         if self.language == "CH":
             suffix.replace("{language_instruction}", """\
-It is CRITICAL and you MUST provide value of the json blob's "action_input" in Traditional Chinese \
+You MUST provide value of the "action_input" in Traditional Chinese \
 as spoken and written in Taiwan: 繁體中文(ZH_TW).
 For example, if this was going to be the answer within "action_input": "This is the final answer."
 Then, your final "action_input" should be: "這是最終答案"\
 """)
         else:
             suffix.replace("{language_instruction}", "")
+
+        parser = LingtelliOutputParser()
 
         agent = initialize_agent(
             tools=tools,
@@ -413,6 +441,11 @@ Then, your final "action_input" should be: "這是最終答案"\
             human_message=suffix,
             llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
             agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+            agent_kwargs={
+                "system_message": prefix,
+                "human_message": suffix,
+                "output_parser": parser
+            },
             verbose=True
         )
 

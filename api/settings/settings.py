@@ -47,6 +47,33 @@ class Settings(BaseSettings):
     openai_api_key2: str
     serpapi_api_key: str
 
+    format_instructions: str = """\
+RESPONSE FORMAT INSTRUCTIONS
+----------------------------
+
+When responding, please output a response in one of two formats:
+
+**Option 1:**
+Use this if you need to use a tool to get more information about the human's question.
+Markdown code snippet formatted in the following schema:
+
+```json
+{{{{
+    "action": string \\ The action to take. Must be one of {tool_names}
+    "action_input": string \\ The input to the action
+}}}}
+```
+
+**Option #2:**
+Use this if you want to respond directly to the human. Markdown code snippet formatted in the following schema:
+
+```json
+{{{{
+    "action": "Final Answer",
+    "action_input": string \\ You should put what you want to return to use here
+}}}}
+```"""
+
     # Elasticsearch
     elastic_server: str
     elastic_port: int
