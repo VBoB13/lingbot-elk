@@ -405,7 +405,6 @@ In order for Assistant to answer the human's questions accurately, Assistant sha
 
 USER'S INPUT
 --------------------
-
 Here is the user's input (remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else):
 
 {{{{input}}}}
@@ -426,8 +425,6 @@ Then, your final "action_input" should be: "這是最終答案"\
         agent = initialize_agent(
             tools=tools,
             memory=memory,
-            system_message=prefix,
-            human_message=suffix,
             llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
             agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
             agent_kwargs={
