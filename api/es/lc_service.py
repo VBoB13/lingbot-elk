@@ -438,9 +438,9 @@ Then, your final "action_input" should be: "這是最終答案"\
         else:
             llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
             results = llm.generate([
-                SystemMessage(content="The user will ask a question, but we need help to see if you can figure out the answer based on the following context:\n\n{}\n\nIf the answer to the question can be found within the context, try to generate a well formulated answer{}. If you don't know the answer and can't figure it out, just state so; do NOT make any answers up!".format(
-                    source_text, " in Traditional Chinese (繁體中文)." if self.language == "CH" else "")),
-                HumanMessage(content="Question: {}".format(gpt_obj.query))
+                SystemMessage({"content": "The user will ask a question, but we need help to see if you can figure out the answer based on the following context:\n\n{}\n\nIf the answer to the question can be found within the context, try to generate a well formulated answer{}. If you don't know the answer and can't figure it out, just state so; do NOT make any answers up!".format(
+                    source_text, " in Traditional Chinese (繁體中文)." if self.language == "CH" else "")}),
+                HumanMessage({"content": "Question: {}".format(gpt_obj.query)})
             ]).generations[0][0].text
 
         finish_time = (finish_timestamp - now).seconds
