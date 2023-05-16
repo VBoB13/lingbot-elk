@@ -10,12 +10,14 @@ from elasticsearch import Elasticsearch
 from fastapi.datastructures import UploadFile
 from langchain.agents import initialize_agent, Tool, AgentType
 from langchain.agents.conversational_chat.base import AgentOutputParser
-from langchain.chains import RetrievalQAWithSourcesChain
+from langchain.chains import RetrievalQAWithSourcesChain, RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
+from langchain.llms import OpenAI
 from langchain.memory import ConversationBufferWindowMemory
+from langchain.prompts import PromptTemplate
 from langchain.schema import SystemMessage, HumanMessage
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.utilities import SerpAPIWrapper
@@ -47,7 +49,7 @@ class FileLoader(object):
         self.csv_content_col = csv_content_col
 
         # Initialize a default splitter for all documents
-        self.splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        self.splitter = CharacterTextSplitter(chunk_size=250, chunk_overlap=25)
 
         # As filenames in Chinese will disrupt ElasticSearch and the indexing procedure,
         # we make sure that there's NO Chinese within the filename
@@ -352,10 +354,58 @@ class LingtelliElastic2(Elasticsearch):
                     index,
                     embedding=OpenAIEmbeddings()
                 )
-                llm = ChatOpenAI(temperature=0, max_retries=2)
+                llm = OpenAI(
+                    model_name="text-ada-001",
+                    temperature=0,
+                    request_timeout=45,
+                    max_retries=2,
+                    max_tokens=250
+                )
 
-                chain = RetrievalQAWithSourcesChain.from_llm(
-                    llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=1000, reduce_k_below_max_tokens=True)
+                # As the 'RetrievalQAWithSources' Chain doesn't work well with smaller / simpler models,
+                # I utilize 'RertrievalQA' instead.
+
+#                 combine_prompt = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
+# If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+# ALWAYS return a "SOURCES" part in your answer.
+
+# QUESTION: Which state/country's law governs the interpretation of the contract?
+# =========
+# Content: This Agreement is governed by English law and the parties submit to the exclusive jurisdiction of the English courts in  relation to any dispute (contractual or non-contractual) concerning this Agreement save that either party may apply to any court for an  injunction or other relief to protect its Intellectual Property Rights.
+# Source: 28-pl
+# Content: (b) if Google believes, in good faith, that the Distributor has violated or caused Google to violate any Anti-Bribery Laws (as  defined in Clause 8.5) or that such a violation is reasonably likely to occur,
+# Source: 4-pl
+# =========
+# FINAL ANSWER: This Agreement is governed by English law.
+# SOURCES: 28-pl
+
+# QUESTION: What did the president say about Michael Jackson?
+# =========
+# Content: Madam Speaker, Madam Vice President, our First Lady and Second Gentleman. Members of Congress and the Cabinet. Justices of the Supreme Court. My fellow Americans.  \n\nLast year COVID-19 kept us apart. This year we are finally together again. \n\nTonight, we meet as Democrats Republicans and Independents. But most importantly as Americans.
+# Source: 0-pl
+# Content: And we won’t stop. \n\nWe have lost so much to COVID-19. Time with one another. And worst of all, so much loss of life. \n\nLet’s use this moment to reset. Let’s stop looking at COVID-19 as a partisan dividing line and see it for what it is: A God-awful disease.  \n\nLet’s stop seeing each other as enemies, and start seeing each other for who we really are: Fellow Americans.
+# Source: 24-pl
+# =========
+# FINAL ANSWER: The president did not mention Michael Jackson.
+# SOURCES:
+
+# QUESTION: {question}
+# =========
+# {summaries}
+# =========
+# FINAL ANSWER:"""
+
+#                 COMB_PROMPT = PromptTemplate(
+#                     template=combine_prompt, input_variables=[
+#                         "summaries", "question"]
+#                 )
+
+                # chain = RetrievalQAWithSourcesChain.from_llm(
+                #     llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=300, reduce_k_below_max_tokens=True, combine_prompt=COMB_PROMPT)
+
+                chain = RetrievalQA.from_llm(
+                    llm, retriever=vectorstore.as_retriever(search_kwargs={"k": 2, "fetch_k": 4}))
+
                 filename = index.split("_")[2]
                 tools.append(Tool(
                     name=f"{filename} - Tool#{i}",
