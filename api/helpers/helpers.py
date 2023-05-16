@@ -153,6 +153,9 @@ def summarize_text(text: str, language: str = "EN") -> str:
             num_sentences, sent_scores, key=sent_scores.get)
         summary = "。".join(summary_sentences)
 
+        if len(summary) > 1500:
+            summary = summary[:1500]
+
     elif language == "EN":
         sentences = sent_tokenize(text)
         words = word_tokenize(text)
