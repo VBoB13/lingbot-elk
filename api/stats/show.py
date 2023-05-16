@@ -96,6 +96,8 @@ class LogPrinter(object):
         if isinstance(self.data, pd.DataFrame):
             self.data.info()
             print(self.data)
+            print("-"*25)
+            print(self.data.tail(25))
 
 
 if __name__ == "__main__":
