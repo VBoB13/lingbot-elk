@@ -355,7 +355,7 @@ class LingtelliElastic2(Elasticsearch):
                 llm = ChatOpenAI(temperature=0, max_retries=2)
 
                 chain = RetrievalQAWithSourcesChain.from_llm(
-                    llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=2000, reduce_k_below_max_tokens=True)
+                    llm=llm, retriever=vectorstore.as_retriever(), max_tokens_limit=1000, reduce_k_below_max_tokens=True)
                 filename = index.split("_")[2]
                 tools.append(Tool(
                     name=f"{filename} - Tool#{i}",
@@ -405,7 +405,7 @@ Then, your final "action_input" should be: "這是最終答案"\
         agent = initialize_agent(
             tools=tools,
             memory=memory,
-            llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
+            llm=ChatOpenAI(temperature=0, max_tokens=500, max_retries=2),
             agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             agent_kwargs={"suffix": suffix},
             verbose=True
