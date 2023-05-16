@@ -433,8 +433,6 @@ Then, your final "action_input" should be: "這是最終答案"\
                 self.logger.msg = "Could NOT get an answer from agent..."
                 self.logger.error(extra_msg=str(err), orgErr=err)
                 raise self.logger from err
-            else:
-                finish_timestamp = datetime.now().astimezone()
         else:
             llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
             results = llm.generate([[
@@ -442,6 +440,8 @@ Then, your final "action_input" should be: "這是最終答案"\
                     source_text, " in Traditional Chinese (繁體中文)." if self.language == "CH" else "")),
                 HumanMessage(content="Question: {}".format(gpt_obj.query))
             ]]).generations[0][0].text
+        finally:
+            finish_timestamp = datetime.now().astimezone()
 
         finish_time = (finish_timestamp - now).seconds
 
