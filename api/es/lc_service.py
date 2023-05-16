@@ -387,32 +387,12 @@ class LingtelliElastic2(Elasticsearch):
 
         results = ""
 
-        prefix = """\
-Assistant is a large language model trained by OpenAI.
-Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
-Assistant emhpasizes accuracy, thus it does NOT hallucinate any answer; it utilizes tools to get to answers step-by-step."""
-
-        suffix = """\
-TOOLS
-------
-In order for Assistant to answer the human's questions accurately, Assistant shall utilize the following tools to look up information about the question before reachin a conclusion.
-
-{{tools}}
-
-{format_instructions}
-
-{language_instruction}
-
-USER'S INPUT
---------------------
-Here is the user's input (remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else):
-
-{{{{input}}}}
-"""
+        suffix = """Begin! Reminder to always use the exact characters `Final Answer` when responding.
+{language_instruction}"""
 
         if self.language == "CH":
             suffix = suffix.replace("{language_instruction}", """\
-You MUST provide value of the "action_input" in Traditional Chinese \
+Lastly, you MUST provide value of the "action_input" in Traditional Chinese \
 as spoken and written in Taiwan: 繁體中文(ZH_TW).
 For example, if this was going to be the answer within "action_input": "This is the final answer."
 Then, your final "action_input" should be: "這是最終答案"\
@@ -426,12 +406,8 @@ Then, your final "action_input" should be: "這是最終答案"\
             tools=tools,
             memory=memory,
             llm=ChatOpenAI(temperature=0, max_tokens=1000, max_retries=2),
-            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-            agent_kwargs={
-                "system_message": prefix,
-                "human_message": suffix,
-                # "output_parser": parser
-            },
+            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+            agent_kwargs={"suffix": suffix},
             verbose=True
         )
 
