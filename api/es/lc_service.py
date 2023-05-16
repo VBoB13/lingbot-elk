@@ -426,7 +426,7 @@ Then, your final "action_input" should be: "這是最終答案"\
             source_text = self.embed_search_w_sources(gpt_obj)
         except Exception as err:
             self.logger.msg = "Could NOT fetch source documents! Trying agents instead..."
-            self.logger.error(extra_msg=str(err))
+            self.logger.error(extra_msg=str(err), orgErr=err)
             try:
                 results = agent.run({"input": gpt_obj.query})
             except Exception as err:
