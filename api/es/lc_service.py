@@ -423,13 +423,25 @@ Then, your final "action_input" should be: "這是最終答案"\
         )
 
         try:
-            results = agent.run({"input": gpt_obj.query})
+            source_text = self.embed_search_w_sources(gpt_obj)
         except Exception as err:
-            self.logger.msg = "Could NOT get an answer from agent..."
-            self.logger.error(extra_msg=str(err), orgErr=err)
-            raise self.logger from err
+            self.logger.msg = "Could NOT fetch source documents! Trying agents instead..."
+            self.logger.error(extra_msg=str(err))
+            try:
+                results = agent.run({"input": gpt_obj.query})
+            except Exception as err:
+                self.logger.msg = "Could NOT get an answer from agent..."
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger from err
+            else:
+                finish_timestamp = datetime.now().astimezone()
         else:
-            finish_timestamp = datetime.now().astimezone()
+            llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
+            results = llm.generate([
+                SystemMessage(content="The user will ask a question, but we need help to see if you can figure out the answer based on the following context:\n\n{}\n\nIf the answer to the question can be found within the context, try to generate a well formulated answer{}. If you don't know the answer and can't figure it out, just state so; do NOT make any answers up!".format(
+                    source_text, " in Traditional Chinese (繁體中文)." if self.language == "CH" else "")),
+                HumanMessage(content="Question: {}".format(gpt_obj.query))
+            ]).generations[0][0].text
 
         finish_time = (finish_timestamp - now).seconds
 
@@ -487,6 +499,21 @@ Then, your final "action_input" should be: "這是最終答案"\
         tokens = llm.get_num_tokens(text)
         if tokens > 50000:
             num_clusters = tokens % 10000
+
+    def embed_search_w_sources(self, query_obj: QueryVendorSession) -> str:
+        """
+        Method that returns a concatinated lump of source documents as a `str`.
+        """
+        self.language = get_language(query_obj.query)
+        index = "_".join(["info", query_obj.vendor_id, "*"])
+        vectorstore = ElasticVectorSearch(
+            "http://" + self.settings.elastic_server +
+            ":" + str(self.settings.elastic_port),
+            index,
+            OpenAIEmbeddings()
+        )
+        return "\n".join([doc.page_content for doc in vectorstore.max_marginal_relevance_search(
+            query_obj.query, k=3)])
 
     def embed_search_with_sources(self, query_obj: VendorFileQuery) -> tuple[list[str], float]:
         """
