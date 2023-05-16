@@ -194,15 +194,14 @@ class QAInput(BaseModel):
     question: str = Field()
 
 
-
 class LingtelliOutputParser(AgentOutputParser):
-    
+
     settings = get_settings()
 
     def get_format_instructions(self) -> str:
         # return self.settings.format_instructions
         return super().get_format_instructions()
-    
+
     def parse(self, text: str) -> Any:
         return super().parse(text)
 
@@ -396,7 +395,7 @@ Assistant is designed to be able to assist with a wide range of tasks, from answ
         suffix = """\
 TOOLS
 ------
-Assistant should use tools to look up information that may be helpful in answering the human's original question. The tools the assistant can use are:
+Assistant should utilize the following tools to look up information that may be helpful in answering the human's original question:
 
 {{tools}}
 
