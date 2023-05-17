@@ -19,7 +19,7 @@ from langchain.llms import OpenAI
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts import PromptTemplate
 from langchain.schema import SystemMessage, HumanMessage, Document
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter, TokenTextSplitter
 from langchain.utilities import SerpAPIWrapper
 from langchain.vectorstores import ElasticVectorSearch, Chroma
 from pydantic import BaseModel, Field
@@ -49,7 +49,9 @@ class FileLoader(object):
         self.csv_content_col = csv_content_col
 
         # Initialize a default splitter for all documents
-        self.splitter = CharacterTextSplitter(chunk_size=350, chunk_overlap=0)
+        # self.splitter = CharacterTextSplitter(chunk_size=350, chunk_overlap=0)
+        self.splitter = TokenTextSplitter(
+            model_name="text-embedding-ada-002", chunk_size=400, chunk_overlap=40)
 
         # As filenames in Chinese will disrupt ElasticSearch and the indexing procedure,
         # we make sure that there's NO Chinese within the filename
