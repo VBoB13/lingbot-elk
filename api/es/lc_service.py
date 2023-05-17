@@ -18,10 +18,10 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts import PromptTemplate
-from langchain.schema import SystemMessage, HumanMessage
+from langchain.schema import SystemMessage, HumanMessage, Document
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.utilities import SerpAPIWrapper
-from langchain.vectorstores import ElasticVectorSearch
+from langchain.vectorstores import ElasticVectorSearch, Chroma
 from pydantic import BaseModel, Field
 from pydantic.typing import Any
 
@@ -506,10 +506,40 @@ Then, your final "action_input" should be: "這是最終答案"\
         """
         self.language = get_language(query_obj.query)
         index = "_".join(["info", query_obj.vendor_id, "*"])
+        all_mappings: dict[str, str] = self.indices.get_mapping(
+            index=index).body
+
+        documents = []
+        for i, index in enumerate(all_mappings):
+            if all_mappings.get(index, None) and \
+                    all_mappings.get(index, None).get('mappings', None) and \
+                    all_mappings.get(index, None).get('mappings', None).get('_meta', None) and \
+                    all_mappings.get(index, None).get('mappings', None).get('_meta', None).get('description', None):
+
+                documents.append((index, all_mappings.get(
+                    index).get('mappings').get('_meta').get('description')))
+
+        db = Chroma.from_texts([doc[1]
+                               for doc in documents], OpenAIEmbeddings())
+
+        final_index_desc = db.similarity_search(query_obj.query)[
+            0].page_content
+        final_index = None
+        for doc in documents:
+            if doc[1] == final_index_desc:
+                final_index = doc[0]
+                break
+
+        if final_index is None:
+            self.logger.msg = "Could NOT get " + Fore.LIGHTYELLOW_EX + "`final_index`" + Fore.RESET + \
+                " to look through!"
+            self.logger.error()
+            raise self.logger
+
         vectorstore = ElasticVectorSearch(
             "http://" + self.settings.elastic_server +
             ":" + str(self.settings.elastic_port),
-            index,
+            final_index,
             OpenAIEmbeddings()
         )
         return "\n".join([doc.page_content for doc in vectorstore.similarity_search(
