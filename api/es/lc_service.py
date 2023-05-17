@@ -49,7 +49,7 @@ class FileLoader(object):
         self.csv_content_col = csv_content_col
 
         # Initialize a default splitter for all documents
-        self.splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        self.splitter = CharacterTextSplitter(chunk_size=400, chunk_overlap=40)
 
         # As filenames in Chinese will disrupt ElasticSearch and the indexing procedure,
         # we make sure that there's NO Chinese within the filename
