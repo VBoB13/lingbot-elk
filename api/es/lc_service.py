@@ -436,7 +436,7 @@ Then, your final "action_input" should be: "這是最終答案"\
         else:
             llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
             all_messages = [SystemMessage(content="The user will ask a question, but we need help to see if you can figure out the answer based on the following context:\n\n{}\n\nIf the answer to the question can be found within the context, try to generate a well formulated answer{}. If you don't know the answer and can't figure it out, just state so; do NOT make any answers up!".format(
-                source_text, " in Traditional Chinese (繁體中文)." if self.language == "CH" else ""))]
+                source_text, " in Traditional Chinese as spoken in Taiwan (繁體中文). E.g. if your answer would have been 'Yes.', it should now be '是的'." if self.language == "CH" else ""))]
 
             for message in memory.chat_memory.messages:
                 all_messages.append(message)
