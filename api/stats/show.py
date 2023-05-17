@@ -99,6 +99,31 @@ class LogPrinter(object):
             print("-"*25)
             print(self.data.tail(25))
 
+            self.logger.msg = "Mean answering time for last 100 requests: " + \
+                Fore.LIGHTYELLOW_EX + \
+                str(self.data.tail(100)["Time(s)"].mean()) + Fore.RESET + "!"
+            self.logger.info()
+
+            self.logger.msg = "Mean answering time for last 25 requests: " + \
+                Fore.LIGHTYELLOW_EX + \
+                str(self.data.tail(25)["Time(s)"].mean()) + Fore.RESET + "!"
+            self.logger.info()
+
+            self.logger.msg = "Median answering time for last 25 requests: " + \
+                Fore.LIGHTYELLOW_EX + \
+                str(self.data.tail(25)["Time(s)"].median()) + Fore.RESET + "!"
+            self.logger.info()
+
+            self.logger.msg = "Maximum answering time for last 25 requests: " + \
+                Fore.LIGHTYELLOW_EX + \
+                str(self.data.tail(25)["Time(s)"].max()) + Fore.RESET + "!"
+            self.logger.info()
+
+            self.logger.msg = "Minimum answering time for last 25 requests: " + \
+                Fore.LIGHTYELLOW_EX + \
+                str(self.data.tail(25)["Time(s)"].min()) + Fore.RESET + "!"
+            self.logger.info()
+
 
 if __name__ == "__main__":
     printer = LogPrinter()
