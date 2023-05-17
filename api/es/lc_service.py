@@ -549,7 +549,7 @@ Then, your final "action_input" should be: "這是最終答案"\
             OpenAIEmbeddings()
         )
         return "\n".join([doc.page_content for doc in vectorstore.similarity_search(
-            query_obj.query, k=2)])
+            query_obj.query, k=3)])
 
     def embed_search_with_sources(self, query_obj: VendorFileQuery) -> tuple[list[str], float]:
         """
