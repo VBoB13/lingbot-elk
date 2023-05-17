@@ -526,7 +526,7 @@ Then, your final "action_input" should be: "這是最終答案"\
         db = Chroma.from_texts([doc[1]
                                for doc in documents], OpenAIEmbeddings())
 
-        final_index_desc = db.similarity_search(query_obj.query)[
+        final_index_desc = db.similarity_search(query_obj.query, k=1)[
             0].page_content
         final_index = None
         for doc in documents:
