@@ -110,17 +110,17 @@ class LogPrinter(object):
             self.logger.info()
 
             self.logger.msg = "Median answering time for last 25 requests: " + \
-                Fore.LIGHTYELLOW_EX + \
+                Fore.LIGHTCYAN_EX + \
                 str(self.data.tail(25)["Time(s)"].median()) + Fore.RESET + "!"
             self.logger.info()
 
             self.logger.msg = "Maximum answering time for last 25 requests: " + \
-                Fore.LIGHTYELLOW_EX + \
+                Fore.LIGHTRED_EX + \
                 str(self.data.tail(25)["Time(s)"].max()) + Fore.RESET + "!"
             self.logger.info()
 
             self.logger.msg = "Minimum answering time for last 25 requests: " + \
-                Fore.LIGHTYELLOW_EX + \
+                Fore.LIGHTGREEN_EX + \
                 str(self.data.tail(25)["Time(s)"].min()) + Fore.RESET + "!"
             self.logger.info()
 
