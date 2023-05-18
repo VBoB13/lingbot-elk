@@ -443,8 +443,8 @@ Then, your final "action_input" should be: "這是最終答案"\
             instructions = """\
 SETUP:
 You are a helpful assistant that tries its best to accurately answer users \
-questions about a wide range of topics. To do so, here is some information \
-related to the upcoming question:
+questions about a wide range of topics in almost any language. To do so, \
+here is some information related to the upcoming question:
 
 {}""".format(source_text)
             
