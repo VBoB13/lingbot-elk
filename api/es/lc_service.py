@@ -480,6 +480,9 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 answer_instructions = answer_instructions.replace(
                     "According to our past conversation, there are 2 people who know Bob.",
                     "根據對話中提到的資訊，有兩個人認識Bob。")
+                answer_instructions = answer_instructions.replace(
+                    "There are 2 people who know Bob.",
+                    "有兩個人認識Bob。")
             
             
             init_prompt = "\n--------------------\n".join([
