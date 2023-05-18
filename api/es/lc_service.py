@@ -448,9 +448,12 @@ following context:\n\n{}\n\n\
 If the answer to the question can be found within the context or the \
 chat history, try to generate a well formulated answer{}. If you don't know \
 the answer and can't figure it out, just say so. Don't hallucinate answers! \
-The origins of the answer is NOT important to the user. Reply with the actual \
-answer ONLY; without any additional prefix such as 'Answer:', 'Conclusion:' or \
-'According to...'.\
+The answer's origins are NOT important to the user. Reply with the actual \
+answer ONLY. For example, if you answer was going to be \
+'[ORIGIN], [ANSWER]', where [ORIGIN] could be anything like \
+'According to the information you provided' or \
+'According to our past conversation', then reply ONLY with the content of \
+[ANSWER].\
 ".format(source_text, " in Traditional Chinese (繁體中文, zh_TW). \
 E.g. if your answer would have been 'Yes.', it should now be '是的'.\
 " if self.language == "CH" else ""))]
