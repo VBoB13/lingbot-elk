@@ -443,14 +443,15 @@ Then, your final "action_input" should be: "這是最終答案"\
             llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
             all_messages = [SystemMessage(content="The user will ask a question \
 which will appear as 'Question: [USER'S QUESTION]', but we need help to see if \
-you can figure out the answer based on the chat history or the following context:\
-\n\n{}\n\nIf the answer to the question can be found within the context, try to \
-generate a well formulated answer{}. If you don't know the answer and can't \
-figure it out, just say so. Don't hallucinate answers! Also don't mention \
-anything about the context itself and reply with the actual answer ONLY without \
-any additional notations or prefix such as 'Answer:' or 'Conclusion:' and \
-nothing like 'According to our past conversation'. Reply with just the \
-answer.".format(source_text, " in Traditional Chinese (繁體中文, zh_TW). \
+you can figure out the answer based on our past statements or  from within the \
+following context:\n\n{}\n\n\
+If the answer to the question can be found within the context or the \
+chat history, try to generate a well formulated answer{}. If you don't know \
+the answer and can't figure it out, just say so. Don't hallucinate answers! \
+The origins of the answer is NOT important to the user. Reply with the actual \
+answer ONLY; without any additional prefix such as 'Answer:', 'Conclusion:' or \
+'According to...'.\
+".format(source_text, " in Traditional Chinese (繁體中文, zh_TW). \
 E.g. if your answer would have been 'Yes.', it should now be '是的'.\
 " if self.language == "CH" else ""))]
 
