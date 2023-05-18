@@ -426,6 +426,10 @@ Then, your final "action_input" should be: "這是最終答案"\
 
         try:
             source_text = self.embed_search_w_sources(gpt_obj)
+        except ElasticError as err:
+            self.logger.msg = "Unable to semantically search and retrieve source material!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
         except Exception as err:
             self.logger.msg = "Could NOT fetch source documents! Trying agents instead..."
             self.logger.error(extra_msg=str(err), orgErr=err)
