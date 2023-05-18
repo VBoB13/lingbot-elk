@@ -442,16 +442,16 @@ Then, your final "action_input" should be: "這是最終答案"\
         else:
             instructions = """\
 SETUP:
-You are a helpful assistant that tries its best to accurately answer users \
-questions about a wide range of topics in almost any language. To do so, \
+You are a helpful assistant that tries its best to answer a users' \
+questions about a wide range of topics in {}. To do so, \
 here is some information extracted from the user's own uploaded data and \
 it is hopefully related to the upcoming question:
 
-{}""".format(source_text)
+{}""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
             
             sentiment = """\
 SENTIMENT:
-While accuracy of the answer is your top priority, you should also reply \
+While flow of the conversation is your top priority, you should also reply \
 in a way that most people, even younger adults with \
 limited knowledge within the current topic, can understand."""
 
