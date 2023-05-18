@@ -444,7 +444,8 @@ Then, your final "action_input" should be: "這是最終答案"\
 SETUP:
 You are a helpful assistant that tries its best to accurately answer users \
 questions about a wide range of topics in almost any language. To do so, \
-here is some information related to the upcoming question:
+here is some information extracted from the user's own uploaded data and \
+it is hopefully related to the upcoming question:
 
 {}""".format(source_text)
             
@@ -468,9 +469,18 @@ question, then instead of saying \
 should just answer with "There are 2 people who know Bob.". No additional \
 wording needed.
 {}
-Begin!""".format("The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
-E.g. if your answer would have been 'Yes.', it should now be '是的'.\
-" if self.language == "CH" else "")
+Begin!"""
+            if self.language == "CH":
+                answer_instructions.format(
+                    "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
+E.g. if your answer would have been 'Yes.', it should now be '是的'.")
+                answer_instructions = answer_instructions.replace(
+                    "According to the information you provided, there are 2 people who know Bob.",
+                    "根據提供的資訊，有兩個人認識Bob。")
+                answer_instructions = answer_instructions.replace(
+                    "According to our past conversation, there are 2 people who know Bob.",
+                    "根據對話中提到的資訊，有兩個人認識Bob。")
+            
             
             init_prompt = "\n--------------------\n".join([
                 instructions,
