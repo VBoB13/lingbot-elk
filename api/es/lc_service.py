@@ -440,23 +440,46 @@ Then, your final "action_input" should be: "這是最終答案"\
                 self.logger.error(extra_msg=str(err), orgErr=err)
                 raise self.logger from err
         else:
-            llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
-            all_messages = [SystemMessage(content="The user will ask a question \
-which will appear as 'Question: [USER'S QUESTION]', but we need help to see if \
-you can figure out the answer based on our past statements or  from within the \
-following context:\n\n{}\n\n\
-If the answer to the question can be found within the context or the \
-chat history, try to generate a well formulated answer{}. If you don't know \
-the answer and can't figure it out, just say so. Don't hallucinate answers! \
-The answer's origins are NOT important to the user. Reply with the actual \
-answer ONLY. For example, if you answer was going to be \
-'[ORIGIN], [ANSWER]', where [ORIGIN] could be anything like \
-'According to the information you provided' or \
-'According to our past conversation', then reply ONLY with the content of \
-[ANSWER].\
-".format(source_text, " in Traditional Chinese (繁體中文, zh_TW). \
+            instructions = """\
+SETUP:
+You are a helpful assistant that tries its best to accurately answer users \
+questions about a wide range of topics. To do so, here is some information \
+related to the upcoming question:
+
+{}""".format(source_text)
+            
+            sentiment = """\
+SENTIMENT:
+While accuracy of the answer is your top priority, you should also reply \
+in a way that most people, even younger adults with \
+limited knowledge within the current topic, can understand."""
+
+            answer_instructions = """\
+ANSWER INSTRUCTIONS:
+When answering the user's question, there's no need to mention anything about 
+the origins of the answer or any other prefixing statements. For example, if 
+your answer would be something like: \
+"According to the information you provided, there are 2 people who know Bob."
+Then, the final answer you respond with should only be: \
+"There are 2 people who know Bob." Same logic for chat history; if you \
+notice that you have previously provided a correct answer to the current \
+question, then instead of saying \
+"According to our past conversation, there are 2 people who know Bob.", you \
+should just answer with "There are 2 people who know Bob.". No additional \
+wording needed.
+{}
+Begin!""".format("The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
 E.g. if your answer would have been 'Yes.', it should now be '是的'.\
-" if self.language == "CH" else ""))]
+" if self.language == "CH" else "")
+            
+            init_prompt = "\n--------------------\n".join([
+                instructions,
+                sentiment,
+                answer_instructions
+                ])
+
+            llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
+            all_messages = [SystemMessage(content=init_prompt)]
 
             for message in memory.chat_memory.messages:
                 all_messages.append(message)
