@@ -467,13 +467,11 @@ notice that you have previously provided a correct answer to the current \
 question, then instead of saying \
 "According to our past conversation, there are 2 people who know Bob.", you \
 should just answer with "There are 2 people who know Bob.". No additional \
-wording needed.
-{}
-Begin!"""
+wording needed."""
+
+            last_instruction = """{}\nBegin!"""
+
             if self.language == "CH":
-                answer_instructions.format(
-                    "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
-E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 answer_instructions = answer_instructions.replace(
                     "According to the information you provided, there are 2 people who know Bob.",
                     "根據提供的資訊，有兩個人認識Bob。")
@@ -483,15 +481,19 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 answer_instructions = answer_instructions.replace(
                     "There are 2 people who know Bob.",
                     "有兩個人認識Bob。")
+                last_instruction.format(
+                    "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
+E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             
             
             init_prompt = "\n--------------------\n".join([
                 instructions,
                 sentiment,
-                answer_instructions
+                # answer_instructions,
+                last_instruction
                 ])
 
-            llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
+            llm = ChatOpenAI(temperature=0.5, max_tokens=500, max_retries=2)
             all_messages = [SystemMessage(content=init_prompt)]
 
             for message in memory.chat_memory.messages:
