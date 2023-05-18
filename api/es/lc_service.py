@@ -437,7 +437,7 @@ Then, your final "action_input" should be: "這是最終答案"\
                 raise self.logger from err
         else:
             llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
-            all_messages = [SystemMessage(content="The user will ask a question, but we need help to see if you can figure out the answer based on the following context:\n\n{}\n\nIf the answer to the question can be found within the context, try to generate a well formulated answer{}. If you don't know the answer and can't figure it out, just say so. Don't hallucinate answers! Also don't mention anything about the context itself and reply with the actual answer ONLY without any additional notations or prefix such as 'Answer:' or 'Conclusion:'.".format(
+            all_messages = [SystemMessage(content="The user will ask a question which will appear as 'Question: [USER'S QUESTION]', but we need help to see if you can figure out the answer based on the chat history or the following context:\n\n{}\n\nIf the answer to the question can be found within the context, try to generate a well formulated answer{}. If you don't know the answer and can't figure it out, just say so. Don't hallucinate answers! Also don't mention anything about the context itself and reply with the actual answer ONLY without any additional notations or prefix such as 'Answer:' or 'Conclusion:'.".format(
                 source_text, " in Traditional Chinese (繁體中文, zh_TW). E.g. if your answer would have been 'Yes.', it should now be '是的'." if self.language == "CH" else ""))]
 
             for message in memory.chat_memory.messages:
@@ -524,6 +524,11 @@ Then, your final "action_input" should be: "這是最終答案"\
 
                 documents.append((index, all_mappings.get(
                     index).get('mappings').get('_meta').get('description')))
+
+        if len(documents) == 0:
+            self.logger.msg = "Could NOT get any descriptions from indices!"
+            self.logger.error(extra_msg="Have you uploaded material (files) for this ChatBot?")
+            raise self.logger
 
         db = Chroma.from_texts([doc[1]
                                for doc in documents], OpenAIEmbeddings())
