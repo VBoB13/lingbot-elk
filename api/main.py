@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
-from params.definitions import BasicResponse, SearchGPT2, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery
+from params.definitions import BasicResponse, SearchGPT2, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel
 from es.elastic import LingtelliElastic
 from es.lc_service import FileLoader, LingtelliElastic2
 from settings.settings import TEMP_DIR
@@ -97,6 +97,23 @@ async def search_doc_gpt(doc: QueryVendorSession):
     except Exception as err:
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": str(err)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/set-template", response_model=BasicResponse, description=DESCRIPTIONS["/set-template"])
+async def set_template(template_obj: TemplateModel):
+    global logger
+    logger.cls = "main.py:set_template"
+
+    try:
+        es = LingtelliElastic2()
+        final_index = es.set_template(template_obj)
+    except Exception as err:
+        logger.msg = "Something went wrong when trying to set template!"
+        logger.error(extra_msg=str(err), orgErr=err)
+        ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": "{}: {}".format(
+            logger.msg, err.msg if isinstance(err, BaseError) else str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        return ElkServiceResponse(content={"msg": "Template successfully set! (index: {})!".format(final_index)}, status_code=status.HTTP_202_ACCEPTED)
 
 
 @app.post("/upload", description=DESCRIPTIONS["/upload"])

@@ -621,7 +621,11 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         return results
 
-    def set_template(self, template_obj: TemplateModel) -> None:
+    def set_template(self, template_obj: TemplateModel) -> str:
+        """
+        Sets template according to parameters.
+        Returns the final index to which the template was applied.
+        """
         if template_obj.file:
             file = os.path.splitext(template_obj.file)
             filename, filetype = file[0], file[1][1:]
@@ -677,6 +681,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             self.logger.msg = "Successfully set a template for index: %s" % (
                 Fore.LIGHTCYAN_EX + full_index + Fore.RESET)
             self.logger.info()
+            return full_index
 
     def translate(self, text: str) -> str:
         """
