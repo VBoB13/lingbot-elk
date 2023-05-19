@@ -448,12 +448,14 @@ here is some information extracted from the user's own uploaded data and \
 it is hopefully related to the upcoming question:
 
 {}""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
-            
+
             sentiment = """\
 SENTIMENT:
 While flow of the conversation is your top priority, you should also reply \
 in a way that most people, even younger adults with \
-limited knowledge within the current topic, can understand."""
+limited knowledge within the current topic, can understand. \
+Furthermore, if you don't know the answer or are unsure about it, please state so. \
+Do NOT make up answers."""
 
             answer_instructions = """\
 ANSWER INSTRUCTIONS:
@@ -484,14 +486,13 @@ wording needed."""
                 last_instruction.format(
                     "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
 E.g. if your answer would have been 'Yes.', it should now be '是的'.")
-            
-            
+
             init_prompt = "\n--------------------\n".join([
                 instructions,
                 sentiment,
                 # answer_instructions,
                 last_instruction
-                ])
+            ])
 
             llm = ChatOpenAI(temperature=0.5, max_tokens=500, max_retries=2)
             all_messages = [SystemMessage(content=init_prompt)]
@@ -583,7 +584,8 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         if len(documents) == 0:
             self.logger.msg = "Could NOT get any descriptions from indices!"
-            self.logger.error(extra_msg="Have you uploaded material (files) for this ChatBot?")
+            self.logger.error(
+                extra_msg="Have you uploaded material (files) for this ChatBot?")
             raise self.logger
 
         db = Chroma.from_texts([doc[1]
