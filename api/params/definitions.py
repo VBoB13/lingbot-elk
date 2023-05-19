@@ -54,8 +54,15 @@ class VendorFile(Vendor):
     file: str = ""
 
 
+class TemplateModel(VendorFile):
+    template: str = ""
+    sentiment: str = ""
+    role: str = ""
+
+
 class VendorFileQuery(VendorFile):
     query: str = ""
+
 
 class VendorSession(Vendor, Session):
     pass
@@ -63,6 +70,10 @@ class VendorSession(Vendor, Session):
 
 class QueryVendorSession(VendorSession):
     query: str
+
+
+class QueryVendorSessionFile(VendorFileQuery, Session):
+    pass
 
 
 class VendorFileSession(VendorSession):

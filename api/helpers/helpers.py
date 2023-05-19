@@ -4,31 +4,34 @@ they get put in this module.
 """
 
 import json
+import os
 import re
 import requests
 import socket
 from heapq import nlargest
 from logging import Logger
 
+from colorama import Fore
 from nltk import FreqDist
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
 from jieba.analyse import extract_tags
 
-from colorama import Fore
+from errors.errors import HelperError
+from params.definitions import TemplateModel
 
 
-logger = Logger(f"{__file__} : ")
+logger = HelperError(__file__, "")
 
 
 def _reset_logger_name():
-    logger.name = f"{__file__} : "
+    logger.cls = "helpers.helpers:"
 
 
 try:
     from settings.settings import CLAUDES_SERVER, CLAUDES_PORT
 except ImportError:
-    logger.name += "IMPORT"
+    logger.cls += "IMPORT"
     logger.warning(Fore.LIGHTYELLOW_EX +
                    "Import for CLAUDES_SERVER and CLAUDES_PORT failed! Setting values manually." + Fore.RESET)
     CLAUDES_SERVER = "192.168.1.132"
@@ -41,7 +44,7 @@ def get_language(content: str) -> str:
     Returns a string (`'CH'` or `'EN'`).
     """
     global logger
-    logger.name += "get_language()"
+    logger.cls += "get_language()"
 
     language = {
         "CH": "Traditional Chinese (ZH-TW)",
@@ -64,7 +67,7 @@ def get_local_ip(org_ip: str) -> str:
     Otherwise, the original value of `org_ip` is returned.
     """
     global logger
-    logger.name += "get_local_ip()"
+    logger.cls += "get_local_ip()"
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(0)
     try:
@@ -85,7 +88,7 @@ def get_synonymns(words: list, category: str) -> list[list[str]]:
     Returns: `list['word1, syn1-1, syn1-2, syn1-3, ...', 'word2, syn2-1, syn2-2, syn2-3, ...', ...]`
     """
     global logger
-    logger.name += "get_synonyms()"
+    logger.cls += "get_synonyms()"
 
     language = get_language(' '.join(words))
     lang_key = 'zh_' if language == "CH" else 'en_'
@@ -186,8 +189,35 @@ def summarize_text(text: str, language: str = "EN") -> str:
 
     else:
         global logger
-        logger.name += "summarize_text()"
+        logger.cls += "summarize_text()"
         msg = "Cannot summarize text in any other language than these: English (EN), Traditional Chinese (ZH_TW)."
         logger.error(msg)
 
     return summary.replace('\n', '')
+
+
+def validate_template_object(obj: TemplateModel) -> None:
+    """
+    Function that validates the values within object for setting custom templates for indices.
+    """
+    global logger
+    logger.cls += "validate_template_object"
+    if obj.template and (not obj.sentiment or not obj.role):
+        logger.msg = "If you want to implement a custom template, you need to provide" + \
+            Fore.LIGHTRED_EX + " `sentiment`, `role`" + Fore.RESET + " paramteres!"
+        logger.error(extra_msg="\n`sentiment`: '%s'" %
+                     str(obj.sentiment) + "\n`role`: '%s'" % str(obj.role))
+        raise logger
+
+    if len(obj.role) < 2 or len(obj.role) > 15:
+        logger.msg = "The 'role' has to be >= 2 or <= 15 characters long!"
+        logger.error(extra_msg="Role length: %s" % str(len(obj.role)))
+        raise logger
+
+    if len(obj.sentiment) < 2 or len(obj.sentiment) > 50:
+        logger.msg = "The 'sentiment' has to be >= 2 or <= 50 characters long!"
+        logger.error(extra_msg="Sentiment length: %s" %
+                     str(len(obj.sentiment)))
+        raise logger
+
+    _reset_logger_name()

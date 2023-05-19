@@ -27,8 +27,8 @@ from pydantic.typing import Any
 
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
-from helpers.helpers import get_language, includes_chinese, summarize_text
-from params.definitions import QueryVendorSession, VendorFileQuery
+from helpers.helpers import get_language, includes_chinese, summarize_text, validate_template_object
+from params.definitions import QueryVendorSession, VendorFileQuery, TemplateModel, VendorFile, QueryVendorSessionFile
 from settings.settings import get_settings
 
 cache = TTLCache(maxsize=100, ttl=86400)
@@ -303,22 +303,68 @@ class LingtelliElastic2(Elasticsearch):
 
         return history
 
+    @cached(cache)
+    def _load_template(self, vendor_id: str, file: str) -> dict[str, str]:
+        """
+        Method that loads custom templates if they exist.
+        """
+        if file:
+            file = os.path.splitext(file)
+            filename, filetype = file[0], file[1][1:]
+            full_index = "_".join(
+                ["info", vendor_id, filename, filetype])
+        else:
+            full_index = "_".join(["template", vendor_id])
+
+        if not self.indices.exists(index=full_index).body:
+            self.logger.msg = "Index does NOT exist!"
+            self.logger.error(extra_msg="Index [%s]" % (
+                Fore.RED + full_index + Fore.RESET))
+            raise self.logger
+
+        mappings: dict[str, str] = self.indices.get_mapping(
+            index=full_index).body
+
+        plausible_mappings = {}
+        for index in mappings:
+            if mappings.get(index).get('mappings', None) and \
+                    mappings.get(index).get('mappings', None).get('_meta', None):
+                index_mapping = mappings.get(
+                    index).get('mappings').get('_meta')
+                plausible_mappings.update({index: index_mapping})
+
+        if full_index in plausible_mappings:
+            return plausible_mappings[full_index]
+
+        self.logger.msg = "Could not get mappings for index [%s]!" % (
+            Fore.RED + full_index + Fore.RESET)
+        self.logger.error(
+            extra_msg="Indices that were included - [%s]" % (", ".join([str(Fore.RED + index + Fore.RESET) for index in plausible_mappings])))
+        raise self.logger
+
     def delete_bot(self, vendor_id: str, file: str, session: str = None):
+        indices = []
         if file:
             if "/" in file:
                 file = os.path.split(file)[1]
             file_name_and_type = file.split(".")
             filename, filetype = file_name_and_type[0], file_name_and_type[1]
             # Add first essential index
-            indices = ["_".join(["info", vendor_id, filename, filetype])]
+            indices.append("_".join(["info", vendor_id, filename, filetype]))
         else:
-            indices = ["_".join(["info", vendor_id, "*"])]
+            mappings = self.indices.get_mapping(
+                index="_".join(["info", vendor_id, "*"])).body
+            for index in mappings:
+                indices.append(index)
 
         # If session is provided, history index is deleted too
         if session is not None and isinstance(session, str):
             indices.append("_".join(["hist", vendor_id, session]))
         else:
-            indices.append("_".join(["hist", vendor_id, "*"]))
+            mappings = self.indices.get_mapping(
+                index="_".join(["hist", vendor_id, "*"])).body
+            for index in mappings:
+                indices.append(index)
 
         if self.indices.exists(index="template_"+vendor_id).body:
             indices.append("template_"+vendor_id)
@@ -335,6 +381,30 @@ class LingtelliElastic2(Elasticsearch):
             self.logger.msg = Fore.LIGHTGREEN_EX + \
                 "Successfully " + Fore.RESET + "deleted indices!"
             self.logger.info(extra_msg="Indices: %s" % str(indices))
+
+    def delete_template(self, template_obj: VendorFile) -> None:
+        """
+        Method for removing template
+        """
+        if template_obj.file:
+            file = os.path.splitext(template_obj.file)
+            filename, filetype = file[0], file[1][1:]
+            full_index = "_".join(
+                ["info", template_obj.vendor_id, filename, filetype])
+        else:
+            full_index = "_".join(["template", template_obj.vendor_id])
+
+        if self.indices.exists(index=full_index).body:
+            if full_index.startswith("info"):
+                self.indices.put_mapping(index=full_index, meta={
+                    "template": "",
+                    "role": "",
+                    "sentiment": ""
+                })
+        else:
+            self.logger.msg = "Could NOT find index: %s" % (
+                Fore.RED + full_index + Fore.RESET)
+            self.logger.warning()
 
     def generate_index_tools(self, vendor_id: str) -> list[Tool]:
         """
@@ -390,7 +460,7 @@ class LingtelliElastic2(Elasticsearch):
 
         return tools
 
-    def search_gpt(self, gpt_obj: QueryVendorSession) -> str:
+    def search_gpt(self, gpt_obj: QueryVendorSessionFile) -> str:
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
         """
@@ -403,6 +473,16 @@ class LingtelliElastic2(Elasticsearch):
 
         memory = self._load_memory(
             gpt_obj.vendor_id, gpt_obj.session)
+
+        try:
+            custom_template = self._load_template(
+                gpt_obj.vendor_id, gpt_obj.file)
+        except ElasticError:
+            custom_template = None
+        except Exception as err:
+            self.logger.msg = "Unknown error occurred when trying to load custom template!"
+            self.logger.error(orgErr=err)
+            raise self.logger from err
 
         tools = self.generate_index_tools(gpt_obj.vendor_id)
 
@@ -462,8 +542,9 @@ SENTIMENT:
 While flow of the conversation is your top priority, you should also reply \
 in a way that most people, even younger adults with \
 limited knowledge within the current topic, can understand. \
-Furthermore, if you don't know the answer or are unsure about it, please state so. \
-Do NOT make up answers."""
+If you can't find the answer within the information \
+provided or from our chat history, respond that you simply don't know.\
+You ABSOLUTELY CANNOT make up any answers yourself!"""
 
             answer_instructions = """\
 ANSWER INSTRUCTIONS:
@@ -540,25 +621,107 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         return results
 
+    def set_template(self, template_obj: TemplateModel) -> None:
+        if template_obj.file:
+            file = os.path.splitext(template_obj.file)
+            filename, filetype = file[0], file[1][1:]
+            full_index = "_".join(
+                ["info", template_obj.vendor_id, filename, filetype])
+        else:
+            full_index = "_".join(["template", template_obj.vendor_id])
+
+        # If index does NOT exist
+        if full_index.startswith("info") and not self.indices.exists(index=full_index).body:
+            self.logger.msg = "Index does NOT exist: %s" % (
+                Fore.RED + full_index + Fore.RESET)
+            self.logger.error()
+            raise self.logger
+        else:
+            # Either it exists OR just starts with 'info' or BOTH
+            try:
+                validate_template_object(template_obj)
+            except Exception as err:
+                self.logger.msg = "Unable to validate template object!"
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                raise self.logger from err
+            else:
+                pass
+
+            # It starts with 'info' and exists
+            if full_index.startswith("info") and self.indices.exists(index=full_index).body:
+                self.indices.put_mapping(index=full_index, meta={
+                    "template": template_obj.template,
+                    "role": template_obj.role,
+                    "sentiment": template_obj.sentiment
+                })
+
+            # It starts with 'template' and exists
+            elif full_index.startswith("template") and self.indices.exists(index=full_index).body:
+                self.indices.put_mapping(index=full_index, meta={
+                    "template": template_obj.template,
+                    "role": template_obj.role,
+                    "sentiment": template_obj.sentiment
+                })
+
+            # Definitely starts with 'template' but does NOT exist
+            else:
+                self.indices.create(
+                    index=full_index,
+                    mappings={"_meta": {
+                        "template": template_obj.template,
+                        "sentiment": template_obj.sentiment,
+                        "role": template_obj.role
+                    }}
+                )
+
+            self.logger.msg = "Successfully set a template for index: %s" % (
+                Fore.LIGHTCYAN_EX + full_index + Fore.RESET)
+            self.logger.info()
+
     def translate(self, text: str) -> str:
         """
         Method translating a piece of text to English.
         """
         llm = ChatOpenAI(temperature=0.3, max_tokens=600)
         results = llm.generate([[SystemMessage(
-            content="The user will provide some content in Traditional Chinese and it is about a tool that ca retrieve some kind of information and it consists of sentences that are extracted from a larger text through keyword ranking; thus it makes little sense trying to read it like normal text, but it is an extraction that tells you a little bit about the content of a file as a whole. Based on this extraction, please generate a summary of 2 to 3 sentences for this file in English from the viewpoint of what information you can expect to gather with the tool, e.g. start with something like 'This tool is useful when you need information about ...', and respond with the English summary only."), HumanMessage(content=f"Hi! Here is some content in Traditional Chinese:\n\n{text}")]])
+            content="The user will provide some content in Traditional Chinese and it is about a tool that can retrieve some kind of information and it consists of sentences that are extracted from a larger text through keyword ranking; thus it makes little sense trying to read it like normal text, but it is an extraction that tells you a little bit about the content of a file as a whole. Based on this extraction, please generate a summary of 2 to 3 sentences for this file in English from the viewpoint of what information you can expect to gather with the tool, e.g. start with something like 'This tool is useful when you need information about ...', and respond with the English summary only."), HumanMessage(content=f"Hi! Here is some content in Traditional Chinese:\n\n{text}")]])
 
         return results.generations[0][0].text
 
     def translate_ch(self, text: str) -> str:
         """
-        Method translating a piece of text to English.
+        Method translating a piece of text to Chinese.
         """
         llm = ChatOpenAI(temperature=0)
         results = llm.generate([[SystemMessage(
             content="The user will provide some content in English, and I need you to translate the content to Traditional Chinese as spoken in Taiwan, then respond with the translated content only - no additional comments needed and NO simplified chinese; only Traditional Chinese is allowed."), HumanMessage(content=f"Here is some content in English:\n\n{text}")]])
 
         return results.generations[0][0].text
+
+    def translate_en(self, text: str) -> str:
+        """
+        Method translating a piece of text to English.
+        """
+        llm = ChatOpenAI(temperature=0)
+        results = llm.generate([[SystemMessage(
+            content="The user will provide some content in Chinese, and I need you to translate the content to English, then respond with the translated content only - no additional comments needed."), HumanMessage(content=f"Here is some content in Chinese:\n\n{text}")]])
+
+        return results.generations[0][0].text
+
+    def translate_en_bulk(self, texts: list[str]) -> list[str]:
+        """
+        Method translating a piece of text to English.
+        """
+        llm = ChatOpenAI(temperature=0)
+        prompts = []
+        for text in texts:
+            prompts.append([SystemMessage(
+                content="The user will provide some content in Chinese, and I need you to translate the content to English, then respond with the translated content only - no additional comments needed."), HumanMessage(content=f"Here is some content in Chinese:\n\n{text}")])
+
+        results = [result[0].text for result in llm.generate(
+            prompts).generations]
+
+        return results
 
     def summarize_text(self, text: str) -> str:
         """
@@ -651,3 +814,17 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 Fore.LIGHTRED_EX + query_obj.file + Fore.RESET)
             self.logger.error()
             raise self.logger
+
+
+if __name__ == "__main__":
+    es = LingtelliElastic2()
+    texts = [
+        "幹！我是個笨蛋",
+        "幹！我就最聰明",
+        "幹！我就是最強",
+        "幹！我真的很弱"
+    ]
+    results = es.translate_en_bulk(texts)
+
+    for index, result in enumerate(results):
+        print(texts[index], "=", result)
