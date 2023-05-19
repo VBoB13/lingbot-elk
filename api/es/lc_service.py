@@ -319,6 +319,9 @@ class LingtelliElastic2(Elasticsearch):
             indices.append("_".join(["hist", vendor_id, session]))
         else:
             indices.append("_".join(["hist", vendor_id, "*"]))
+
+        if self.indices.exists(index="template_"+vendor_id).body:
+            indices.append("template_"+vendor_id)
         try:
             # Delete indices
             self.indices.delete(
