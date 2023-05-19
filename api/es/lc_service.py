@@ -304,16 +304,21 @@ class LingtelliElastic2(Elasticsearch):
         return history
 
     def delete_bot(self, vendor_id: str, file: str, session: str = None):
-        if "/" in file:
-            file = os.path.split(file)[1]
+        if file:
+            if "/" in file:
+                file = os.path.split(file)[1]
+            file_name_and_type = file.split(".")
+            filename, filetype = file_name_and_type[0], file_name_and_type[1]
+            # Add first essential index
+            indices = ["_".join(["info", vendor_id, filename, filetype])]
+        else:
+            indices = ["_".join(["info", vendor_id, "*"])]
 
-        file_name_and_type = file.split(".")
-        filename, filetype = file_name_and_type[0], file_name_and_type[1]
-        # Add first essential index
-        indices = ["_".join(["info", vendor_id, filename, filetype])]
         # If session is provided, history index is deleted too
         if session is not None and isinstance(session, str):
             indices.append("_".join(["hist", vendor_id, session]))
+        else:
+            indices.append("_".join(["hist", vendor_id, "*"]))
         try:
             # Delete indices
             self.indices.delete(
