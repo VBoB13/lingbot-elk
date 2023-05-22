@@ -477,12 +477,12 @@ class LingtelliElastic2(Elasticsearch):
         try:
             custom_template = self._load_template(
                 gpt_obj.vendor_id, gpt_obj.file)
-        except ElasticError:
+        except Exception:
             custom_template = None
-        except Exception as err:
-            self.logger.msg = "Unknown error occurred when trying to load custom template!"
-            self.logger.error(orgErr=err)
-            raise self.logger from err
+        # except Exception as err:
+        #     self.logger.msg = "Unknown error occurred when trying to load custom template!"
+        #     self.logger.error(extra_msg=str(err), orgErr=err)
+        #     raise self.logger from err
 
         tools = self.generate_index_tools(gpt_obj.vendor_id)
 
