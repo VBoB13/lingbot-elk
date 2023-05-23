@@ -563,15 +563,6 @@ wording needed."""
             last_instruction = """{}\nBegin!"""
 
             if self.language == "CH":
-                answer_instructions = answer_instructions.replace(
-                    "According to the information you provided, there are 2 people who know Bob.",
-                    "根據提供的資訊，有兩個人認識Bob。")
-                answer_instructions = answer_instructions.replace(
-                    "According to our past conversation, there are 2 people who know Bob.",
-                    "根據對話中提到的資訊，有兩個人認識Bob。")
-                answer_instructions = answer_instructions.replace(
-                    "There are 2 people who know Bob.",
-                    "有兩個人認識Bob。")
                 last_instruction.format(
                     "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
 E.g. if your answer would have been 'Yes.', it should now be '是的'.")
@@ -597,6 +588,12 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         finish_time = (finish_timestamp - now).seconds
 
+        self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + gpt_obj.vendor_id + Fore.RESET
+        self.logger.msg += "\n".join([
+            Fore.LIGHTBLUE_EX + f"History #{i}: " + Fore.RESET + f"{message.content}"
+            for i, message in memory.chat_memory.messages
+            ]) 
+
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results)
         history_index = "_".join(
@@ -609,7 +606,6 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 "timestamp": timestamp
             }
         )
-        self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + gpt_obj.vendor_id + Fore.RESET
         self.logger.msg += "\n" + Fore.LIGHTCYAN_EX + \
             "Question: " + Fore.RESET + gpt_obj.query
         self.logger.msg += "\n" + Fore.LIGHTGREEN_EX + \
