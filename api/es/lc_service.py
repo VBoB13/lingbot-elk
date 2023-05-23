@@ -314,9 +314,15 @@ class LingtelliElastic2(Elasticsearch):
             full_index = "_".join(
                 ["info", vendor_id, filename, filetype])
         else:
-            full_index = "_".join(["template", vendor_id])
+            full_index = [
+                "_".join(["template", vendor_id]),
+                "_".join(["info", vendor_id, "*"])
+                ]
 
-        if not self.indices.exists(index=full_index).body:
+        if not self.indices.exists(
+            index=full_index,
+            allow_no_indices=True,
+            ignore_unavailable=True).body:
             self.logger.msg = "Index does NOT exist!"
             self.logger.error(extra_msg="Index [%s]" % (
                 Fore.RED + full_index + Fore.RESET))
@@ -477,6 +483,9 @@ class LingtelliElastic2(Elasticsearch):
         try:
             custom_template = self._load_template(
                 gpt_obj.vendor_id, gpt_obj.file)
+        except ElasticError as err:
+            err.warning()
+            custom_template = None
         except Exception:
             custom_template = None
         # except Exception as err:
@@ -644,8 +653,6 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 self.logger.msg = "Unable to validate template object!"
                 self.logger.error(extra_msg=str(err), orgErr=err)
                 raise self.logger from err
-            else:
-                pass
 
             # It starts with 'info' and exists
             if full_index.startswith("info") and self.indices.exists(index=full_index).body:
@@ -656,7 +663,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 })
 
             # It starts with 'template' and exists
-            elif full_index.startswith("template") and self.indices.exists(index=full_index).body:
+            elif self.indices.exists(index=full_index).body:
                 self.indices.put_mapping(index=full_index, meta={
                     "template": template_obj.template,
                     "role": template_obj.role,

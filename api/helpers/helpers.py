@@ -208,13 +208,13 @@ def validate_template_object(obj: TemplateModel) -> None:
                      str(obj.sentiment) + "\n`role`: '%s'" % str(obj.role))
         raise logger
 
-    if len(obj.role) < 2 or len(obj.role) > 15:
-        logger.msg = "The 'role' has to be >= 2 or <= 15 characters long!"
+    if len(obj.role) < 3 or len(obj.role) > 15:
+        logger.msg = "The 'role' has to be >= 3 or <= 15 characters long!"
         logger.error(extra_msg="Role length: %s" % str(len(obj.role)))
         raise logger
 
-    if len(obj.sentiment) < 2 or len(obj.sentiment) > 50:
-        logger.msg = "The 'sentiment' has to be >= 2 or <= 50 characters long!"
+    if len(obj.sentiment) < 3 or len(obj.sentiment) > 50:
+        logger.msg = "The 'sentiment' has to be >= 3 or <= 50 characters long!"
         logger.error(extra_msg="Sentiment length: %s" %
                      str(len(obj.sentiment)))
         raise logger
