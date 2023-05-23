@@ -555,6 +555,17 @@ If you can't find the answer within the information \
 provided or from our chat history, respond that you simply don't know.\
 You ABSOLUTELY CANNOT make up any answers yourself!"""
 
+
+            # TODO:
+            # Write out logic for how the templates are implemented
+            # TODO:
+            if custom_template is not None and isinstance(custom_template, dict):
+                if custom_template.get("template", None):
+                    if custom_template.get("sentiment", None) \
+                            and custom_template.get("role", None):
+                        pass
+
+
             answer_instructions = """\
 ANSWER INSTRUCTIONS:
 When answering the user's question, there's no need to mention anything about 
