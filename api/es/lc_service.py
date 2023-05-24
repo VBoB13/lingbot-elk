@@ -341,7 +341,7 @@ class LingtelliElastic2(Elasticsearch):
                     plausible_mappings.update({index: index_mapping})
 
         if full_index in plausible_mappings:
-            self.logger.msg = "Found temnplate for [%s]!" % (
+            self.logger.msg = "Found template for [%s]!" % (
                 Fore.LIGHTCYAN_EX + full_index + Fore.RESET)
             self.logger.info(extra_msg="Template setup: %s" %
                              str(plausible_mappings[full_index]))
