@@ -638,7 +638,11 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 last_instruction
             ])
 
-            llm = ChatOpenAI(temperature=0.5, max_tokens=500, max_retries=2)
+            self.logger.msg = "Whole system message: %s" % (
+                Fore.LIGHTMAGENTA_EX + "\n" + init_prompt + Fore.RESET)
+            self.logger.info()
+
+            llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
             all_messages = [SystemMessage(content=init_prompt)]
 
             for message in memory.chat_memory.messages:
