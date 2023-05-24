@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
-from params.definitions import BasicResponse, SearchGPT2, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel
+from params.definitions import BasicResponse, SearchGPT2, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel, QueryVendorSessionFile
 from es.elastic import LingtelliElastic
 from es.lc_service import FileLoader, LingtelliElastic2
 from settings.settings import TEMP_DIR
@@ -87,7 +87,7 @@ async def search_doc_file(doc: VendorFileQuery):
 
 
 @app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])
-async def search_doc_gpt(doc: QueryVendorSession):
+async def search_doc_gpt(doc: QueryVendorSessionFile):
     global logger
     logger.cls = "main.py:search_doc_gpt"
     try:
