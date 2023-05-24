@@ -341,7 +341,12 @@ class LingtelliElastic2(Elasticsearch):
                 index_mapping = mappings.get(
                     index).get('mappings').get('_meta')
                 if "template" in index_mapping and "sentiment" in index_mapping and "role" in index_mapping:
-                    plausible_mappings.update({index: index_mapping})
+                    if index_mapping["template"]:
+                        if index_mapping["sentiment"] and index_mapping["role"]:
+                            plausible_mappings.update({index: index_mapping})
+                    else:
+                        if index_mapping["sentiment"] or index_mapping["role"]:
+                            plausible_mappings.update({index: index_mapping})
 
         if isinstance(full_index, str):
             if full_index in plausible_mappings:
@@ -491,6 +496,47 @@ class LingtelliElastic2(Elasticsearch):
 
         return tools
 
+    def assemble_template(self, custom_template: dict[str, str]) -> str:
+        """
+        Method for actually making sure that custom templates are puzzled together into a string.
+        """
+        full_custom_template = ""
+        if custom_template is not None and isinstance(custom_template, dict):
+            if custom_template.get("template", None):
+                if custom_template.get("sentiment", None) \
+                        and custom_template.get("role", None):
+                    full_custom_template = custom_template["template"].replace(
+                        "{sentiment}", custom_template["sentiment"]).replace("{role}", custom_template["role"])
+                else:
+                    if custom_template.get("sentiment", None) and custom_template.get("role", None):
+                        if self.language == "CH":
+                            full_custom_template = "您是個{}的{}".format(
+                                custom_template.get("sentiment"),
+                                custom_template.get("role")
+                            )
+                        else:
+                            full_custom_template = "You are a {} {}.".format(
+                                custom_template.get("sentiment"),
+                                custom_template.get("role")
+                            )
+                    elif custom_template.get("sentiment", None) and not custom_template.get("role", None):
+                        if self.language == "CH":
+                            full_custom_template = "您是個{}的聊天機器人".format(
+                                custom_template.get("sentiment"))
+                        else:
+                            full_custom_template = "You are a {} chatbot".format(
+                                custom_template.get("sentiment"))
+
+                    else:
+                        if self.language == "CH":
+                            full_custom_template = "您是個又細心又貼心的{}".format(
+                                custom_template.get("role"))
+                        else:
+                            full_custom_template = "You are a kind and thorough {}".format(
+                                custom_template.get("role"))
+
+            return full_custom_template
+
     def search_gpt(self, gpt_obj: QueryVendorSessionFile) -> str:
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
@@ -598,13 +644,7 @@ You ABSOLUTELY CANNOT make up any answers yourself!"""
             # TODO:
             # Write out logic for how the templates are implemented
             # TODO:
-            full_custom_template = ""
-            if custom_template is not None and isinstance(custom_template, dict):
-                if custom_template.get("template", None):
-                    if custom_template.get("sentiment", None) \
-                            and custom_template.get("role", None):
-                        full_custom_template = custom_template["template"].replace(
-                            "{sentiment}", custom_template["sentiment"]).replace("{role}", custom_template["role"])
+            full_custom_template = self.assemble_template(custom_template)
 
             if full_custom_template:
                 sentiment += "\n" + "-"*20 + "\n" + "USER INSTRUCTIONS:\n" + full_custom_template
@@ -708,14 +748,6 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             self.logger.error()
             raise self.logger
         else:
-            # Either it exists OR just starts with 'info' or BOTH
-            try:
-                validate_template_object(template_obj)
-            except Exception as err:
-                self.logger.msg = "Unable to validate template object!"
-                self.logger.error(extra_msg=str(err), orgErr=err)
-                raise self.logger from err
-
             # It starts with 'info' and exists
             if full_index.startswith("info") and self.indices.exists(index=full_index).body:
                 self.indices.put_mapping(index=full_index, meta={
