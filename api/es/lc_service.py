@@ -317,12 +317,12 @@ class LingtelliElastic2(Elasticsearch):
             full_index = [
                 "_".join(["template", vendor_id]),
                 "_".join(["info", vendor_id, "*"])
-                ]
+            ]
 
         if not self.indices.exists(
-            index=full_index,
-            allow_no_indices=True,
-            ignore_unavailable=True).body:
+                index=full_index,
+                allow_no_indices=True,
+                ignore_unavailable=True).body:
             self.logger.msg = "Index does NOT exist!"
             self.logger.error(extra_msg="Index [%s]" % (
                 Fore.RED + full_index + Fore.RESET))
@@ -485,7 +485,20 @@ class LingtelliElastic2(Elasticsearch):
                 gpt_obj.vendor_id, gpt_obj.file)
         except ElasticError as err:
             err.warning()
-            custom_template = None
+            if self.language == "CH":
+                custom_template = {
+                    "template": "您是一位{sentiment}的{role}。回答時，您能以要點一個一個列出來的話，您就以要\
+                    顯示。不過，若做成幾個要點一例一例地顯示較不適合的話，請以原始的方式顯示答案。",
+                    "role": "銷售人員",
+                    "sentiment": "開心得很、非常樂於細心的解釋"
+                }
+            else:
+                custom_template = {
+                    "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
+your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't.",
+                    "role": "salesman",
+                    "sentiment": "very happy and enjoys to provide detailed explanations"
+                }
         except Exception:
             custom_template = None
         # except Exception as err:
@@ -553,18 +566,22 @@ in a way that most people, even younger adults with \
 limited knowledge within the current topic, can understand. \
 If you can't find the answer within the information \
 provided or from our chat history, respond that you simply don't know.\
-You ABSOLUTELY CANNOT make up any answers yourself!"""
-
+You ABSOLUTELY CANNOT make up any answers yourself!\n
+{}"""
 
             # TODO:
             # Write out logic for how the templates are implemented
             # TODO:
+            full_custom_template = ""
             if custom_template is not None and isinstance(custom_template, dict):
                 if custom_template.get("template", None):
                     if custom_template.get("sentiment", None) \
                             and custom_template.get("role", None):
-                        pass
+                        full_custom_template = custom_template["template"].replace(
+                            "{sentiment}", custom_template["sentiment"]).replace("{role}", custom_template["role"])
 
+            if full_custom_template:
+                sentiment += "\n" + "-"*20 + "\n" + full_custom_template
 
             answer_instructions = """\
 ANSWER INSTRUCTIONS:
@@ -610,9 +627,10 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + gpt_obj.vendor_id + Fore.RESET
         self.logger.msg += "\n".join([
-            Fore.LIGHTBLUE_EX + f"History #{i}: " + Fore.RESET + f"{message.content}"
+            Fore.LIGHTBLUE_EX + f"History #{i}: " +
+            Fore.RESET + f"{message.content}"
             for i, message in memory.chat_memory.messages
-            ]) 
+        ])
 
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results)
