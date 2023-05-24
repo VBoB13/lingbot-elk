@@ -331,6 +331,9 @@ class LingtelliElastic2(Elasticsearch):
         mappings: dict[str, str] = self.indices.get_mapping(
             index=full_index).body
 
+        self.logger.msg = "ALL index mappings:"
+        self.logger.info(extra_msg=str(mappings))
+
         plausible_mappings = {}
         for index in mappings:
             if mappings.get(index).get('mappings', None) and \
