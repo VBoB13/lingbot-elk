@@ -504,7 +504,9 @@ your answer as a bullet point list, please do so. If it seems unnatural to do so
                     "role": "salesman",
                     "sentiment": "very happy and enjoys to provide detailed explanations"
                 }
-        except Exception:
+        except Exception as err:
+            self.logger.msg = "Something went wrong when trying to load custom template(s)!"
+            self.logger.warning(extra_msg=str(err))
             custom_template = None
         # except Exception as err:
         #     self.logger.msg = "Unknown error occurred when trying to load custom template!"
