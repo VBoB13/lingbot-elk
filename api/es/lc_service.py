@@ -337,7 +337,8 @@ class LingtelliElastic2(Elasticsearch):
                     mappings.get(index).get('mappings', None).get('_meta', None):
                 index_mapping = mappings.get(
                     index).get('mappings').get('_meta')
-                plausible_mappings.update({index: index_mapping})
+                if "template" in index_mapping and "sentiment" in index_mapping and "role" in index_mapping:
+                    plausible_mappings.update({index: index_mapping})
 
         if full_index in plausible_mappings:
             return plausible_mappings[full_index]
