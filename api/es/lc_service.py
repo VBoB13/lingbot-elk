@@ -628,9 +628,9 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + gpt_obj.vendor_id + Fore.RESET
         self.logger.msg += "\n".join([
-            Fore.LIGHTBLUE_EX + f"History #{i}: " +
-            Fore.RESET + f"{message[1]}"
-            for i, message in memory.chat_memory.messages
+            Fore.LIGHTBLUE_EX + f"History #{i+1}: " +
+            Fore.RESET + f"{message[0]}"
+            for i, message in enumerate(memory.chat_memory.messages)
         ])
 
         memory.chat_memory.add_user_message(gpt_obj.query)
