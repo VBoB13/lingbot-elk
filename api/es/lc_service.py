@@ -593,8 +593,7 @@ in a way that most people, even younger adults with \
 limited knowledge within the current topic, can understand. \
 If you can't find the answer within the information \
 provided or from our chat history, respond that you simply don't know.\
-You ABSOLUTELY CANNOT make up any answers yourself!\n
-{}"""
+You ABSOLUTELY CANNOT make up any answers yourself!"""
 
             # TODO:
             # Write out logic for how the templates are implemented
@@ -608,7 +607,7 @@ You ABSOLUTELY CANNOT make up any answers yourself!\n
                             "{sentiment}", custom_template["sentiment"]).replace("{role}", custom_template["role"])
 
             if full_custom_template:
-                sentiment += "\n" + "-"*20 + "\n" + full_custom_template
+                sentiment += "\n" + "-"*20 + "\n" + "USER INSTRUCTIONS:\n" + full_custom_template
 
             answer_instructions = """\
 ANSWER INSTRUCTIONS:
@@ -627,9 +626,11 @@ wording needed."""
             last_instruction = """{}\nBegin!"""
 
             if self.language == "CH":
-                last_instruction.format(
+                last_instruction = last_instruction.format(
                     "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
 E.g. if your answer would have been 'Yes.', it should now be '是的'.")
+            else:
+                last_instruction = last_instruction.replace("{}", "")
 
             init_prompt = "\n--------------------\n".join([
                 instructions,
