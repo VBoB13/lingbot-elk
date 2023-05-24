@@ -592,7 +592,7 @@ While flow of the conversation is your top priority, you should also reply \
 in a way that most people, even younger adults with \
 limited knowledge within the current topic, can understand. \
 If you can't find the answer within the information \
-provided or from our chat history, respond that you simply don't know.\
+provided or from our chat history, respond that you simply don't know. \
 You ABSOLUTELY CANNOT make up any answers yourself!"""
 
             # TODO:
