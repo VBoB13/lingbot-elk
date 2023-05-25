@@ -693,7 +693,9 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + \
             gpt_obj.vendor_id + Fore.RESET + "\n"
         self.logger.msg += "\n".join([
-            Fore.LIGHTBLUE_EX + f"History #{i+1}: " +
+            Fore.BLUE + f"History #{i+1} Human: " +
+            Fore.RESET + f"{message.content}" if i % 2 == 0 else
+            Fore.GREEN + f"History #{i+1} AI: " +
             Fore.RESET + f"{message.content}"
             for i, message in enumerate(memory.chat_memory.messages)
         ])
@@ -710,7 +712,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 "timestamp": timestamp
             }
         )
-        self.logger.msg += "\n" + Fore.LIGHTCYAN_EX + \
+        self.logger.msg += "\n" + Fore.LIGHTBLUE_EX + \
             "Question: " + Fore.RESET + gpt_obj.query
         self.logger.msg += "\n" + Fore.LIGHTGREEN_EX + \
             "Answer: " + Fore.RESET + results
