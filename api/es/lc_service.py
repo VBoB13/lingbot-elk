@@ -647,7 +647,7 @@ limited knowledge within the current topic, can understand. \
 If you can't find the answer within the information \
 provided or from our chat history, respond that you simply don't know. \
 You ABSOLUTELY CANNOT make up any answers yourself! \
-To do so, here is some information extracted from the user's own \
+Here is some information extracted from the user's own \
 uploaded data and it is hopefully related to the upcoming question:
 
 {}""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
