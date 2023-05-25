@@ -431,19 +431,17 @@ class LingtelliElastic2(Elasticsearch):
         else:
             indices.append("template_"+vendor_id)
 
-        try:
-            # Delete indices
-            self.indices.delete(
-                index=indices
-            )
-        except Exception as err:
-            self.logger.msg = "Could NOT delete index/indices!"
-            self.logger.error(
-                extra_msg="Could NOT delete at least ONE of the following indices: %s" % str(indices), orgErr=err)
-        else:
-            self.logger.msg = Fore.LIGHTGREEN_EX + \
-                "Successfully " + Fore.RESET + "deleted indices!"
-            self.logger.info(extra_msg="Indices: %s" % str(indices))
+        for index in indices:
+            try:
+                self.indices.delete(index=index)
+            except Exception:
+                self.logger.msg = "Could NOT delete index/indices!"
+                self.logger.warning(
+                    extra_msg="Could NOT delete the following index: %s" % str(index))
+
+        self.logger.msg = Fore.LIGHTGREEN_EX + \
+            "Successfully " + Fore.RESET + "deleted indices!"
+        self.logger.info(extra_msg="Indices: %s" % str(indices))
 
     def delete_template(self, template_obj: VendorFile) -> None:
         """
