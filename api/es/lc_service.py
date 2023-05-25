@@ -422,8 +422,15 @@ class LingtelliElastic2(Elasticsearch):
             for index in mappings:
                 indices.append(index)
 
-        if self.indices.exists(index="template_"+vendor_id).body:
+        # Raises error if not exists
+        try:
+            if not file:
+                self.indices.exists(index="template_"+vendor_id)
+        except Exception as err:
+            pass
+        else:
             indices.append("template_"+vendor_id)
+
         try:
             # Delete indices
             self.indices.delete(
