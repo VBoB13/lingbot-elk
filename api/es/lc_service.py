@@ -697,7 +697,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         finish_time = (finish_timestamp - now).seconds
 
         self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + \
-            gpt_obj.vendor_id + Fore.RESET + "\n"
+            gpt_obj.vendor_id + Fore.RESET
         self.logger.msg += "".join([
             Fore.BLUE + f"\nHistory #{i+1} Human: " +
             Fore.RESET + f"{message.content}" if i % 2 == 0 else
