@@ -205,6 +205,7 @@ Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
                             "role": ""
                         }}
                     )
+                    client.indices.refresh(index=template_index)
                     self.logger.msg = "Added index: [%s]" % (
                         Fore.LIGHTYELLOW_EX + template_index + Fore.RESET)
                     self.logger.info()
