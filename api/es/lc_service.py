@@ -193,6 +193,20 @@ Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
                         meta={"description": summary}
                     )
 
+                template_index = "_".join(["template", self.index])
+                if not client.indices.exists(template_index).body:
+                    client.indices.create(
+                        index=template_index,
+                        mappings={"_meta": {
+                            "template": "",
+                            "sentiment": "",
+                            "role": ""
+                        }}
+                    )
+                    self.logger.msg = "Added index: [%s]" % (
+                        Fore.LIGHTYELLOW_EX + template_index + Fore.RESET)
+                    self.logger.info()
+
 
 class QAInput(BaseModel):
     question: str = Field()
