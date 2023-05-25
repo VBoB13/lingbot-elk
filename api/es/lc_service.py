@@ -372,25 +372,25 @@ class LingtelliElastic2(Elasticsearch):
             if full_index in plausible_mappings:
                 self.logger.msg = "Found template for [%s]!" % (
                     Fore.LIGHTCYAN_EX + full_index + Fore.RESET)
-                self.logger.info(extra_msg="Template setup: %s" %
-                                 str(plausible_mappings[full_index]))
+                self.logger.info()
                 return plausible_mappings[full_index]
         else:
             for index in full_index:
                 if index.startswith("info") and index in plausible_mappings:
                     self.logger.msg = "Found template for [%s]!" % (
                         Fore.LIGHTCYAN_EX + index + Fore.RESET)
-                    self.logger.info(extra_msg="Template setup: %s" %
-                                     str(plausible_mappings[index]))
+                    self.logger.info()
                     return plausible_mappings[index]
             else:
                 for index in full_index:
                     if index.startswith("template") and index in plausible_mappings:
                         self.logger.msg = "Found template for [%s]!" % (
                             Fore.LIGHTCYAN_EX + index + Fore.RESET)
-                        self.logger.info(extra_msg="Template setup: %s" %
-                                         str(plausible_mappings[index]))
+                        self.logger.info()
                         return plausible_mappings[index]
+
+        if isinstance(full_index, list):
+            full_index = ", ".join([index for index in full_index])
 
         self.logger.msg = "Could not get mappings for index [%s]!" % (
             Fore.RED + full_index + Fore.RESET)
