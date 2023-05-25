@@ -194,7 +194,9 @@ Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
                     )
 
                 template_index = "_".join(["template", self.index])
-                if not client.indices.exists(template_index).body:
+                try:
+                    client.indices.exists(template_index).body
+                except Exception:
                     client.indices.create(
                         index=template_index,
                         mappings={"_meta": {
@@ -204,6 +206,10 @@ Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
                         }}
                     )
                     self.logger.msg = "Added index: [%s]" % (
+                        Fore.LIGHTYELLOW_EX + template_index + Fore.RESET)
+                    self.logger.info()
+                else:
+                    self.logger.msg = "Index already exists: [%s]" % (
                         Fore.LIGHTYELLOW_EX + template_index + Fore.RESET)
                     self.logger.info()
 
