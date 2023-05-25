@@ -640,42 +640,23 @@ Then, your final "action_input" should be: "這是最終答案"\
             instructions = """\
 SETUP:
 You are a helpful assistant that tries its best to answer a users' \
-questions about a wide range of topics in {}. To do so, \
-here is some information extracted from the user's own uploaded data and \
-it is hopefully related to the upcoming question:
-
-{}""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
-
-            sentiment = """\
-SENTIMENT:
+questions about a wide range of topics in {}. \
 While flow of the conversation is your top priority, you should also reply \
 in a way that most people, even younger adults with \
 limited knowledge within the current topic, can understand. \
 If you can't find the answer within the information \
 provided or from our chat history, respond that you simply don't know. \
-You ABSOLUTELY CANNOT make up any answers yourself!"""
+You ABSOLUTELY CANNOT make up any answers yourself! \
+To do so, here is some information extracted from the user's own \
+uploaded data and it is hopefully related to the upcoming question:
 
-            # TODO:
-            # Write out logic for how the templates are implemented
-            # TODO:
+{}""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
+
             full_custom_template = self.assemble_template(custom_template)
 
             if full_custom_template:
-                sentiment += "\n" + "-"*20 + "\n" + "USER INSTRUCTIONS:\n" + full_custom_template
-
-            answer_instructions = """\
-ANSWER INSTRUCTIONS:
-When answering the user's question, there's no need to mention anything about 
-the origins of the answer or any other prefixing statements. For example, if 
-your answer would be something like: \
-"According to the information you provided, there are 2 people who know Bob."
-Then, the final answer you respond with should only be: \
-"There are 2 people who know Bob." Same logic for chat history; if you \
-notice that you have previously provided a correct answer to the current \
-question, then instead of saying \
-"According to our past conversation, there are 2 people who know Bob.", you \
-should just answer with "There are 2 people who know Bob.". No additional \
-wording needed."""
+                instructions += "\n\n" + "-"*20 + "\n" + \
+                    "USER INSTRUCTIONS:\n" + full_custom_template
 
             last_instruction = """{}\nBegin!"""
 
@@ -684,12 +665,10 @@ wording needed."""
                     "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
 E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             else:
-                last_instruction = last_instruction.replace("{}", "")
+                last_instruction = last_instruction.format("")
 
             init_prompt = "\n--------------------\n".join([
                 instructions,
-                sentiment,
-                # answer_instructions,
                 last_instruction
             ])
 
