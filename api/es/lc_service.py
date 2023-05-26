@@ -339,14 +339,29 @@ class LingtelliElastic2(Elasticsearch):
                 "_".join(["info", vendor_id, "*"])
             ]
 
-        if not self.indices.exists(
-                index=full_index,
-                allow_no_indices=True,
-                ignore_unavailable=True).body:
-            self.logger.msg = "Index does NOT exist!"
-            self.logger.error(extra_msg="Index [%s]" % (
-                Fore.RED + full_index + Fore.RESET))
-            raise self.logger
+        if isinstance(full_index, list):
+            for index in full_index:
+                try:
+                    self.indices.exists(
+                        index=index,
+                        allow_no_indices=True,
+                        ignore_unavailable=True)
+                except Exception as err:
+                    self.logger.msg = "Index [%s] does NOT exist!" % (
+                        Fore.RED + index + Fore.RESET)
+                    self.logger.error(extra_msg=str(err))
+                    raise self.logger from err
+        else:
+            try:
+                self.indices.exists(
+                    index=full_index,
+                    allow_no_indices=True,
+                    ignore_unavailable=True)
+            except Exception as err:
+                self.logger.msg = "Index [%s] does NOT exist!" % (
+                    Fore.RED + full_index + Fore.RESET)
+                self.logger.error(extra_msg=str(err))
+                raise self.logger from err
 
         mappings: dict[str, str] = self.indices.get_mapping(
             index=full_index).body
