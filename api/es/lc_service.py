@@ -596,24 +596,15 @@ class LingtelliElastic2(Elasticsearch):
                 gpt_obj.vendor_id, gpt_obj.file)
         except ElasticError as err:
             err.warning()
-            if self.language == "CH":
-                custom_template = {
-                    "template": "您是一位{sentiment}的{role}。回答時，您能以要點一個一個列出來的話，您就以要\
-顯示。不過，若做成幾個要點一例一例地顯示較不適合的話，請以原始的方式顯示答案。回答時只能從提供的資料之內取出答案；\
-不可以從自己知識回答使用者的問題！提供的資料內無法找到答案的話，請回答「無法找到答案」之類的。",
-                    "role": "銷售人員",
-                    "sentiment": "開心得很、非常樂於細心的解釋"
-                }
-            else:
-                custom_template = {
-                    "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
+            custom_template = {
+                "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
 your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
 reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
 on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
 that you don't know.",
-                    "role": "salesman",
-                    "sentiment": "very happy and enjoys to provide detailed explanations"
-                }
+                "role": "salesman",
+                "sentiment": "very happy and enjoys to provide detailed explanations"
+            }
         except Exception as err:
             self.logger.msg = "Something went wrong when trying to load custom template(s)!"
             self.logger.error(extra_msg=str(err))
@@ -671,16 +662,17 @@ Then, your final "action_input" should be: "這是最終答案"\
 SETUP:
 You are a helpful assistant that tries its best to answer a users' \
 questions about a wide range of topics in {}. \
-While flow of the conversation is your top priority, you should also reply \
-in a way that most people, even younger adults with \
-limited knowledge within the current topic, can understand. \
-If you can't find the answer within the information \
-provided or from our chat history, respond that you simply don't know. \
+You should also reply in a way that even people with \
+limited knowledge within the current topic can understand. \
 You ABSOLUTELY CANNOT make up any answers yourself! \
 Here is some information extracted from the user's own \
 uploaded data and it is hopefully related to the upcoming question:
 
-{}""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
+{}
+
+If you can't find the answer within the information \
+provided or from our conversation, respond that you simply don't know.\
+""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
 
             full_custom_template = self.assemble_template(custom_template)
 
