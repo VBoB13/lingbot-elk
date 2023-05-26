@@ -547,33 +547,33 @@ class LingtelliElastic2(Elasticsearch):
                         and custom_template.get("role", None):
                     full_custom_template = custom_template["template"].replace(
                         "{sentiment}", custom_template["sentiment"]).replace("{role}", custom_template["role"])
-                else:
-                    if custom_template.get("sentiment", None) and custom_template.get("role", None):
-                        if self.language == "CH":
-                            full_custom_template = "您是個{}的{}".format(
-                                custom_template.get("sentiment"),
-                                custom_template.get("role")
-                            )
-                        else:
-                            full_custom_template = "You are a {} {}.".format(
-                                custom_template.get("sentiment"),
-                                custom_template.get("role")
-                            )
-                    elif custom_template.get("sentiment", None) and not custom_template.get("role", None):
-                        if self.language == "CH":
-                            full_custom_template = "您是個{}的聊天機器人".format(
-                                custom_template.get("sentiment"))
-                        else:
-                            full_custom_template = "You are a {} chatbot".format(
-                                custom_template.get("sentiment"))
-
+            else:
+                if custom_template.get("sentiment", None) and custom_template.get("role", None):
+                    if self.language == "CH":
+                        full_custom_template = "您是個{}的{}".format(
+                            custom_template.get("sentiment"),
+                            custom_template.get("role")
+                        )
                     else:
-                        if self.language == "CH":
-                            full_custom_template = "您是個又細心又貼心的{}".format(
-                                custom_template.get("role"))
-                        else:
-                            full_custom_template = "You are a kind and thorough {}".format(
-                                custom_template.get("role"))
+                        full_custom_template = "You are a {} {}.".format(
+                            custom_template.get("sentiment"),
+                            custom_template.get("role")
+                        )
+                elif custom_template.get("sentiment", None) and not custom_template.get("role", None):
+                    if self.language == "CH":
+                        full_custom_template = "您是個{}的聊天機器人".format(
+                            custom_template.get("sentiment"))
+                    else:
+                        full_custom_template = "You are a {} chatbot".format(
+                            custom_template.get("sentiment"))
+
+                else:
+                    if self.language == "CH":
+                        full_custom_template = "您是個又細心又貼心的{}".format(
+                            custom_template.get("role"))
+                    else:
+                        full_custom_template = "You are a kind and thorough {}".format(
+                            custom_template.get("role"))
 
             return full_custom_template
 
@@ -599,7 +599,7 @@ class LingtelliElastic2(Elasticsearch):
             if self.language == "CH":
                 custom_template = {
                     "template": "您是一位{sentiment}的{role}。回答時，您能以要點一個一個列出來的話，您就以要\
-                    顯示。不過，若做成幾個要點一例一例地顯示較不適合的話，請以原始的方式顯示答案。",
+顯示。不過，若做成幾個要點一例一例地顯示較不適合的話，請以原始的方式顯示答案。",
                     "role": "銷售人員",
                     "sentiment": "開心得很、非常樂於細心的解釋"
                 }
