@@ -242,7 +242,7 @@ class LingtelliElastic2(Elasticsearch):
 """
 
     def __init__(self):
-        self.logger = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
+        self.logger: ElasticError = ElasticError(__file__, self.__class__.__name__, msg="Initializing Elasticsearch client at: {}:{}".format(
             self.settings.elastic_server, str(self.settings.elastic_port)))
         try:
             super().__init__([{"scheme": "http", "host": self.settings.elastic_server, "port": self.settings.elastic_port}],
