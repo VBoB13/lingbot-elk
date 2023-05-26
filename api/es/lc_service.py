@@ -146,7 +146,7 @@ Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
 
         except Exception as e:
             self.logger.msg = f"Could not load the {Fore.LIGHTYELLOW_EX + self.filetype + Fore.RESET} file!"
-            self.logger.error(extra_msg=f"Reason: {str(e)}")
+            self.logger.error(extra_msg=f"Reason: {str(e)}", orgErr=e)
             raise self.logger from e
         else:
             full_text = ""
