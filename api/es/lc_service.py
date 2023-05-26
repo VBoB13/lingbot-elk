@@ -599,14 +599,18 @@ class LingtelliElastic2(Elasticsearch):
             if self.language == "CH":
                 custom_template = {
                     "template": "您是一位{sentiment}的{role}。回答時，您能以要點一個一個列出來的話，您就以要\
-顯示。不過，若做成幾個要點一例一例地顯示較不適合的話，請以原始的方式顯示答案。",
+顯示。不過，若做成幾個要點一例一例地顯示較不適合的話，請以原始的方式顯示答案。回答時只能從提供的資料之內取出答案；\
+不可以從自己知識回答使用者的問題！提供的資料內無法找到答案的話，請回答「無法找到答案」之類的。",
                     "role": "銷售人員",
                     "sentiment": "開心得很、非常樂於細心的解釋"
                 }
             else:
                 custom_template = {
                     "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
-your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't.",
+your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
+reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
+on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
+that you don't know.",
                     "role": "salesman",
                     "sentiment": "very happy and enjoys to provide detailed explanations"
                 }
