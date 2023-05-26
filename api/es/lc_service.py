@@ -672,7 +672,8 @@ uploaded data and it is hopefully related to the upcoming question:
 
 If you can't find the answer within the information \
 provided or from our conversation, respond that you simply don't know.\
-""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
+If you insist on including information from the internet, you have to provide \
+an ACTUAL URL link for that source.""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
 
             full_custom_template = self.assemble_template(custom_template)
 
