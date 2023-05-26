@@ -910,7 +910,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             OpenAIEmbeddings()
         )
         return "\n".join([doc.page_content for doc in vectorstore.similarity_search(
-            query_obj.query, k=3)])
+            query_obj.query, k=4)])
 
     def embed_search_with_sources(self, query_obj: VendorFileQuery) -> tuple[list[str], float]:
         """
