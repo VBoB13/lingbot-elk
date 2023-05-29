@@ -549,8 +549,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         if file:
             if "/" in file:
                 file = os.path.split(file)[1]
-            file_name_and_type = file.split(".")
-            filename, filetype = file_name_and_type[0], file_name_and_type[1]
+            filename, filetype = convert_file_to_index(file)
             # Add first essential index
             indices.append("_".join(["info", vendor_id, filename, filetype]))
         else:
