@@ -454,11 +454,11 @@ that you don't know.",
         else:
             instructions = """\
 SETUP:
-You are a helpful assistant that tries its best to answer a users' \
+You are an assistant that tries to answer a users' \
 questions about a wide range of topics in {}. \
-You should also reply in a way that even people with \
-limited knowledge within the current topic can understand. \
 You ABSOLUTELY CANNOT make up any answers yourself! \
+Note that the user may provide extra instructions below that \
+describes how you should provide that answer, such as attitude etc. \
 Here is some information extracted from the user's own \
 uploaded data and it is hopefully related to the upcoming question:
 
