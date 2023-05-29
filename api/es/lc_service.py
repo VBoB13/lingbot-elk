@@ -410,6 +410,186 @@ class LingtelliElastic2(Elasticsearch):
             extra_msg="Indices that were included - [%s]" % (", ".join([str(Fore.RED + index + Fore.RESET) for index in plausible_mappings])))
         raise self.logger
 
+    def answer_agent(self, vendor_id: str, query: str, memory: ConversationBufferWindowMemory) -> str:
+        """
+        Utilize agent to get answer to user's question.
+        """
+        tools = self.generate_index_tools(vendor_id)
+
+        results = ""
+
+        suffix = """Begin! Reminder to always use the exact characters `Final Answer` when responding.
+{language_instruction}"""
+
+        if self.language == "CH":
+            suffix = suffix.replace("{language_instruction}", """\
+Lastly, you MUST provide value of the "action_input" in Traditional Chinese \
+as spoken and written in Taiwan: 繁體中文(ZH_TW).
+For example, if this was going to be the answer within "action_input": "This is the final answer."
+Then, your final "action_input" should be: "這是最終答案"\
+""")
+        else:
+            suffix = suffix.replace("{language_instruction}", "")
+
+        parser = LingtelliOutputParser()
+
+        agent = initialize_agent(
+            tools=tools,
+            memory=memory,
+            llm=ChatOpenAI(temperature=0, max_tokens=500, max_retries=2),
+            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+            agent_kwargs={"suffix": suffix},
+            verbose=True
+        )
+
+        try:
+            results = agent.run({"input": query})
+        except Exception as err:
+            self.logger.msg = "Could NOT get an answer from agent..."
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+
+        return results
+
+    def answer_gpt(self, gpt_obj: QueryVendorSessionFile, memory: ConversationBufferWindowMemory) -> str:
+        """
+        Method using GPT to directly get answers based solely on a one-shot prompt with source documents.
+        """
+        try:
+            custom_template = self._load_template(
+                gpt_obj.vendor_id, gpt_obj.file)
+        except ElasticError as err:
+            err.warning()
+            custom_template = {
+                "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
+your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
+reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
+on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
+that you don't know.",
+                "role": "salesman",
+                "sentiment": "very happy and enjoys to provide detailed explanations"
+            }
+        except Exception as err:
+            self.logger.msg = "Something went wrong when trying to load custom template(s)!"
+            self.logger.error(extra_msg=str(err))
+            custom_template = None
+        # except Exception as err:
+        #     self.logger.msg = "Unknown error occurred when trying to load custom template!"
+        #     self.logger.error(extra_msg=str(err), orgErr=err)
+        #     raise self.logger from err
+
+        try:
+            source_text = self.embed_search_w_sources(gpt_obj)
+        except Exception as err:
+            self.logger.msg = "Could NOT fetch source documents!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+        else:
+            instructions = """\
+SETUP:
+You are a helpful assistant that tries its best to answer a users' \
+questions about a wide range of topics in {}. \
+You should also reply in a way that even people with \
+limited knowledge within the current topic can understand. \
+You ABSOLUTELY CANNOT make up any answers yourself! \
+Here is some information extracted from the user's own \
+uploaded data and it is hopefully related to the upcoming question:
+
+{}
+
+If you can't find the answer within the information \
+provided or from our conversation, respond that you simply don't know.\
+If you insist on including information from the internet, you have to provide \
+an ACTUAL URL link for that source.""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
+
+            full_custom_template = self.assemble_template(custom_template)
+
+            if full_custom_template:
+                instructions += "\n\n" + "-"*20 + "\n" + \
+                    "USER INSTRUCTIONS:\n" + full_custom_template
+
+            last_instruction = """{}\nBegin!"""
+
+            if self.language == "CH":
+                last_instruction = last_instruction.format(
+                    "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
+E.g. if your answer would have been 'Yes.', it should now be '是的'.")
+            else:
+                last_instruction = last_instruction.format("")
+
+            init_prompt = "\n--------------------\n".join([
+                instructions,
+                last_instruction
+            ])
+
+            self.logger.msg = "Whole system message: %s" % (
+                Fore.LIGHTMAGENTA_EX + "\n" + init_prompt + Fore.RESET)
+            self.logger.info()
+
+            llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
+            all_messages = [SystemMessage(content=init_prompt)]
+
+            for message in memory.chat_memory.messages:
+                all_messages.append(message)
+
+            all_messages.append(HumanMessage(
+                content="Question: {}".format(gpt_obj.query)))
+            results = llm.generate([all_messages]).generations[0][0].text
+
+        self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + \
+            gpt_obj.vendor_id + Fore.RESET
+        self.logger.msg += "".join([
+            Fore.BLUE + f"\nHistory #{i+1} Human: " +
+            Fore.RESET + f"{message.content}" if i % 2 == 0 else
+            Fore.GREEN + f"\nHistory #{i+1} AI: " +
+            Fore.RESET + f"{message.content}"
+            for i, message in enumerate(memory.chat_memory.messages)
+        ])
+
+        return results
+
+    def assemble_template(self, custom_template: dict[str, str]) -> str:
+        """
+        Method for actually making sure that custom templates are puzzled together into a string.
+        """
+        full_custom_template = ""
+        if custom_template is not None and isinstance(custom_template, dict):
+            if custom_template.get("template", None):
+                if custom_template.get("sentiment", None) \
+                        and custom_template.get("role", None):
+                    full_custom_template = custom_template["template"].replace(
+                        "{sentiment}", custom_template["sentiment"]).replace("{role}", custom_template["role"])
+            else:
+                if custom_template.get("sentiment", None) and custom_template.get("role", None):
+                    if self.language == "CH":
+                        full_custom_template = "您是個{}的{}".format(
+                            custom_template.get("sentiment"),
+                            custom_template.get("role")
+                        )
+                    else:
+                        full_custom_template = "You are a {} {}.".format(
+                            custom_template.get("sentiment"),
+                            custom_template.get("role")
+                        )
+                elif custom_template.get("sentiment", None) and not custom_template.get("role", None):
+                    if self.language == "CH":
+                        full_custom_template = "您是個{}的聊天機器人".format(
+                            custom_template.get("sentiment"))
+                    else:
+                        full_custom_template = "You are a {} chatbot".format(
+                            custom_template.get("sentiment"))
+
+                else:
+                    if self.language == "CH":
+                        full_custom_template = "您是個又細心又貼心的{}".format(
+                            custom_template.get("role"))
+                    else:
+                        full_custom_template = "You are a kind and thorough {}".format(
+                            custom_template.get("role"))
+
+            return full_custom_template
+        return
+
     def delete_bot(self, vendor_id: str, file: str, session: str = None):
         indices = []
         if file:
@@ -533,47 +713,6 @@ class LingtelliElastic2(Elasticsearch):
 
         return tools
 
-    def assemble_template(self, custom_template: dict[str, str]) -> str:
-        """
-        Method for actually making sure that custom templates are puzzled together into a string.
-        """
-        full_custom_template = ""
-        if custom_template is not None and isinstance(custom_template, dict):
-            if custom_template.get("template", None):
-                if custom_template.get("sentiment", None) \
-                        and custom_template.get("role", None):
-                    full_custom_template = custom_template["template"].replace(
-                        "{sentiment}", custom_template["sentiment"]).replace("{role}", custom_template["role"])
-            else:
-                if custom_template.get("sentiment", None) and custom_template.get("role", None):
-                    if self.language == "CH":
-                        full_custom_template = "您是個{}的{}".format(
-                            custom_template.get("sentiment"),
-                            custom_template.get("role")
-                        )
-                    else:
-                        full_custom_template = "You are a {} {}.".format(
-                            custom_template.get("sentiment"),
-                            custom_template.get("role")
-                        )
-                elif custom_template.get("sentiment", None) and not custom_template.get("role", None):
-                    if self.language == "CH":
-                        full_custom_template = "您是個{}的聊天機器人".format(
-                            custom_template.get("sentiment"))
-                    else:
-                        full_custom_template = "You are a {} chatbot".format(
-                            custom_template.get("sentiment"))
-
-                else:
-                    if self.language == "CH":
-                        full_custom_template = "您是個又細心又貼心的{}".format(
-                            custom_template.get("role"))
-                    else:
-                        full_custom_template = "You are a kind and thorough {}".format(
-                            custom_template.get("role"))
-
-            return full_custom_template
-
     def search_gpt(self, gpt_obj: QueryVendorSessionFile) -> str:
         """
         Method that searches for context, provides that context to GPT and asks the model for answer.
@@ -588,137 +727,15 @@ class LingtelliElastic2(Elasticsearch):
         memory = self._load_memory(
             gpt_obj.vendor_id, gpt_obj.session)
 
-        try:
-            custom_template = self._load_template(
-                gpt_obj.vendor_id, gpt_obj.file)
-        except ElasticError as err:
-            err.warning()
-            custom_template = {
-                "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
-your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
-reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
-on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
-that you don't know.",
-                "role": "salesman",
-                "sentiment": "very happy and enjoys to provide detailed explanations"
-            }
-        except Exception as err:
-            self.logger.msg = "Something went wrong when trying to load custom template(s)!"
-            self.logger.error(extra_msg=str(err))
-            custom_template = None
-        # except Exception as err:
-        #     self.logger.msg = "Unknown error occurred when trying to load custom template!"
-        #     self.logger.error(extra_msg=str(err), orgErr=err)
-        #     raise self.logger from err
-
-        tools = self.generate_index_tools(gpt_obj.vendor_id)
-
         results = ""
-
-        suffix = """Begin! Reminder to always use the exact characters `Final Answer` when responding.
-{language_instruction}"""
-
-        if self.language == "CH":
-            suffix = suffix.replace("{language_instruction}", """\
-Lastly, you MUST provide value of the "action_input" in Traditional Chinese \
-as spoken and written in Taiwan: 繁體中文(ZH_TW).
-For example, if this was going to be the answer within "action_input": "This is the final answer."
-Then, your final "action_input" should be: "這是最終答案"\
-""")
+        if gpt_obj.strict:
+            results = self.answer_agent(
+                gpt_obj.vendor_id, gpt_obj.query, memory)
         else:
-            suffix = suffix.replace("{language_instruction}", "")
+            results = self.answer_gpt(gpt_obj, memory)
 
-        parser = LingtelliOutputParser()
-
-        agent = initialize_agent(
-            tools=tools,
-            memory=memory,
-            llm=ChatOpenAI(temperature=0, max_tokens=500, max_retries=2),
-            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
-            agent_kwargs={"suffix": suffix},
-            verbose=True
-        )
-
-        try:
-            source_text = self.embed_search_w_sources(gpt_obj)
-        except ElasticError as err:
-            self.logger.msg = "Unable to semantically search and retrieve source material!"
-            self.logger.error(extra_msg=str(err), orgErr=err)
-            raise self.logger from err
-        except Exception as err:
-            self.logger.msg = "Could NOT fetch source documents! Trying agents instead..."
-            self.logger.error(extra_msg=str(err), orgErr=err)
-            try:
-                results = agent.run({"input": gpt_obj.query})
-            except Exception as err:
-                self.logger.msg = "Could NOT get an answer from agent..."
-                self.logger.error(extra_msg=str(err), orgErr=err)
-                raise self.logger from err
-        else:
-            instructions = """\
-SETUP:
-You are a helpful assistant that tries its best to answer a users' \
-questions about a wide range of topics in {}. \
-You should also reply in a way that even people with \
-limited knowledge within the current topic can understand. \
-You ABSOLUTELY CANNOT make up any answers yourself! \
-Here is some information extracted from the user's own \
-uploaded data and it is hopefully related to the upcoming question:
-
-{}
-
-If you can't find the answer within the information \
-provided or from our conversation, respond that you simply don't know.\
-If you insist on including information from the internet, you have to provide \
-an ACTUAL URL link for that source.""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
-
-            full_custom_template = self.assemble_template(custom_template)
-
-            if full_custom_template:
-                instructions += "\n\n" + "-"*20 + "\n" + \
-                    "USER INSTRUCTIONS:\n" + full_custom_template
-
-            last_instruction = """{}\nBegin!"""
-
-            if self.language == "CH":
-                last_instruction = last_instruction.format(
-                    "The answer should be provided in Traditional Chinese (繁體中文, zh_TW). \
-E.g. if your answer would have been 'Yes.', it should now be '是的'.")
-            else:
-                last_instruction = last_instruction.format("")
-
-            init_prompt = "\n--------------------\n".join([
-                instructions,
-                last_instruction
-            ])
-
-            self.logger.msg = "Whole system message: %s" % (
-                Fore.LIGHTMAGENTA_EX + "\n" + init_prompt + Fore.RESET)
-            self.logger.info()
-
-            llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
-            all_messages = [SystemMessage(content=init_prompt)]
-
-            for message in memory.chat_memory.messages:
-                all_messages.append(message)
-
-            all_messages.append(HumanMessage(
-                content="Question: {}".format(gpt_obj.query)))
-            results = llm.generate([all_messages]).generations[0][0].text
-        finally:
-            finish_timestamp = datetime.now().astimezone()
-
+        finish_timestamp = datetime.now().astimezone()
         finish_time = (finish_timestamp - now).seconds
-
-        self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + \
-            gpt_obj.vendor_id + Fore.RESET
-        self.logger.msg += "".join([
-            Fore.BLUE + f"\nHistory #{i+1} Human: " +
-            Fore.RESET + f"{message.content}" if i % 2 == 0 else
-            Fore.GREEN + f"\nHistory #{i+1} AI: " +
-            Fore.RESET + f"{message.content}"
-            for i, message in enumerate(memory.chat_memory.messages)
-        ])
 
         memory.chat_memory.add_user_message(gpt_obj.query)
         memory.chat_memory.add_ai_message(results)

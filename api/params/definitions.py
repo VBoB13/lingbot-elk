@@ -73,7 +73,7 @@ class QueryVendorSession(VendorSession):
 
 
 class QueryVendorSessionFile(VendorFileQuery, Session):
-    pass
+    strict: bool = False
 
 
 class VendorFileSession(VendorSession):
