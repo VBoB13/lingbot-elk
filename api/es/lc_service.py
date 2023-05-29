@@ -719,9 +719,19 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         results = ""
         if gpt_obj.strict:
-            results = self.answer_agent(
-                gpt_obj.vendor_id, gpt_obj.query, memory)
-            # Memory is handled by agent
+            try:
+                results = self.answer_agent(
+                    gpt_obj.vendor_id, gpt_obj.query, memory)
+                # Memory is handled by agent`
+            except Exception as err:
+                self.logger.msg = "Could NOT get an answer from LangChain agent!"
+                self.logger.error(extra_msg=str(err), orgErr=err)
+                self.logger.msg = "Trying to ask GPT directly instead..."
+                self.logger.warning()
+                results = self.answer_gpt(gpt_obj, memory)
+                # Only add to history manually if asking GPT directly
+                memory.chat_memory.add_user_message(gpt_obj.query)
+                memory.chat_memory.add_ai_message(results)
         else:
             results = self.answer_gpt(gpt_obj, memory)
             # Only add to history manually if asking GPT directly
