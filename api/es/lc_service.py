@@ -536,16 +536,6 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 content="Question: {}".format(gpt_obj.query)))
             results = llm.generate([all_messages]).generations[0][0].text
 
-        self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + \
-            gpt_obj.vendor_id + Fore.RESET
-        self.logger.msg += "".join([
-            Fore.BLUE + f"\nHistory #{i+1} Human: " +
-            Fore.RESET + f"{message.content}" if i % 2 == 0 else
-            Fore.GREEN + f"\nHistory #{i+1} AI: " +
-            Fore.RESET + f"{message.content}"
-            for i, message in enumerate(memory.chat_memory.messages)
-        ])
-
         return results
 
     def assemble_template(self, custom_template: dict[str, str]) -> str:
@@ -749,6 +739,17 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 "timestamp": timestamp
             }
         )
+
+        self.logger.msg = "Index: " + Fore.LIGHTYELLOW_EX + \
+            gpt_obj.vendor_id + Fore.RESET
+        self.logger.msg += "".join([
+            Fore.BLUE + f"\nHistory #{i+1} Human: " +
+            Fore.RESET + f"{message.content}" if i % 2 == 0 else
+            Fore.GREEN + f"\nHistory #{i+1} AI: " +
+            Fore.RESET + f"{message.content}"
+            for i, message in enumerate(memory.chat_memory.messages)
+        ])
+
         self.logger.msg += "\n" + Fore.LIGHTBLUE_EX + \
             "Question: " + Fore.RESET + gpt_obj.query
         self.logger.msg += "\n" + Fore.LIGHTGREEN_EX + \
