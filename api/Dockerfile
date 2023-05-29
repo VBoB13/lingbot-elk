@@ -5,4 +5,5 @@ RUN python3 -m pip install -U pip
 ADD ./requirements.txt ./requirements.txt
 RUN python3 -m pip install -r requirements.txt --default-timeout=100
 ADD ./ .
+RUN mkdir -p data/temp
 CMD ["python3", "-m", "main"]
