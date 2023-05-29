@@ -330,7 +330,8 @@ class LingtelliElastic2(Elasticsearch):
         """
         if file:
             file = os.path.splitext(file)
-            filename, filetype = file[0], file[1][1:]
+            filename = file[0].replace("_", "").replace(" ", "-")
+            filetype = file[1] if file[1][0] != "." else file[1][1:]
             full_index = "_".join(
                 ["info", vendor_id, filename, filetype])
         else:
@@ -747,7 +748,8 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         """
         if template_obj.file:
             file = os.path.splitext(template_obj.file)
-            filename, filetype = file[0], file[1][1:]
+            filename = file[0].replace("_", "").replace(" ", "-")
+            filetype = file[1] if file[1][0] != "." else file[1][1:]
             full_index = "_".join(
                 ["info", template_obj.vendor_id, filename, filetype])
         else:
