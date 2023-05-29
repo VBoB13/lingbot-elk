@@ -334,34 +334,18 @@ class LingtelliElastic2(Elasticsearch):
             full_index = "_".join(
                 ["info", vendor_id, filename, filetype])
         else:
-            full_index = [
-                "_".join(["template", vendor_id]),
-                "_".join(["info", vendor_id, "*"])
-            ]
+            full_index = "_".join(["template", vendor_id])
 
-        if isinstance(full_index, list):
-            for index in full_index:
-                try:
-                    self.indices.exists(
-                        index=index,
-                        allow_no_indices=True,
-                        ignore_unavailable=True)
-                except Exception as err:
-                    self.logger.msg = "Index [%s] does NOT exist!" % (
-                        Fore.RED + index + Fore.RESET)
-                    self.logger.error(extra_msg=str(err))
-                    raise self.logger from err
-        else:
-            try:
-                self.indices.exists(
-                    index=full_index,
-                    allow_no_indices=True,
-                    ignore_unavailable=True)
-            except Exception as err:
-                self.logger.msg = "Index [%s] does NOT exist!" % (
-                    Fore.RED + full_index + Fore.RESET)
-                self.logger.error(extra_msg=str(err))
-                raise self.logger from err
+        try:
+            self.indices.exists(
+                index=full_index,
+                allow_no_indices=True,
+                ignore_unavailable=True)
+        except Exception as err:
+            self.logger.msg = "Index [%s] does NOT exist!" % (
+                Fore.RED + full_index + Fore.RESET)
+            self.logger.error(extra_msg=str(err))
+            raise self.logger from err
 
         mappings: dict[str, str] = self.indices.get_mapping(
             index=full_index).body
@@ -386,23 +370,6 @@ class LingtelliElastic2(Elasticsearch):
                     Fore.LIGHTCYAN_EX + full_index + Fore.RESET)
                 self.logger.info()
                 return plausible_mappings[full_index]
-        else:
-            for index in full_index:
-                if index.startswith("info") and index in plausible_mappings:
-                    self.logger.msg = "Found template for [%s]!" % (
-                        Fore.LIGHTCYAN_EX + index + Fore.RESET)
-                    self.logger.info()
-                    return plausible_mappings[index]
-            else:
-                for index in full_index:
-                    if index.startswith("template") and index in plausible_mappings:
-                        self.logger.msg = "Found template for [%s]!" % (
-                            Fore.LIGHTCYAN_EX + index + Fore.RESET)
-                        self.logger.info()
-                        return plausible_mappings[index]
-
-        if isinstance(full_index, list):
-            full_index = ", ".join([index for index in full_index])
 
         self.logger.msg = "Could not get mappings for index [%s]!" % (
             Fore.RED + full_index + Fore.RESET)
