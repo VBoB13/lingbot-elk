@@ -721,14 +721,16 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         if gpt_obj.strict:
             results = self.answer_agent(
                 gpt_obj.vendor_id, gpt_obj.query, memory)
+            # Memory is handled by agent
         else:
             results = self.answer_gpt(gpt_obj, memory)
+            # Only add to history manually if asking GPT directly
+            memory.chat_memory.add_user_message(gpt_obj.query)
+            memory.chat_memory.add_ai_message(results)
 
         finish_timestamp = datetime.now().astimezone()
         finish_time = (finish_timestamp - now).seconds
 
-        memory.chat_memory.add_user_message(gpt_obj.query)
-        memory.chat_memory.add_ai_message(results)
         history_index = "_".join(
             ["hist", gpt_obj.vendor_id, gpt_obj.session])
         self.index(
