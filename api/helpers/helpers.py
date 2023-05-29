@@ -44,8 +44,8 @@ def convert_file_to_index(file: str) -> tuple[str, str]:
     returns a tuple with properly formatted filename and filetype.
     """
     file = os.path.splitext(file)
-    filename = file[0].replace("_", "").replace(" ", "-")
-    filetype = file[1] if file[1][0] != "." else file[1][1:]
+    filename = file[0].replace("_", "").replace(" ", "-").lower()
+    filetype = file[1].lower() if file[1][0] != "." else file[1][1:].lower()
 
     return filename, filetype
 
