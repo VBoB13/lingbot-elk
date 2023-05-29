@@ -27,7 +27,7 @@ from pydantic.typing import Any
 
 from errors.errors import DataError, ElasticError
 from helpers.times import date_to_str
-from helpers.helpers import get_language, includes_chinese, summarize_text, validate_template_object
+from helpers.helpers import get_language, includes_chinese, summarize_text, convert_file_to_index
 from params.definitions import QueryVendorSession, VendorFileQuery, TemplateModel, VendorFile, QueryVendorSessionFile
 from settings.settings import get_settings
 
@@ -94,9 +94,7 @@ class FileLoader(object):
         Method that checks filetype and returns the corresponding
         handler class for that file.
         """
-        file = os.path.splitext(file)
-        filename = file[0].replace("_", "").replace(" ", "-")
-        filetype = file[1] if file[1][0] != "." else file[1][1:]
+        filename, filetype = convert_file_to_index(file)
         if len(filetype) == 0:
             self.logger.msg = "No filetype was detected!"
             self.logger.error(extra_msg=f"File name: {'.'.join(file)}")
@@ -329,10 +327,7 @@ class LingtelliElastic2(Elasticsearch):
         Method that loads custom templates if they exist.
         """
         if file:
-            file = os.path.splitext(file)
-            filename = file[0].replace("_", "").replace(" ", "-").lower()
-            filetype = file[1].lower(
-            ) if file[1][0] != "." else file[1][1:].lower()
+            filename, filetype = convert_file_to_index(file)
             full_index = "_".join(
                 ["info", vendor_id, filename, filetype])
         else:

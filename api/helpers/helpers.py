@@ -38,6 +38,18 @@ except ImportError:
     _reset_logger_name()
 
 
+def convert_file_to_index(file: str) -> tuple[str, str]:
+    """
+    Function that takes a filename (w/ filetype) as argument and
+    returns a tuple with properly formatted filename and filetype.
+    """
+    file = os.path.splitext(file)
+    filename = file[0].replace("_", "").replace(" ", "-")
+    filetype = file[1] if file[1][0] != "." else file[1][1:]
+
+    return filename, filetype
+
+
 def get_language(content: str) -> str:
     """
     Returns a string (`'CH'` or `'EN'`).
@@ -203,9 +215,10 @@ def validate_template_object(obj: TemplateModel) -> None:
     logger.name += "validate_template_object"
     if len(obj.template) < 10 or len(obj.template) > 200:
         logger.msg = "Template either TOO long or TOO short!"
-        logger.error(extra=f"\nLength: {len(obj.template)} ([< 10] OR  [> 200])")
+        logger.error(
+            extra=f"\nLength: {len(obj.template)} ([< 10] OR  [> 200])")
         raise logger
-    
+
     if obj.template and (not obj.sentiment or not obj.role):
         logger.msg = "If you want to implement a custom template, you need to provide" + \
             Fore.LIGHTRED_EX + " `sentiment`, `role`" + Fore.RESET + " paramteres!"
@@ -223,7 +236,7 @@ def validate_template_object(obj: TemplateModel) -> None:
         logger.error(extra="Sentiment length: %s" %
                      str(len(obj.sentiment)))
         raise logger
-    
+
     if "{role}" not in obj.template or\
             "{sentiment}" not in obj.template:
         logger.msg = "either '{role}' or '{sentiment}' CANNOT be found within said 'template'!"
