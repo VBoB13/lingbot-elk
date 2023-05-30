@@ -353,31 +353,26 @@ class LingtelliElastic2(Elasticsearch):
         mappings: dict[str, str] = self.indices.get_mapping(
             index=final_index).body
 
-        plausible_mappings = {}
-        for index in mappings:
-            if mappings.get(index).get('mappings', None) and \
-                    mappings.get(index).get('mappings', None).get('_meta', None):
-                index_mapping = mappings.get(
-                    index).get('mappings').get('_meta')
-                if "template" in index_mapping and "sentiment" in index_mapping and "role" in index_mapping:
-                    if index_mapping["template"]:
-                        if index_mapping["sentiment"] and index_mapping["role"]:
-                            plausible_mappings.update({index: index_mapping})
-                    else:
-                        if index_mapping["sentiment"] or index_mapping["role"]:
-                            plausible_mappings.update({index: index_mapping})
-
-        if final_index in plausible_mappings:
-            self.logger.msg = "Found template for [%s]!" % (
-                Fore.LIGHTCYAN_EX + final_index + Fore.RESET)
-            self.logger.info()
-            return plausible_mappings[final_index]
-
-        self.logger.msg = "Could not get mappings for index [%s]!" % (
-            Fore.RED + final_index + Fore.RESET)
-        self.logger.error(
-            extra_msg="Indices that were included - [%s]" % (", ".join([str(Fore.RED + index + Fore.RESET) for index in plausible_mappings])))
-        raise self.logger
+        try:
+            meta_mappings: dict = mappings[final_index]['mappings']['_meta']
+            template = meta_mappings['template']
+            role = meta_mappings['role']
+            sentiment = meta_mappings['sentiment']
+        except Exception as err:
+            self.logger.msg = "Could NOT extract one of the custom template keys from index '_meta'!"
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger from err
+        
+        if not template and not role and not sentiment:
+            self.logger.msg = "None of the template attributes are set! Skipping custom template..."
+            self.logger.warning()
+            raise self.logger
+        
+        return {
+            "template": template,
+            "role": role,
+            "sentiment": sentiment
+        }
 
     def answer_agent(self, vendor_id: str, query: str, memory: ConversationBufferWindowMemory) -> str:
         """
@@ -464,11 +459,15 @@ that you don't know.",
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to load custom template(s)!"
                 self.logger.error(extra_msg=str(err))
-                custom_template = None
-            # except Exception as err:
-            #     self.logger.msg = "Unknown error occurred when trying to load custom template!"
-            #     self.logger.error(extra_msg=str(err), orgErr=err)
-            #     raise self.logger from err
+                custom_template = {
+                    "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
+your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
+reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
+on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
+that you don't know.",
+                    "role": "salesman",
+                    "sentiment": "very happy and enjoys to provide detailed explanations"
+                }
 
             full_custom_template = self.assemble_template(custom_template)
 
