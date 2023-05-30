@@ -770,11 +770,15 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         else:
             # It starts with 'info' and exists
             if full_index.startswith("info") and self.indices.exists(index=full_index).body:
-                self.indices.put_mapping(index=full_index, meta={
-                    "template": template_obj.template,
-                    "role": template_obj.role,
-                    "sentiment": template_obj.sentiment
-                })
+                mappings = self.indices.get_mapping(index=full_index).body
+                description = mappings.get(full_index).get('mappings').get('_meta', dict()).get('description', None)
+                if description is not None:
+                    self.indices.put_mapping(index=full_index, meta={
+                        "description": description,
+                        "template": template_obj.template,
+                        "role": template_obj.role,
+                        "sentiment": template_obj.sentiment
+                    })
 
             # It starts with 'template' and exists
             elif self.indices.exists(index=full_index).body:
