@@ -779,6 +779,11 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                         "role": template_obj.role,
                         "sentiment": template_obj.sentiment
                     })
+                else:
+                    self.logger.msg = "Could NOT get the description for index " + \
+                        "[%s]" % (Fore.LIGHTRED_EX + full_index + Fore.RESET)
+                    self.logger.error()
+                    raise self.logger
 
             # It starts with 'template' and exists
             elif self.indices.exists(index=full_index).body:
