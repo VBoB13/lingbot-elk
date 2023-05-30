@@ -332,30 +332,26 @@ class LingtelliElastic2(Elasticsearch):
         return history
 
     @cached(cache)
-    def _load_template(self, vendor_id: str, file: str) -> dict[str, str]:
+    def _load_template(self, final_index: str) -> dict[str, str]:
         """
         Method that loads custom templates if they exist.
+        If neither `info_<vendor_id>_<filename>_
         """
-        if file:
-            filename, filetype = convert_file_to_index(file)
-            full_index = "_".join(
-                ["info", vendor_id, filename, filetype])
-        else:
-            full_index = "_".join(["template", vendor_id])
-
         try:
-            self.indices.exists(
-                index=full_index,
-                allow_no_indices=True,
-                ignore_unavailable=True)
+            self.indices.exists(index=final_index)
         except Exception as err:
-            self.logger.msg = "Index [%s] does NOT exist!" % (
-                Fore.RED + full_index + Fore.RESET)
-            self.logger.error(extra_msg=str(err))
-            raise self.logger from err
+            if final_index.startswith("info"):
+                final_index = "_".join(["template", final_index.split("_")[1]])
+            try:
+                self.indices.exists(index=final_index)
+            except Exception as e:
+                self.logger.msg = "Index [%s] does NOT exist!" % (
+                    Fore.RED + final_index + Fore.RESET)
+                self.logger.error(extra_msg=str(err))
+                raise self.logger from err
 
         mappings: dict[str, str] = self.indices.get_mapping(
-            index=full_index).body
+            index=final_index).body
 
         plausible_mappings = {}
         for index in mappings:
@@ -371,15 +367,14 @@ class LingtelliElastic2(Elasticsearch):
                         if index_mapping["sentiment"] or index_mapping["role"]:
                             plausible_mappings.update({index: index_mapping})
 
-        if isinstance(full_index, str):
-            if full_index in plausible_mappings:
-                self.logger.msg = "Found template for [%s]!" % (
-                    Fore.LIGHTCYAN_EX + full_index + Fore.RESET)
-                self.logger.info()
-                return plausible_mappings[full_index]
+        if final_index in plausible_mappings:
+            self.logger.msg = "Found template for [%s]!" % (
+                Fore.LIGHTCYAN_EX + final_index + Fore.RESET)
+            self.logger.info()
+            return plausible_mappings[final_index]
 
         self.logger.msg = "Could not get mappings for index [%s]!" % (
-            Fore.RED + full_index + Fore.RESET)
+            Fore.RED + final_index + Fore.RESET)
         self.logger.error(
             extra_msg="Indices that were included - [%s]" % (", ".join([str(Fore.RED + index + Fore.RESET) for index in plausible_mappings])))
         raise self.logger
@@ -430,30 +425,7 @@ Then, your final "action_input" should be: "這是最終答案"\
         Method using GPT to directly get answers based solely on a one-shot prompt with source documents.
         """
         try:
-            custom_template = self._load_template(
-                gpt_obj.vendor_id, gpt_obj.file)
-        except ElasticError as err:
-            err.warning()
-            custom_template = {
-                "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
-your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
-reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
-on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
-that you don't know.",
-                "role": "salesman",
-                "sentiment": "very happy and enjoys to provide detailed explanations"
-            }
-        except Exception as err:
-            self.logger.msg = "Something went wrong when trying to load custom template(s)!"
-            self.logger.error(extra_msg=str(err))
-            custom_template = None
-        # except Exception as err:
-        #     self.logger.msg = "Unknown error occurred when trying to load custom template!"
-        #     self.logger.error(extra_msg=str(err), orgErr=err)
-        #     raise self.logger from err
-
-        try:
-            source_text = self.embed_search_w_sources(gpt_obj)
+            source_text, final_index = self.embed_search_w_sources(gpt_obj)
         except Exception as err:
             self.logger.msg = "Could NOT fetch source documents!"
             self.logger.error(extra_msg=str(err), orgErr=err)
@@ -475,6 +447,28 @@ If you can't find the answer within the information \
 provided or from our conversation, respond that you simply don't know.\
 If you insist on including information from the internet, you have to provide \
 an ACTUAL URL link for that source.""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
+            
+            try:
+                custom_template = self._load_template(final_index)
+            except ElasticError as err:
+                err.warning()
+                custom_template = {
+                    "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
+your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
+reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
+on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
+that you don't know.",
+                    "role": "salesman",
+                    "sentiment": "very happy and enjoys to provide detailed explanations"
+                }
+            except Exception as err:
+                self.logger.msg = "Something went wrong when trying to load custom template(s)!"
+                self.logger.error(extra_msg=str(err))
+                custom_template = None
+            # except Exception as err:
+            #     self.logger.msg = "Unknown error occurred when trying to load custom template!"
+            #     self.logger.error(extra_msg=str(err), orgErr=err)
+            #     raise self.logger from err
 
             full_custom_template = self.assemble_template(custom_template)
 
@@ -509,6 +503,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             all_messages.append(HumanMessage(
                 content="Question: {}".format(gpt_obj.query)))
             results = llm.generate([all_messages]).generations[0][0].text
+    
 
         return results
 
@@ -865,7 +860,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         if tokens > 50000:
             num_clusters = tokens % 10000
 
-    def embed_search_w_sources(self, query_obj: QueryVendorSession) -> str:
+    def embed_search_w_sources(self, query_obj: QueryVendorSession) -> tuple[str, str]:
         """
         Method that returns a concatinated lump of source documents as a `str`.
         """
@@ -914,7 +909,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             OpenAIEmbeddings()
         )
         return "\n".join([doc.page_content for doc in vectorstore.similarity_search(
-            query_obj.query, k=4)])
+            query_obj.query, k=4)]), final_index
 
     def embed_search_with_sources(self, query_obj: VendorFileQuery) -> tuple[list[str], float]:
         """
