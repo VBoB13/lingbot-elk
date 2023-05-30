@@ -301,7 +301,8 @@ class LingtelliElastic2(Elasticsearch):
                     "index": {
                         "number_of_shards": 1,
                         "number_of_replicas": 0
-                    }
+                    },
+                    "index.lifecycle.name": "history_management"
                 }
             }
             mappings = {
