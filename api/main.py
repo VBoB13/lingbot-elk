@@ -87,7 +87,7 @@ async def search_doc_file(doc: VendorFileQuery):
 
 
 @app.post("/search-gpt", response_model=BasicResponse, description=DESCRIPTIONS["/search-gpt"])
-async def search_doc_gpt(doc: QueryVendorSessionFile):
+async def search_doc_gpt(doc: QueryVendorSession):
     global logger
     logger.cls = "main.py:search_doc_gpt"
     try:
