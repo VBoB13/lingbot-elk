@@ -70,6 +70,7 @@ class VendorSession(Vendor, Session):
 
 class QueryVendorSession(VendorSession):
     query: str
+    strict: bool = False
 
 
 class QueryVendorSessionFile(VendorFileQuery, Session):
