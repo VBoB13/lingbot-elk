@@ -365,14 +365,18 @@ class LingtelliElastic2(Elasticsearch):
         
         if not template and not role and not sentiment:
             self.logger.msg = "None of the template attributes are set! Skipping custom template..."
-            self.logger.warning()
             raise self.logger
         
-        return {
+        final_mapping = {
             "template": template,
             "role": role,
             "sentiment": sentiment
         }
+
+        self.logger.msg = "Found custom template data from index: [%s]" % final_index
+        self.logger.info(extra_msg=str(final_mapping))
+        
+        return final_mapping
 
     def answer_agent(self, vendor_id: str, query: str, memory: ConversationBufferWindowMemory) -> str:
         """
