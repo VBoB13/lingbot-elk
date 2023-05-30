@@ -730,7 +730,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             Fore.RESET + f"{message.content}" if i % 2 == 0 else
             Fore.GREEN + f"\nHistory #{i+1} AI: " +
             Fore.RESET + f"{message.content}"
-            for i, message in enumerate(memory.chat_memory.messages[:-2:-1])
+            for i, message in enumerate(memory.chat_memory.messages[:-2])
         ])
 
         self.logger.msg += "\n" + Fore.LIGHTBLUE_EX + \
