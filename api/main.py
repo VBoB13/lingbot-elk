@@ -1,20 +1,17 @@
 import os
 import uvicorn
-import shutil
 import logging
 
+from colorama import Fore
 from fastapi import FastAPI, status, BackgroundTasks, UploadFile, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
-from params.definitions import BasicResponse, SearchGPT2, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel, QueryVendorSessionFile
-from es.elastic import LingtelliElastic
+from params.definitions import BasicResponse, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel
 from es.lc_service import FileLoader, LingtelliElastic2
-from settings.settings import TEMP_DIR
 from helpers.reqres import ElkServiceResponse
-from data.importer import CSVLoader, WordDocumentReader, TIIPDocumentList
 from errors.errors import BaseError
 
 
@@ -97,6 +94,25 @@ async def search_doc_gpt(doc: QueryVendorSession):
     except Exception as err:
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": str(err)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.post("/set-llm-address", response_model=BasicResponse, description=DESCRIPTIONS["/set-llm-address"])
+async def set_llm_address(address: str):
+    global logger
+    logger.cls = "main.py:set_llm_address"
+    current_set_address = os.environ.get("LOCAL_MODEL_ADDRESS")
+    if current_set_address != address:
+        os.environ["LOCAL_MODEL_ADDRESS"] = address
+        logger.msg = "Set LOCAL_MODEL_ADDRESS to: [%s]" % (
+            Fore.LIGHTCYAN_EX + address + Fore.RESET)
+        logger.info()
+    else:
+        logger.msg = "LOCAL_MODEL_ADDRESS is already of the same value as incoming 'address'!"
+        logger.warning(extra_msg="'address': {address}, 'LOCAL_MODEL_ADDRESS': {local_addr}".format(
+            address=(Fore.LIGHTYELLOW_EX + address + Fore.RESET),
+            local_addr=(Fore.LIGHTYELLOW_EX + current_set_address + Fore.RESET)
+        ))
+    return ElkServiceResponse(content={"msg": "Document(s) found!", "data": logger.msg}, status_code=status.HTTP_200_OK)
 
 
 @app.post("/set-template", response_model=BasicResponse, description=DESCRIPTIONS["/set-template"])
