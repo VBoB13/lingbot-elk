@@ -361,13 +361,14 @@ class LingtelliElastic2(Elasticsearch):
             sentiment = meta_mappings['sentiment']
         except Exception as err:
             self.logger.msg = "Could NOT extract one of the custom template keys from index '_meta'!"
-            self.logger.error(extra_msg=str(err), orgErr=err)
+            self.logger.error(extra_msg=str(
+                err) + "\nMappings: " + str(meta_mappings), orgErr=err)
             raise self.logger from err
-        
+
         if not template and not role and not sentiment:
             self.logger.msg = "None of the template attributes are set! Skipping custom template..."
             raise self.logger
-        
+
         final_mapping = {
             "template": template,
             "role": role,
@@ -376,7 +377,7 @@ class LingtelliElastic2(Elasticsearch):
 
         self.logger.msg = "Found custom template data from index: [%s]" % final_index
         self.logger.info(extra_msg=str(final_mapping))
-        
+
         return final_mapping
 
     def answer_agent(self, vendor_id: str, query: str, memory: ConversationBufferWindowMemory) -> str:
@@ -447,7 +448,7 @@ If you can't find the answer within the information \
 provided or from our conversation, respond that you simply don't know.\
 If you insist on including information from the internet, you have to provide \
 an ACTUAL URL link for that source.""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
-            
+
             try:
                 custom_template = self._load_template(final_index)
             except ElasticError as err:
@@ -507,7 +508,6 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             all_messages.append(HumanMessage(
                 content="Question: {}".format(gpt_obj.query)))
             results = llm.generate([all_messages]).generations[0][0].text
-    
 
         return results
 
@@ -770,7 +770,8 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             # It starts with 'info' and exists
             if full_index.startswith("info") and self.indices.exists(index=full_index).body:
                 mappings = self.indices.get_mapping(index=full_index).body
-                description = mappings.get(full_index).get('mappings').get('_meta', dict()).get('description', None)
+                description = mappings.get(full_index).get('mappings').get(
+                    '_meta', dict()).get('description', None)
                 if description is not None:
                     self.indices.put_mapping(index=full_index, meta={
                         "description": description,
