@@ -10,6 +10,10 @@ class ErrorModel(BaseModel):
     error: str
 
 
+class AddressModel(BaseModel):
+    address: str
+
+
 class BasicResponse(BaseModel):
     msg: str
     data: dict

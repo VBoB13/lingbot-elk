@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
-from params.definitions import BasicResponse, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel
+from params.definitions import AddressModel, BasicResponse, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel
 from es.lc_service import FileLoader, LingtelliElastic2
 from helpers.reqres import ElkServiceResponse
 from errors.errors import BaseError
@@ -97,19 +97,19 @@ async def search_doc_gpt(doc: QueryVendorSession):
 
 
 @app.post("/set-llm-address", response_model=BasicResponse, description=DESCRIPTIONS["/set-llm-address"])
-async def set_llm_address(address: str):
+async def set_llm_address(obj: AddressModel):
     global logger
     logger.cls = "main.py:set_llm_address"
     current_set_address = os.environ.get("LOCAL_MODEL_ADDRESS")
-    if current_set_address != address:
-        os.environ["LOCAL_MODEL_ADDRESS"] = address
+    if current_set_address != obj.address:
+        os.environ["LOCAL_MODEL_ADDRESS"] = obj.address
         logger.msg = "Set LOCAL_MODEL_ADDRESS to: [%s]" % (
-            Fore.LIGHTCYAN_EX + address + Fore.RESET)
+            Fore.LIGHTCYAN_EX + obj.address + Fore.RESET)
         logger.info()
     else:
         logger.msg = "LOCAL_MODEL_ADDRESS is already of the same value as incoming 'address'!"
         logger.warning(extra_msg="'address': {address}, 'LOCAL_MODEL_ADDRESS': {local_addr}".format(
-            address=(Fore.LIGHTYELLOW_EX + address + Fore.RESET),
+            address=(Fore.LIGHTYELLOW_EX + obj.address + Fore.RESET),
             local_addr=(Fore.LIGHTYELLOW_EX + current_set_address + Fore.RESET)
         ))
     return ElkServiceResponse(content={"msg": "Document(s) found!", "data": logger.msg}, status_code=status.HTTP_200_OK)
