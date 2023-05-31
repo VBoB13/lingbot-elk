@@ -339,32 +339,62 @@ class LingtelliElastic2(Elasticsearch):
         If neither `info_<vendor_id>_<filename>_
         """
         try:
+            # Check if index exists
             self.indices.exists(index=final_index)
         except Exception as err:
-            if final_index.startswith("info"):
-                final_index = "_".join(["template", final_index.split("_")[1]])
-            try:
-                self.indices.exists(index=final_index)
-            except Exception as e:
-                self.logger.msg = "Index [%s] does NOT exist!" % (
-                    Fore.RED + final_index + Fore.RESET)
-                self.logger.error(extra_msg=str(err))
-                raise self.logger from err
-
-        mappings: dict[str, str] = self.indices.get_mapping(
-            index=final_index).body
+            # If it doesn't, raise error (it should...)
+            self.logger.msg = "Index [%s] does NOT exist!" % (
+                Fore.LIGHTRED_EX + final_index + Fore.RESET)
+            self.logger.error(extra_msg=str(err), orgErr=err)
+            raise self.logger
+        else:
+            # Exists? Get mappings
+            mappings: dict[str, str] = self.indices.get_mapping(
+                index=final_index).body
 
         try:
+            # Extract the template part of the index _meta data
             meta_mappings: dict = mappings[final_index]['mappings']['_meta']
             template = meta_mappings['template']
             role = meta_mappings['role']
             sentiment = meta_mappings['sentiment']
         except Exception as err:
-            self.logger.msg = "Could NOT extract one of the custom template keys from index '_meta'!"
-            self.logger.error(extra_msg=str(
-                err) + "\nMappings: " + str(meta_mappings), orgErr=err)
-            raise self.logger from err
+            # If we can't, we know one of the keys for template does NOT exist;
+            # we can look for default BOT template
+            if final_index.startswith("info"):
+                final_index = "_".join(["template", final_index.split("_")[1]])
 
+            self.logger.msg = "Could NOT extract one of the custom template keys from index '_meta'! Trying 'template_%s' instead..." % final_index
+            self.logger.warning(extra_msg=str(
+                err) + "\nMappings: " + str(meta_mappings))
+
+            try:
+                # 'template_<vendor_id>' index exists?
+                self.indices.exists(index=final_index)
+            except Exception as e:
+                # Does NOT exist
+                self.logger.msg = "Index [%s] does NOT exist!" % (
+                    Fore.RED + final_index + Fore.RESET)
+                self.logger.error(extra_msg=str(err))
+                raise self.logger from e
+            else:
+                # Try to extract template from index meta data
+                try:
+                    mappings: dict[str, str] = self.indices.get_mapping(
+                        index=final_index).body
+                    meta_mappings: dict = mappings[final_index]['mappings']['_meta']
+                    template = meta_mappings['template']
+                    role = meta_mappings['role']
+                    sentiment = meta_mappings['sentiment']
+                except Exception as err:
+                    # Cannot extract one or more of the keys for custom template
+                    self.logger.msg = "Template not set for index: %s!" % (
+                        Fore.LIGHTRED_EX + final_index + Fore.RESET)
+                    self.logger.error(extra_msg=str(err), orgErr=err)
+                    raise self.logger
+
+        # Extracted, but notice that none of them have values?
+        # No custom template...
         if not template and not role and not sentiment:
             self.logger.msg = "None of the template attributes are set! Skipping custom template..."
             raise self.logger
