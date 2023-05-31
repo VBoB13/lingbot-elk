@@ -405,7 +405,8 @@ class LingtelliElastic2(Elasticsearch):
             "sentiment": sentiment
         }
 
-        self.logger.msg = "Found custom template data from index: [%s]" % final_index
+        self.logger.msg = "Found custom template data from index: [%s]" % (
+            Fore.LIGHTYELLOW_EX + final_index + Fore.RESET)
         self.logger.info(extra_msg=str(final_mapping))
 
         return final_mapping
