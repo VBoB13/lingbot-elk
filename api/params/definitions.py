@@ -46,6 +46,41 @@ class Vendors(BaseModel):
     vendor_ids: list[str]
 
 
+class Session(BaseModel):
+    session: str
+
+
+class VendorFile(Vendor):
+    file: str = ""
+
+
+class TemplateModel(VendorFile):
+    template: str = ""
+    sentiment: str = ""
+    role: str = ""
+
+
+class VendorFileQuery(VendorFile):
+    query: str = ""
+
+
+class VendorSession(Vendor, Session):
+    pass
+
+
+class QueryVendorSession(VendorSession):
+    query: str
+    strict: bool = False
+
+
+class QueryVendorSessionFile(VendorFileQuery, Session):
+    strict: bool = False
+
+
+class VendorFileSession(VendorSession):
+    file: str = ""
+
+
 class DocID(BaseModel):
     doc_id: str | None = None
 
@@ -82,6 +117,11 @@ class SearchGPT(SearchDocument):
     session_id: str = 'test-session'
 
 
+class SearchGPT2(Vendor):
+    query: str
+    session_id: str = 'test-session'
+
+
 class SearchPhraseDoc(Vendor):
     match_phrase: str
 
@@ -98,3 +138,11 @@ class SearchDocTimeRange(Vendor):
 
 class SourceDocument(Vendor):
     filename: str
+
+
+class EntityDocument(BaseModel):
+    text: str
+
+
+class IntentDocument(BaseModel):
+    query: str

@@ -1,5 +1,9 @@
 import os
+from datetime import datetime
 from pathlib import Path
+
+from functools import lru_cache
+from pydantic import BaseSettings
 
 from helpers.helpers import get_local_ip
 
@@ -25,3 +29,122 @@ parent_dir = path.parent.absolute()
 DIC_DIR = os.path.join(parent_dir, 'elk', 'elasticsearch',
                        'elasticsearch-analysis-ik-8.3.3', 'config')
 DIC_FILE = os.path.join(DIC_DIR, 'extra_main.dic')
+
+# Servers
+CLAUDES_SERVER = "192.168.1.132"
+CLAUDES_PORT = 3002
+
+
+class Settings(BaseSettings):
+    # Path-related
+    base_dir = BASE_DIR
+    log_dir = LOG_DIR
+    csv_dir = CSV_DIR
+    temp_dir = TEMP_DIR
+
+    # ChatGPT related
+    openai_api_key: str
+    openai_api_key2: str
+    serpapi_api_key: str
+
+    format_instructions: str = """\
+RESPONSE FORMAT INSTRUCTIONS
+----------------------------
+
+When responding, please output a response in one of two formats:
+
+**Option 1:**
+Use this if you need to use a tool to get more information about the human's question.
+Markdown code snippet formatted in the following schema:
+
+```json
+{{{{
+    "action": string \\ The action to take. Must be one of {tool_names}
+    "action_input": string \\ The input to the action
+}}}}
+```
+
+**Option #2:**
+Use this if you want to respond directly to the human. Markdown code snippet formatted in the following schema:
+
+```json
+{{{{
+    "action": "Final Answer",
+    "action_input": string \\ You should put what you want to return to use here
+}}}}
+```"""
+
+    # Elasticsearch
+    elastic_server: str
+    elastic_port: int
+
+    # Dates
+    today = datetime.today().astimezone().date()
+    today_str: str = datetime.today().astimezone().strftime("%Y-%m-%d")
+    first_day = datetime.strptime("2023-05-05", "%Y-%m-%d").astimezone()
+
+    class Config:
+        env_file = '.env'
+
+
+@lru_cache()
+def get_settings():
+    return Settings()
+
+
+# BASE VARS
+SYNONYM_BASES: dict[str, dict[str, list]] = {
+    "EN": {
+        'travel': ['go', 'experience', 'eat', 'stay at', 'plan']
+    }
+}
+
+# Constants
+SYNONYM_WORDS: dict[str, dict[str, list[list[str]]]] = {
+    "EN": {
+        'travel': [
+            ['go', 'head', 'walk', 'move'],
+            ['experience', 'live through', 'bear', 'endure', 'undergo'],
+            ['eat', 'have a meal', 'consume', 'devour'],
+            ['stay at', 'lodging'],
+            ['plan', 'plan ahead', 'scheme', 'project'],
+            ['look for', 'search', 'check', 'examine', 'explore', 'hunt for']
+        ],
+        'insurance': [
+            ['cover', 'covered by', 'coverage'],
+            ['liability', 'credit'],
+            ['premium', 'insurance fee', 'insurance price']
+        ],
+        'admin': [
+            ['subsidy', 'monetary aid', 'monetary support'],
+            ['application', 'inquiry', 'claim', 'petition', 'form'],
+            ['department', 'division', 'unit', 'office'],
+            ['money', 'capital', 'cash', 'finances'],
+            ['company', 'organization', 'corporation', 'enterprise'],
+            ['employee', 'worker', 'laborer', 'representative']
+        ]
+    },
+    "CH": {
+        'travel': [
+            ['去', '前往', '走', '移動'],
+            ['體驗', '撐過', '經驗'],
+            ['吃', '吃飯', '進食', '飲食'],
+            ['住宿', '飯店', '酒店', '民宿', '住'],
+            ['計畫', '規劃', '準備', '安排', '設計'],
+            ['尋找', '搜尋', '蒐尋', '搜索']
+        ],
+        'insurance': [
+            ['保險範圍內', '保險內', '保險內含'],
+            ['信用', '負債', '虧空'],
+            ['保險費', '保險費用', '保險月費', '保險年費', '保險價格'],
+        ],
+        'admin': [
+            ['補助', '貨幣補助', '貨幣援助', '貨幣支持'],
+            ['申請', '詢問', '要求', '表格', '請願'],
+            ['部門', '部署', '單位', '辦公室'],
+            ['錢', '本金', '本錢', '款項', '金款', '金錢'],
+            ['公司', '企業', '廠商', '組織', '機構'],
+            ['員工', '職工', '勞工', '勞動力', '代表人']
+        ]
+    }
+}

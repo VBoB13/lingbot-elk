@@ -1,24 +1,16 @@
 # This module hold some constants and other variables often used within the main.py file.
 
 DESCRIPTIONS = {
-    "/get": "Endpoint for getting single documents according to vendor_id & doc_id.",
     # Delete
-    "/delete": "Endpoint for deleting whole indices.",
     "/delete_source": "Endpoint for deleting multiple documents inserted into ELK with the help of a source file, e.g. 'EBR.csv', 'Docs.docx' and so on...",
-    # Save
-    "/save": "Endpoint used for saving a single document.",
-    "/save-bulk": "Endpoint for saving multiple documents.",
+    "/delete_bot": "Endpoint for deleting EVERYTHING ('info' AND 'history' indices) that relates to any newer Lingbot (e.g. created using V2 endpoints).",
     # Search
-    "/search": "Endpoint used for searching for documents in Elasticsearch.",
+    "/search-file": "Endpoint for searching through contents found within the /data/csv folder (dedicated to return only source documents based on query).",
     "/search-gpt": "Endpoint used for searching for documents in Elasticsearch, then providing results as context and retrieving answer from GPT-3 DaVinci AI model.",
-    "/search/phrase": "Endpoint used for searching for documents according to a phrase rather than terms.\n" +
-    "Rules to be aware about when it comes to searching for a 'phrase' instead of 'terms':\n" +
-    "Say we want to search for 'Shape of you' (famous song title), then:\n" +
-    "1. The search terms 'Shape', 'of', and 'you' must appear in the content field.\n" +
-    "2. The terms must appear in that order.\n" +
-    "3. The terms must appear next to each other.",
-    "/search/timespan": "Endpoint to search for documents according to their timestamp.",
+    # Template
+    "/set-template": "Endpoint for setting template for any `vendor_id` or file specific index.",
     # Upload
+    "/upload": "Endpoint to upload any of .csv, .pdf or .docx files to be parsed and have its content loaded into Elasticsearch with OpenAI embeddings.",
     "/upload/csv": "Endpoint to upload .csv files to be parsed and have its content loaded into the ELK stack (search engine).",
     "/upload/docx": "Endpoint to upload .docx (MS Word) files to be parsed and have its content loaded into the ELK stack.",
 }

@@ -1,0 +1,3 @@
+cover, covered by, coverage
+liability, credit
+premium, insurance fee, insurance price

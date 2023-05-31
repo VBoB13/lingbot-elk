@@ -15,11 +15,11 @@ from params.definitions import ElasticDoc, SearchDocTimeRange, SearchDocument,\
     Vendor, Vendors, DocID_Must, SearchPhraseDoc, SearchGPT
 from errors.errors import ElasticError
 from helpers.times import check_timestamp, get_tz, date_to_str
-from helpers.helpers import get_language
+from helpers.helpers import get_language, get_synonymns
 from helpers import TODAY
 from es.query import QueryMaker
 from es.gpt3 import GPT3Request
-from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE, MAX_CONTEXT_LENGTH, TEXT_FIELD_TYPES, NUMBER_FIELD_TYPES
+from . import ELASTIC_IP, ELASTIC_PORT, DEFAULT_ANALYZER, OLD_ANALYZER, OLD_ANALYZER_NAME, OLD_SEARCH_ANALYZER, MIN_DOC_SCORE, MIN_QA_DOC_SCORE, MAX_CONTEXT_LENGTH, TEXT_FIELD_TYPES, NUMBER_FIELD_TYPES
 
 
 class LingtelliElastic(Elasticsearch):
@@ -38,7 +38,10 @@ class LingtelliElastic(Elasticsearch):
         self.logger.msg = "Elasticsearch client initialized " + \
             Fore.LIGHTGREEN_EX + "successfully" + Fore.RESET + "!"
         self.logger.info()
+
+        self.search_size = int(20)
         self.docs_found = True
+        self.gpt3_strict = False
 
     def _check_mappings(self, mappings: dict, language: str = "CH") -> dict:
         """
@@ -76,16 +79,23 @@ class LingtelliElastic(Elasticsearch):
 
             final_mappings[key] = value
 
-            if language == "CH":
+            def add_analyzer(analyzer: str, search_analyzer: str):
                 if type_str in ['text', 'keywords']:
                     if not value.get('analyzer', None):
-                        final_mappings[key]['analyzer'] = DEFAULT_ANALYZER
+                        final_mappings[key]['analyzer'] = analyzer
                         self.logger.msg = "Added 'analyzer' key with proper values to mappings."
-                        self.logger.info()
+                        self.logger.info(extra_msg="Analyzer: %s" %
+                                         analyzer)
                     if not value.get('search_analyzer', None):
-                        final_mappings[key]['search_analyzer'] = DEFAULT_ANALYZER
+                        final_mappings[key]['search_analyzer'] = search_analyzer
                         self.logger.msg = "Added 'search_analyzer' key with proper values to mappings."
-                        self.logger.info()
+                        self.logger.info(
+                            extra_msg="Search analyzer: %s" % search_analyzer)
+
+            if language == "CH":
+                add_analyzer(OLD_ANALYZER_NAME, OLD_ANALYZER_NAME)
+            elif language == "EN":
+                add_analyzer(DEFAULT_ANALYZER, DEFAULT_ANALYZER)
 
         return final_mappings
 
@@ -106,19 +116,29 @@ class LingtelliElastic(Elasticsearch):
 
         if not self._index_exists(index):
             if language == "CH":
+                try:
+                    synonym_key = 'synonyms'
+                    synonyms = [", ".join(lst) for lst in get_synonymns(
+                        ['去', '尋找', '體驗', '吃', '住宿', '規劃'], 'travel')]
+                except Exception:
+                    synonym_key = 'synonyms_path'
+                    synonyms = 'analysis/' + language + '/travel-synonyms.txt'
+
                 settings.update({
                     "settings": {
                         "analysis": {
                             "filter": {
-                                "nfkc_normalizer": {
-                                    "type": "icu_normalizer",
-                                    "name": "nfkc"
+                                "synonym": {
+                                    "type": "synonym",
+                                    "lenient": True,
+                                    synonym_key: synonyms
                                 }
                             },
                             "analyzer": {
-                                DEFAULT_ANALYZER: {
-                                    "tokenizer": "icu_tokenizer",
-                                    "filter":  ["nfkc_normalizer"]
+                                OLD_ANALYZER_NAME: {
+                                    "type": "custom",
+                                    "tokenizer": OLD_ANALYZER,
+                                    "filter": ["synonym"]
                                 }
                             }
                         },
@@ -133,12 +153,39 @@ class LingtelliElastic(Elasticsearch):
                     }
                 })
             else:
+                try:
+                    synonym_key = 'synonyms'
+                    synonyms = [", ".join(lst) for lst in get_synonymns(
+                        ['go', 'experience', 'eat', 'stay at', 'plan'], 'travel')]
+                except Exception:
+                    synonym_key = 'synonyms_path'
+                    synonyms = 'analysis/' + language + '/travel-synonyms.txt'
+
                 settings.update({
                     "mappings": {
                         "_meta": {"main_field": main_field},
                         "properties": final_mapping
                     },
                     "settings": {
+                        "analysis": {
+                            "filter": {
+                                "nfkc_normalizer": {
+                                    "type": "icu_normalizer",
+                                    "name": "nfkc"
+                                },
+                                "synonym": {
+                                    "type": "synonym",
+                                    "lenient": True,
+                                    synonym_key: synonyms
+                                }
+                            },
+                            "analyzer": {
+                                DEFAULT_ANALYZER: {
+                                    "tokenizer": "icu_tokenizer",
+                                    "filter":  ["nfkc_normalizer", "synonym"]
+                                }
+                            }
+                        },
                         "index": {
                             "number_of_shards": 3,
                             "number_of_replicas": 1
@@ -162,7 +209,8 @@ class LingtelliElastic(Elasticsearch):
             except Exception as err:
                 self.logger.msg = "Could not create a new index (%s)\nReason: %s!" % index, str(
                     err)
-                self.logger.error(orgErr=err)
+                self.logger.error(extra_msg="Reason: " +
+                                  str(response.reason) + str(response.content.decode('utf-8')), orgErr=err)
                 raise self.logger from err
             else:
                 if response.ok:
@@ -175,7 +223,8 @@ class LingtelliElastic(Elasticsearch):
 
                 else:
                     self.logger.msg = "Something went wrong when trying to create index!"
-                    extra_msg = "Reason: %s" % response.reason
+                    extra_msg = "Reason: %s" % response.reason + \
+                        "\nDetails: %s" % response.content.decode()
 
                 self.logger.info(extra_msg=extra_msg)
                 self._get_mappings()
@@ -216,13 +265,48 @@ class LingtelliElastic(Elasticsearch):
         """
         # Here we create a temporary function that we use
         # to filter low score documents out.
+
+        # Grab average length first for normalizing later
+        avg_length = sum([len(hit["source"]["context"])
+                         for hit in hits]) / len(hits)
+
+        # To calculate a normalized score, we need to use a function we can use with map().
+        def normalize_score(doc):
+            doc["score"] = round(doc["score"] *
+                                 (avg_length / len(doc["source"]["context"])), 2)
+            return doc
+
+        # Define the function provided to map() function below.
         def filter_context(doc):
             if doc["score"] >= MIN_DOC_SCORE:
+                if doc["score"] > 10 and not self.gpt3_strict:
+                    self.logger.msg = "Score" + Fore.LIGHTGREEN_EX + "> 10" + Fore.RESET + "found!"
+                    self.logger.info()
+                    self.gpt3_strict = True
                 return doc
+
         context = ""
         if isinstance(hits, list):
             # Turning the irrelevant (low score) documents into 'None'.
-            hits = map(filter_context, hits)
+            try:
+                hits = map(normalize_score, hits)
+                hits = sorted(hits, key=lambda hit: hit["score"], reverse=True)
+            except Exception as err:
+                self.logger.msg = "Could NOT normalize scores for fetched documents!"
+                self.logger.warning(extra_msg=str(err))
+            else:
+                self.score_data = [doc["score"] for doc in hits]
+                self.logger.msg = "Normalized scores: %s" % str(
+                    self.score_data)
+                self.logger.info(extra_msg="Max: " + Fore.LIGHTGREEN_EX + str(max(self.score_data)) +
+                                 Fore.RESET + "\nMin: " + Fore.LIGHTRED_EX + str(min(self.score_data)) + Fore.RESET)
+
+            try:
+                hits = map(filter_context, hits)
+            except Exception as err:
+                self.logger.msg = "Could NOT filter documents properly!"
+                self.logger.warning(extra_msg=str(err))
+
             # Then we remove those 'None' values, leaving only relevant documents.
             hits = [hit for hit in hits if hit]
             for hit in hits:
@@ -270,17 +354,29 @@ class LingtelliElastic(Elasticsearch):
 
         final_mapping = {}
         for index in mappings.keys():
-            if mappings[index]["mappings"].get('_meta', None):
-                final_mapping.update(
-                    {index: {"context": mappings[index]["mappings"]["_meta"]["main_field"]}})
+            if len(mappings[index].keys()) > 0:
+                if mappings[index]["mappings"].get('_meta', None):
+                    final_mapping.update(
+                        {index: {"context": mappings[index]["mappings"]["_meta"]["main_field"]}})
+                elif mappings[index]["mappings"].get('properties', None):
+                    for field in mappings[index]["mappings"]["properties"].keys():
+                        if mappings[index]["mappings"]["properties"][field].get('type', None) \
+                                and mappings[index]["mappings"]["properties"][field]["type"] == "text":
+                            if index.endswith('-qa') and field == "a":
+                                final_mapping.update(
+                                    {index: {"context": field}})
+                            elif field == "content":
+                                final_mapping.update(
+                                    {index: {"context": field}})
+                else:
+                    self.logger.msg = "Could neither find '_meta' key nor 'properties' keys!"
+                    self.logger.error()
+                    raise self.logger
             else:
-                for field in mappings[index]["mappings"]["properties"].keys():
-                    if mappings[index]["mappings"]["properties"][field].get('type', None) \
-                            and mappings[index]["mappings"]["properties"][field]["type"] == "text":
-                        if index.endswith('-qa') and field == "a":
-                            final_mapping.update({index: {"context": field}})
-                        elif field == "content":
-                            final_mapping.update({index: {"context": field}})
+                self.logger.msg = "No keys in mapping object for index [%s]! Skipping..." % index
+                self.logger.warning(
+                    extra_msg='Mapping keys: [%s]' % str(mappings[index].keys()))
+                continue
 
         self.logger.msg = "Mapping loading: " + \
             Fore.LIGHTGREEN_EX + "SUCCESS" + Fore.RESET + "!"
@@ -422,8 +518,7 @@ class LingtelliElastic(Elasticsearch):
         """
         if self.index_exists(index):
             try:
-                query = {"query_string": {
-                    "query": "source:*%s*" % source_file}}
+                query = {"match": {"source": "%s" % source_file}}
                 self.delete_by_query(index=index, query=query)
             except Exception as err:
                 self.logger.msg = "Could NOT delete documents by query: %s" % (
@@ -556,7 +651,7 @@ class LingtelliElastic(Elasticsearch):
                     doc.vendor_id))
                 raise self.logger
             query = self._get_query(doc)
-            resp = super().search(index=doc.vendor_id, query=query)
+            resp = super().search(index=doc.vendor_id, query=query, size=self.search_size)
             resp["hits"]["hits"] = self._remove_underlines(
                 resp["hits"]["hits"])
             resp["hits"]["hits"] = self._get_context(resp["hits"]["hits"], doc)
@@ -631,7 +726,7 @@ class LingtelliElastic(Elasticsearch):
                 # self.logger.msg = "Vendor ID: {}".format(self.doc.vendor_id)
 
                 gpt3 = GPT3Request(doc.match.search_term,
-                                   context, doc.vendor_id, doc.session_id)
+                                   context, doc.vendor_id, self.gpt3_strict, session_id=doc.session_id)
 
                 qa_data = {
                     'vendor_id': qa_doc.vendor_id,

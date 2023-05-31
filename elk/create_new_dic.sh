@@ -5,7 +5,7 @@
 
 function handle_dics () {
     # Change directory
-    command cd ./elasticsearch-analysis-ik-8.3.2/config/
+    command cd $PWD/plugins/elasticsearch-analysis-ik-8.3.3/config/
     for f in *.dic
     do
         echo "Processing $f"
@@ -21,9 +21,9 @@ then
     command mkdir "$DIR"
 fi
 
-if [ -d "./elasticsearch-analysis-ik-8.3.2/config" ]; then
+if [ -d "${PWD}/plugins/elasticsearch-analysis-ik-8.3.3/config" ]; then
     # If the folder exists, we execute the sctipt
     handle_dics
 else
-    echo "Cannot process .dic files as folder ${PWD}/elasticsearch-analysis-ik-8.3.2/config doesn't exist!"
+    echo "Cannot process .dic files as folder ${PWD}/plugins/elasticsearch-analysis-ik-8.3.3/config doesn't exist!"
 fi
