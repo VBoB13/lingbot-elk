@@ -8,10 +8,4 @@ RUN mkdir -p /data/elasticsearch/load
 ADD ./elasticsearch/load/ /data/elasticsearch/load/ 
 ENV ES_HOME /opt/elasticsearch
 WORKDIR ${ES_HOME}
-RUN apt update && apt upgrade -y && apt install opencc -y
-ADD ./elasticsearch-analysis-ik-8.3.3 ${ES_HOME}/plugins/elasticsearch-analysis-ik-8.3.3
-ADD ./create_new_dic.sh ${ES_HOME}/create_new_dic.sh
-RUN bash ${ES_HOME}/create_new_dic.sh
-RUN ${ES_HOME}/bin/elasticsearch-plugin install analysis-icu
-RUN mkdir -p /etc/elasticsearch/analysis
-ADD ./elasticsearch/config/analysis /etc/elasticsearch/analysis
+RUN apt update && apt upgrade -y
