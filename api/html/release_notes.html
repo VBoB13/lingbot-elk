@@ -51,34 +51,49 @@
         .change-item {
             margin-bottom: 5px;
         }
+        
+        .change-new {
+            color: #00aa66;
+            background-color: #999;
+        }
+
+        .change-mod {
+            color: rgba(204, 255, 0, 0.912);
+            background-color: #999;
+        }
+
+        .change-remove {
+            color: #aa3300;
+            background-color: #999;
+        }
     </style>
 </head>
 
 <body>
     <section class="release-notes">
-        <h1>Release Notes</h1>
+        <h1>OptimusQA - Release Notes</h1>
         
-        <h2 class="section-title">Version X.Y.Z</h2>
-        <p class="highlight">Release date: Month Day, Year</p>
+        <h2 class="section-title">Version 2.0</h2>
+        <p class="highlight">Release date: June 1, 2023</p>
         
-        <div class="change-list">
-            <p class="change-item">- Description of change 1.</p>
-            <p class="change-item">- Description of change 2.</p>
-            <p class="change-item">- Description of change 3.</p>
-            <!-- Add more change items as needed -->
+        <div class="change-list change-new">
+            <p class="change-item">- Each document uploaded through the <code>/upload</code> endpoint is chunked up and saved with embeddings.</p>
+            <p class="change-item">- Each file gets put in its own index for separation of concerns.</p>
+            <p class="change-item">- Each file index gets an automatically generated description added onto them.</p>
+            <p class="change-item">- For every query sent through <code>/search-gpt</code> will now be decided through which of the current [vendor_id]'s index to look for information from based on this description.</p>
+            <p class="change-item">- A parameter <code>strict: Bool</code> can be provided <span style="color: black">(default: False)</span> to make algorithm act slightly different behind the scenes: <code>strict = True</code> will make the algorithm use LangChain's Agent to try to answer the question. It's slower, but often more accurate. The opposite is true when <code>strict = False</code>; faster, but slightly less accurate.</p>
         </div>
-        
-        <h2 class="section-title">Version X.Y.Z-1</h2>
-        <p class="highlight">Release date: Month Day, Year</p>
-        
-        <div class="change-list">
-            <p class="change-item">- Description of change 1.</p>
-            <p class="change-item">- Description of change 2.</p>
-            <p class="change-item">- Description of change 3.</p>
-            <!-- Add more change items as needed -->
+
+        <div class="change-list change-mod">
+            <p class="change-item">- Previous <code>/upload/[csv|pdf|docx]</code> is now replaced with a single <code>/upload</code> endpoint.</p>
+            <p class="change-item">- Uploaded context is now searched for semantically instead of through pure text queries.</p>
+        </div>
+
+        <div class="change-list change-remove">
+            <p class="change-item">- Removed specific endpoints for specific filetypes for uploading materials.</p>
+            <p class="change-item">- Removed the possibility to search based on text.</p>
+            <p class="change-item">- Removed the possibility to search for documents based on timestamps.</p>
         </div>
     </section>
-
 </body>
-
 </html>
