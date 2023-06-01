@@ -95,6 +95,8 @@
             <p class="change-item">- Each file index gets an automatically generated description added onto them.</p>
             <p class="change-item">- For every query sent through <code>/search-gpt</code> will now be decided through which of the current [vendor_id]'s index to look for information from based on this description.</p>
             <p class="change-item">- A parameter <code>strict: Bool</code> can be provided <span style="color: black">(default: False)</span> to make algorithm act slightly different behind the scenes: <code>strict = True</code> will make the algorithm use LangChain's Agent to try to answer the question. It's slower, but often more accurate. The opposite is true when <code>strict = False</code>; faster, but slightly less accurate.</p>
+            <p class="change-item">- Each file the user upload AND every chatbot can have a template set to it. This means that when the user asks a question, the algorithm will detect which index to look for information from based on the <em>semantic similarity</em> between the query itself and an index's description. Then, the algorithm looks for that index's custom template. If there's no template, the algorithm picks the <em>chatbot template</em> and lastly, if that doesn't exist, it picks a system default template.</p>
+            <p class="change-item">- New endpoint <code>/set-template</code> can be used to set templates for either chatbots or information indices.</p>
         </div>
 
         <hr>
