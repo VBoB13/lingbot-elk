@@ -5,7 +5,7 @@ import logging
 from colorama import Fore
 from fastapi import FastAPI, status, BackgroundTasks, UploadFile, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
@@ -68,6 +68,12 @@ async def delete_source(source: SourceDocument):
         logger.msg = "Could NOT delete INFO data from bot ID: <%s>!" % source.vendor_id
         logger.error(extra_msg=str(err), orgErr=err)
         return ElkServiceResponse(content={"error": "{}".format(str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.get("/release-notes", response_class=HTMLResponse)
+async def get_release_notes():
+    with open("html/release_notes.html", "r") as file:
+        return file.read()
 
 
 @app.post("/search-file", response_model=BasicResponse, description=DESCRIPTIONS["/search-file"])
