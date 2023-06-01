@@ -150,9 +150,9 @@ sudo docker exec -it elk_api python3 -m stats.show
 - `POST /upload`
   - Endpoint meant to accept files that users want to use as "knowledge database" for the chatbot(s) to answer questions from. The endpoint can currently accept the following formats: `.csv`, `.pdf`, `.docx` (MS Word) and `.txt`
   - Parameters:
-    QUERY:
-    `index` (`vendor_id`)
-    BODY:
-    ```python
-      file: string ($binary)
-    ```
+    - QUERY:
+      `index` (`vendor_id`)
+    - BODY:
+      ```python
+        file: string ($binary)
+      ```
