@@ -193,12 +193,12 @@ Received: {Fore.LIGHTRED_EX + self.filetype + Fore.RESET}")
                         )
                     except Exception as err:
                         self.logger.msg = "Something went wrong when trying " +\
-                            "to set a description to index: [%s]" % full_text
+                            "to set a description to index: [%s]" % full_index
                         self.logger.error(extra_msg=str(err), orgErr=err)
                         raise self.logger from err
                     else:
                         self.logger.msg = Fore.LIGHTGREEN_EX + "Successfully" + Fore.RESET + \
-                            " set description for [%s]!" % full_text
+                            " set description for [%s]!" % full_index
                         self.logger.info(extra_msg=summary)
 
                 template_index = "_".join(["template", self.index])
