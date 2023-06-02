@@ -336,7 +336,6 @@ class LingtelliElastic2(Elasticsearch):
     def _load_template(self, final_index: str) -> dict[str, str]:
         """
         Method that loads custom templates if they exist.
-        If neither `info_<vendor_id>_<filename>_
         """
         try:
             # Check if index exists
