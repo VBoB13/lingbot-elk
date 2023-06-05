@@ -917,7 +917,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         if len(documents) == 0:
             self.logger.msg = "Could NOT get any descriptions from indices!"
             self.logger.error(
-                extra_msg="Have you uploaded material (files) for this ChatBot?")
+                extra_msg="Have you uploaded material (files) for this ChatBot: [%s]?" % query_obj.vendor_id)
             raise self.logger
 
         db = Chroma.from_texts([doc[1]
