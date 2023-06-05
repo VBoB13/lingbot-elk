@@ -905,6 +905,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             index=index).body
 
         documents = []
+        non_matching_indices = set()
         for i, index in enumerate(all_mappings):
             if all_mappings.get(index, None) and \
                     all_mappings.get(index, None).get('mappings', None) and \
@@ -913,11 +914,14 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
                 documents.append((index, all_mappings.get(
                     index).get('mappings').get('_meta').get('description')))
+            else:
+                non_matching_indices.add(index)
 
         if len(documents) == 0:
-            self.logger.msg = "Could NOT get any descriptions from indices!"
+            self.logger.msg = "Could NOT get any descriptions from indices!" + \
+                "Have you uploaded material (files) for this ChatBot: [%s]?" % query_obj.vendor_id
             self.logger.error(
-                extra_msg="Have you uploaded material (files) for this ChatBot: [%s]?" % query_obj.vendor_id)
+                extra_msg="Indices that did NOT match: [%s]" % ", ".join(str(Fore.LIGHTYELLOW_EX + index + Fore.RESET) for index in non_matching_indices))
             raise self.logger
 
         db = Chroma.from_texts([doc[1]
