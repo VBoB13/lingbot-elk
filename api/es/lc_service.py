@@ -529,7 +529,10 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 Fore.LIGHTMAGENTA_EX + "\n" + init_prompt + Fore.RESET)
             self.logger.info()
 
-            llm = ChatOpenAI(temperature=0, max_tokens=500, max_retries=2)
+            gpt_kwargs = {"frequency_penalty": 0.5}
+
+            llm = ChatOpenAI(temperature=0, max_tokens=500,
+                             max_retries=2, model_kwargs=gpt_kwargs)
             all_messages = [SystemMessage(content=init_prompt)]
 
             for message in memory.chat_memory.messages:
