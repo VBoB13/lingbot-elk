@@ -386,7 +386,7 @@ class LingtelliElastic2(Elasticsearch):
             if final_index.startswith("info"):
                 final_index = "_".join(["template", final_index.split("_")[1]])
 
-            self.logger.msg = "Could NOT extract one of the custom template keys from index '_meta'! Trying 'template_%s' instead..." % final_index
+            self.logger.msg = "Could NOT extract one of the custom template keys from index '_meta'! Trying '%s' instead..." % final_index
             self.logger.warning(extra_msg=str(
                 err) + "\nMappings: " + str(meta_mappings))
 
