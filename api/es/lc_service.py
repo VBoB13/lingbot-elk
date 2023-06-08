@@ -770,6 +770,11 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             memory.chat_memory.add_user_message(gpt_obj.query)
             memory.chat_memory.add_ai_message(results)
 
+        if len(results) == 0:
+            self.logger.msg = "Got NO answer!!!"
+            self.logger.error(extra_msg="Answer: {}".format(results))
+            raise self.logger
+
         finish_timestamp = datetime.now().astimezone()
         finish_time = (finish_timestamp - now).seconds
 
