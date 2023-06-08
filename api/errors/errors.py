@@ -159,7 +159,7 @@ class BaseError(Exception):
             'Q': 'Question asked.',
             'A': 'Answer provided by LangChain (OpenAI).',
             'T': 32,
-            'Translate': 10
+            'verified': False
         }
         ```
         """
@@ -196,7 +196,7 @@ class BaseError(Exception):
         if not data.get('vendor_id', None) or not data.get('Q', None) or not data.get('A', None) or not data.get('T', None):
             self.msg = "Missing on of the 4 vital keys to save messages to log file!"
             self.error(
-                extra_msg=f"Looking for: ['vendor_id', 'Q', 'A', 'T'], got {str(data.keys())}")
+                extra_msg=f"Looking for: ['vendor_id', 'Q', 'A', 'T'], got {str(data)}")
             raise self
 
 
