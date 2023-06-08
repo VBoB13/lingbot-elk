@@ -15,11 +15,9 @@ from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoader, DataFrameLoader, TextLoader
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.llms import OpenAI
 from langchain.memory import ConversationBufferWindowMemory
-from langchain.prompts import PromptTemplate
-from langchain.schema import SystemMessage, HumanMessage, Document
-from langchain.text_splitter import CharacterTextSplitter, TokenTextSplitter
+from langchain.schema import SystemMessage, HumanMessage
+from langchain.text_splitter import TokenTextSplitter
 from langchain.utilities import SerpAPIWrapper
 from langchain.vectorstores import ElasticVectorSearch, Chroma
 from pydantic import BaseModel, Field
@@ -254,15 +252,40 @@ class LingtelliElastic2(Elasticsearch):
             self.settings.elastic_server, str(self.settings.elastic_port)))
         try:
             super().__init__([{"scheme": "http", "host": self.settings.elastic_server, "port": self.settings.elastic_port}],
-                             max_retries=30, retry_on_timeout=True, request_timeout=30)
+                             max_retries=3, retry_on_timeout=True, request_timeout=30)
         except Exception as err:
             try:
                 super().__init__([{"scheme": "http", "host": os.environ.get('ELASTIC_SERVER'), "port": int(os.environ.get('ELASTIC_PORT'))}],
-                                 max_retries=30, retry_on_timeout=True, request_timeout=30)
+                                 max_retries=3, retry_on_timeout=True, request_timeout=30)
             except Exception as err:
                 self.logger.msg = "Initialization of Elasticsearch client FAILED!"
                 self.logger.error(extra_msg=str(err), orgErr=err)
                 raise self.logger from err
+
+    def _check_qa(self, index: str, query: str) -> str:
+        """
+        Method for checking whether the query has been asked before (verbatim)
+        by users within the current index.
+        """
+
+        if len(query) > 12:
+            query = {
+                "query": {
+                    "match_phrase": {
+                        "user": query
+                    }
+                }
+            }
+            results = self.search(
+                index=index, query=query['query'])
+            hist_docs = results['hits']['hits']
+            # self.logger.msg = "Documents found:"
+            # self.logger.info(extra_msg=str(hist_docs))
+            if len(hist_docs) > 0:
+                return hist_docs[0]['_source']['ai']
+            self.logger.msg = "No hits within '%s' to fetch!" % index
+            self.logger.warning()
+        return ""
 
     @cached(cache)
     def _load_memory(self, index: str, session: str) -> ConversationBufferWindowMemory:
@@ -722,7 +745,10 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         memory = self._load_memory(
             gpt_obj.vendor_id, gpt_obj.session)
 
-        results = ""
+        # Check [<vendor_id>-qa] index for previously asked questions
+        qa_index = "_".join(["hist", gpt_obj.vendor_id, "*"])
+        results = self._check_qa(qa_index, gpt_obj.query)
+
         if gpt_obj.strict:
             try:
                 results = self.answer_agent(
@@ -738,8 +764,9 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 memory.chat_memory.add_user_message(gpt_obj.query)
                 memory.chat_memory.add_ai_message(results)
         else:
-            results = self.answer_gpt(gpt_obj, memory)
-            # Only add to history manually if asking GPT directly
+            if not results:
+                results = self.answer_gpt(gpt_obj, memory)
+                # Only add to history manually if asking GPT directly
             memory.chat_memory.add_user_message(gpt_obj.query)
             memory.chat_memory.add_ai_message(results)
 
