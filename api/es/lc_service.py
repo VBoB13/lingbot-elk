@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+import requests
 from datetime import datetime
 
 import pandas as pd
@@ -806,10 +807,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 memory.chat_memory.add_user_message(gpt_obj.query)
                 memory.chat_memory.add_ai_message(results)
         else:
-            local_llm_address = os.environ.get("LOCAL_MODEL_ADDRESS", "")
-            if local_llm_address:
-                # Send stuff to Claude's local LLM service.
-                pass
+            results = self.embed_search_answers(gpt_obj)
 
         if len(results) == 0:
             self.logger.msg = "Got NO answer!!!"
@@ -970,6 +968,36 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         tokens = llm.get_num_tokens(text)
         if tokens > 50000:
             num_clusters = tokens % 10000
+
+    def embed_search_answers(self, gpt_obj: QueryVendorSessionFile) -> str:
+        """
+        Method that takes a `query` and `vendor_id` to get a best-answer from the local LLM.
+        """
+        answer_index = "_".join(["answers", gpt_obj.vendor_id])
+        es = ElasticVectorSearch(
+            "http://" + self.settings.elastic_server +
+            ":" + str(self.settings.elastic_port),
+            answer_index,
+            OpenAIEmbeddings()
+        )
+
+        docs = [doc.page_content for doc in es.similarity_search(
+            gpt_obj.query)]
+
+        payload = {
+            "query": gpt_obj.query,
+            "answers": docs
+        }
+
+        local_llm_address = os.environ.get("LOCAL_MODEL_ADDRESS", "")
+
+        if local_llm_address:
+            response = requests.post(
+                local_llm_address, data=json.dumps(payload))
+            if response.ok:
+                results = response.json()
+
+        return str(results)
 
     def embed_search_w_sources(self, query_obj: QueryVendorSession) -> tuple[str, str]:
         """
