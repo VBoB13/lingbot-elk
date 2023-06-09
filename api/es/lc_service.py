@@ -16,7 +16,7 @@ from langchain.document_loaders import UnstructuredWordDocumentLoader, PyPDFLoad
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import ConversationBufferWindowMemory
-from langchain.schema import SystemMessage, HumanMessage
+from langchain.schema import SystemMessage, HumanMessage, Document
 from langchain.text_splitter import TokenTextSplitter
 from langchain.utilities import SerpAPIWrapper
 from langchain.vectorstores import ElasticVectorSearch, Chroma
@@ -609,6 +609,21 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             return full_custom_template
         return
 
+    @staticmethod
+    def delete_answers(vendor_id: str):
+        client = LingtelliElastic2()
+        answer_index = "_".join(["answers", vendor_id])
+        if client.indices.exists(index=answer_index).body:
+            client.indices.delete(index=answer_index)
+            client.logger.msg = Fore.LIGHTGREEN_EX + "Successfully" + \
+                Fore.RESET + " deleted index [%s]!" % answer_index
+            client.logger.info()
+        else:
+            client.logger.msg = "Index [%s] does " % answer_index + \
+                Fore.LIGHTRED_EX + "NOT" + Fore.RESET + " exist!"
+            client.logger.error()
+            raise client.logger
+
     def delete_bot(self, vendor_id: str, file: str, session: str = None):
         indices = []
         if file:
@@ -730,6 +745,26 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         # tools.append(serpapi_tool)
 
         return tools
+
+    @staticmethod
+    def save_answers(vendor_id: str, answers: list[str]):
+        answer_docs: list[Document] = []
+        if not isinstance(answers, list) or not all(answers):
+            answer_docs = [
+                Document(page_content=val) for val in answers]
+        answer_index = "_".join(["answers", vendor_id])
+
+        embeddings = OpenAIEmbeddings()
+        client = LingtelliElastic2()
+
+        if client.indices.exists(index=answer_index).body:
+            client.logger.msg = "Index [%s] does NOT exist!" % answer_index
+            client.logger.warning()
+            raise client.logger
+
+        es = ElasticVectorSearch(
+            'http://localhost:9200', answer_index, embeddings)
+        es.add_documents(answer_docs)
 
     def search_gpt(self, gpt_obj: QueryVendorSessionFile) -> str:
         """

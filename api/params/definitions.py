@@ -64,3 +64,7 @@ class VendorFileSession(VendorSession):
 
 class SourceDocument(Vendor):
     filename: str
+
+
+class AnswersList(BaseModel):
+    answers: list[str]

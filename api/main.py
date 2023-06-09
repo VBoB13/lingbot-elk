@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.testclient import TestClient
 
 from params import DESCRIPTIONS
-from params.definitions import AddressModel, BasicResponse, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel
+from params.definitions import AddressModel, BasicResponse, SourceDocument, QueryVendorSession, VendorFileSession, VendorFileQuery, TemplateModel, AnswersList
 from es.lc_service import FileLoader, LingtelliElastic2
 from helpers.reqres import ElkServiceResponse
 from errors.errors import BaseError
@@ -33,6 +33,28 @@ logger = BaseError(__file__, "main")
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+
+@app.post("/delete_answers")
+async def upload_answers(index: str, answer_obj: AnswersList):
+    global logger
+    logger.cls = "main.py:upload"
+
+    # Make sure index (vendor_id) is lowercase (Elasticsearch)
+    if index != index.lower():
+        logger.msg = "Index needs to be lowercase!"
+        logger.error()
+        return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": "{}".format(logger.msg)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    try:
+        LingtelliElastic2.delete_answers(index)
+    except Exception as err:
+        logger.msg = "Something went wrong when trying to delete contents from ELK!"
+        logger.error(extra_msg=str(err), orgErr=err)
+        ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": "{}: {}".format(
+            logger.msg, err.msg if isinstance(err, BaseError) else str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        return ElkServiceResponse(content={"msg": "Documents successfully deleted from ELK (index: {})!".format("answers_" + index)}, status_code=status.HTTP_202_ACCEPTED)
 
 
 @app.post("/delete_bot", response_model=BasicResponse, description=DESCRIPTIONS["/delete_bot"])
@@ -158,6 +180,28 @@ async def upload(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
             logger.msg, err.msg if isinstance(err, BaseError) else str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return ElkServiceResponse(content={"msg": "Documents successfully uploaded & saved into ELK (index: {})!".format(index)}, status_code=status.HTTP_202_ACCEPTED)
+
+
+@app.post("/upload_answers")
+async def upload_answers(index: str, answer_obj: AnswersList):
+    global logger
+    logger.cls = "main.py:upload"
+
+    # Make sure index (vendor_id) is lowercase (Elasticsearch)
+    if index != index.lower():
+        logger.msg = "Index needs to be lowercase!"
+        logger.error()
+        return ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": "{}".format(logger.msg)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    try:
+        LingtelliElastic2.save_answers(index, answer_obj.answers)
+    except Exception as err:
+        logger.msg = "Something went wrong when trying to save file contents into ELK!"
+        logger.error(extra_msg=str(err), orgErr=err)
+        ElkServiceResponse(content={"msg": "Unexpected ERROR occurred!", "error": "{}: {}".format(
+            logger.msg, err.msg if isinstance(err, BaseError) else str(err))}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        return ElkServiceResponse(content={"msg": "Documents successfully uploaded & saved into ELK (index: {})!".format("answers_" + index)}, status_code=status.HTTP_202_ACCEPTED)
 
 
 if __name__ == "__main__":
