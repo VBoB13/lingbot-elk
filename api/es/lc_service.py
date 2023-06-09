@@ -784,26 +784,32 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         qa_index = "_".join(["hist", gpt_obj.vendor_id, "*"])
         results = self._check_qa(qa_index, gpt_obj.query)
 
-        if gpt_obj.strict:
-            try:
-                results = self.answer_agent(
-                    gpt_obj.vendor_id, gpt_obj.query, memory)
-                # Memory is handled by agent`
-            except Exception as err:
-                self.logger.msg = "Could NOT get an answer from LangChain agent!"
-                self.logger.error(extra_msg=str(err), orgErr=err)
-                self.logger.msg = "Trying to ask GPT directly instead..."
-                self.logger.warning()
-                results = self.answer_gpt(gpt_obj, memory)
-                # Only add to history manually if asking GPT directly
+        if gpt_obj.gpt:
+            if gpt_obj.strict:
+                try:
+                    results = self.answer_agent(
+                        gpt_obj.vendor_id, gpt_obj.query, memory)
+                    # Memory is handled by agent`
+                except Exception as err:
+                    self.logger.msg = "Could NOT get an answer from LangChain agent!"
+                    self.logger.error(extra_msg=str(err), orgErr=err)
+                    self.logger.msg = "Trying to ask GPT directly instead..."
+                    self.logger.warning()
+                    results = self.answer_gpt(gpt_obj, memory)
+                    # Only add to history manually if asking GPT directly
+                    memory.chat_memory.add_user_message(gpt_obj.query)
+                    memory.chat_memory.add_ai_message(results)
+            else:
+                if not results:
+                    results = self.answer_gpt(gpt_obj, memory)
+                    # Only add to history manually if asking GPT directly
                 memory.chat_memory.add_user_message(gpt_obj.query)
                 memory.chat_memory.add_ai_message(results)
         else:
-            if not results:
-                results = self.answer_gpt(gpt_obj, memory)
-                # Only add to history manually if asking GPT directly
-            memory.chat_memory.add_user_message(gpt_obj.query)
-            memory.chat_memory.add_ai_message(results)
+            local_llm_address = os.environ.get("LOCAL_MODEL_ADDRESS", "")
+            if local_llm_address:
+                # Send stuff to Claude's local LLM service.
+                pass
 
         if len(results) == 0:
             self.logger.msg = "Got NO answer!!!"
