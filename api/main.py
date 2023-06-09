@@ -36,9 +36,9 @@ async def root():
 
 
 @app.post("/delete_answers")
-async def upload_answers(index: str, answer_obj: AnswersList):
+async def delete_answers(index: str):
     global logger
-    logger.cls = "main.py:upload"
+    logger.cls = "main.py:delete_answers"
 
     # Make sure index (vendor_id) is lowercase (Elasticsearch)
     if index != index.lower():
@@ -185,7 +185,7 @@ async def upload(index: str, file: UploadFile, bg_tasks: BackgroundTasks):
 @app.post("/upload_answers")
 async def upload_answers(index: str, answer_obj: AnswersList):
     global logger
-    logger.cls = "main.py:upload"
+    logger.cls = "main.py:upload_answers"
 
     # Make sure index (vendor_id) is lowercase (Elasticsearch)
     if index != index.lower():
