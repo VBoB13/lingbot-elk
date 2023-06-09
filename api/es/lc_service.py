@@ -996,6 +996,11 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                 local_llm_address, data=json.dumps(payload))
             if response.ok:
                 results = response.json()
+        else:
+            self.logger.msg = "NO address found for local LLM!"
+            self.logger.error(
+                extra_msg="Address is set to '{}'".format(local_llm_address))
+            raise self.logger
 
         return str(results)
 
