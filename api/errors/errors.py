@@ -193,7 +193,7 @@ class BaseError(Exception):
         """
         Method to validate the data object passed to save messages.
         """
-        if not data.get('vendor_id', None) or not data.get('Q', None) or not data.get('A', None) or isinstance(data.get('T', None), int):
+        if not data.get('vendor_id', None) or not data.get('Q', None) or not data.get('A', None) or not isinstance(data.get('T', None), int):
             self.msg = "Missing on of the 4 vital keys to save messages to log file!"
             self.error(
                 extra_msg=f"Looking for: ['vendor_id', 'Q', 'A', 'T'], got {str(data)}")
