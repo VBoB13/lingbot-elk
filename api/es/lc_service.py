@@ -960,7 +960,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             OpenAIEmbeddings()
         )
 
-        docs = [{"doc": doc[0].page_content, "score": doc[1]} for doc in es.similarity_search_with_relevance_scores(
+        docs = [{"doc": doc[0].page_content, "score": doc[1]} for doc in es.similarity_search_with_score(
             gpt_obj.query)]
 
         high_score_docs = [doc["doc"] for doc in docs if doc["score"] > 0.5]
