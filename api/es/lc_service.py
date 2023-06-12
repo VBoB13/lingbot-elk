@@ -972,7 +972,7 @@ Please tell me which answer, if any, is the answer to the question by answering 
 with either '#N' or and empty string (''); '#1' if the first answer is indeed the answer to the question.
 If you are not sure which answer is correct (if any), simply respond with an empty string: ''
 In other words, there are only 5 possible answers: 
-'#1', '#2', '#3', '#4' or ''.
+'#1', '#2', '#3', '#4' or ''. You can ONLY answer using these 5 options.
 --------------------
 ANSWERS:
 
@@ -985,7 +985,7 @@ Begin!"""
                        doc in enumerate(high_score_docs)]
             prompt.format(ANSWERS="\n\n".join(answers))
             self.logger.msg = "Current answers: \n%s" % (
-                "\n--------------------\n".join(answers))
+                "\n\n".join(answers))
             self.logger.info()
         else:
             self.logger.msg = "No document with high enough score could be obtained!"
@@ -994,7 +994,7 @@ Begin!"""
 
         results = self.answer_gpt_with_prompt(gpt_obj, memory, prompt)
 
-        if results not in ['#1', '#2', '#3', '#4', '']:
+        if results not in ['#1', '#2', '#3', '#4'] and results != '':
             self.logger.msg = "LLM responded with unacceptable answer!"
             self.logger.error(extra_msg="LLM answer is '{}'".format(
                 Fore.LIGHTRED_EX + results + Fore.RESET))
@@ -1006,6 +1006,10 @@ Begin!"""
                 self.logger.info(extra_msg="Current ")
                 num = int(results[1]) - 1
                 results = high_score_docs[num]
+            else:
+                self.logger.msg = "Could NOT get a proper answer!"
+                self.logger.error()
+                return ""
 
         return results
 
