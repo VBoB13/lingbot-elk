@@ -729,7 +729,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
     @staticmethod
     def save_answers(vendor_id: str, answers: list[str]):
         answer_docs: list[Document] = []
-        if not isinstance(answers, list) or not all(answers):
+        if isinstance(answers, list) and all(answers):
             answer_docs = [
                 Document(page_content=val) for val in answers]
         answer_index = "_".join(["answers", vendor_id])
