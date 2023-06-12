@@ -379,8 +379,6 @@ class LingtelliElastic2(Elasticsearch):
             # Extract the template part of the index _meta data
             meta_mappings: dict = mappings[final_index]['mappings']['_meta']
             template = meta_mappings['template']
-            role = meta_mappings['role']
-            sentiment = meta_mappings['sentiment']
         except Exception as err:
             # If we can't, we know one of the keys for template does NOT exist;
             # we can look for default BOT template
@@ -407,8 +405,6 @@ class LingtelliElastic2(Elasticsearch):
                         index=final_index).body
                     meta_mappings: dict = mappings[final_index]['mappings']['_meta']
                     template = meta_mappings['template']
-                    role = meta_mappings['role']
-                    sentiment = meta_mappings['sentiment']
                 except Exception as err:
                     # Cannot extract one or more of the keys for custom template
                     self.logger.msg = "Template not set for index: %s!" % (
@@ -418,14 +414,12 @@ class LingtelliElastic2(Elasticsearch):
 
         # Extracted, but notice that none of them have values?
         # No custom template...
-        if not template and not role and not sentiment:
-            self.logger.msg = "None of the template attributes are set! Skipping custom template..."
+        if not template:
+            self.logger.msg = "Template NOT set! Skipping custom template..."
             raise self.logger
 
         final_mapping = {
-            "template": template,
-            "role": role,
-            "sentiment": sentiment
+            "template": template
         }
 
         self.logger.msg = "Found custom template data from index: [%s]" % (
@@ -508,32 +502,29 @@ an ACTUAL URL link for that source.""".format("Traditional Chinese (繁體中文
             except ElasticError as err:
                 err.warning()
                 custom_template = {
-                    "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
-your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
-reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
-on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
-that you don't know.",
-                    "role": "salesman",
-                    "sentiment": "very happy and enjoys to provide detailed explanations"
+                    "template": "You are a salesman that is very happy and enjoys to provide detailed explanations. \
+Whenever you are able to list your answer as a bullet point list, please do so. \
+If it seems unnatural to do so, just don't. When you reply, you can ONLY derive \
+the answer from the provided context information; you CANNOT answer based on your \
+own knowledge alone! If an answer does not exist within provided context, \
+just tell the user that you don't know."
                 }
             except Exception as err:
                 self.logger.msg = "Something went wrong when trying to load custom template(s)!"
                 self.logger.error(extra_msg=str(err))
                 custom_template = {
-                    "template": "You are a {role} that is {sentiment}. Whenever you are able to list \
-your answer as a bullet point list, please do so. If it seems unnatural to do so, just don't. When you \
-reply, you can ONLY derive the answer from the provided context information; you CANNOT answer based \
-on your own knowledge alone! If an answer does not exist within provided context, just tell the user \
-that you don't know.",
-                    "role": "salesman",
-                    "sentiment": "very happy and enjoys to provide detailed explanations"
+                    "template": "You are a salesman that is very happy and enjoys to provide detailed explanations. \
+Whenever you are able to list your answer as a bullet point list, please do so. \
+If it seems unnatural to do so, just don't. When you reply, you can ONLY derive \
+the answer from the provided context information; you CANNOT answer based on your \
+own knowledge alone! If an answer does not exist within provided context, \
+just tell the user that you don't know."
                 }
 
-            full_custom_template = self.assemble_template(custom_template)
+            full_custom_template = custom_template["template"]
 
-            if full_custom_template:
-                instructions += "\n\n" + "-"*20 + "\n" + \
-                    "USER INSTRUCTIONS:\n" + full_custom_template
+            instructions += "\n\n" + "-"*20 + "\n" + \
+                "USER INSTRUCTIONS:\n" + full_custom_template
 
             last_instruction = """{}\nBegin!"""
 
@@ -587,48 +578,6 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         results = llm.generate([all_messages]).generations[0][0].text
 
         return results
-
-    def assemble_template(self, custom_template: dict[str, str]) -> str:
-        """
-        Method for actually making sure that custom templates are puzzled together into a string.
-        """
-        full_custom_template = ""
-        if custom_template is not None and isinstance(custom_template, dict):
-            if custom_template.get("template", None):
-                if custom_template.get("sentiment", None) \
-                        and custom_template.get("role", None):
-                    full_custom_template = custom_template["template"].replace(
-                        "{sentiment}", custom_template["sentiment"]).replace("{role}", custom_template["role"])
-            else:
-                if custom_template.get("sentiment", None) and custom_template.get("role", None):
-                    if self.language == "CH":
-                        full_custom_template = "您是個{}的{}".format(
-                            custom_template.get("sentiment"),
-                            custom_template.get("role")
-                        )
-                    else:
-                        full_custom_template = "You are a {} {}.".format(
-                            custom_template.get("sentiment"),
-                            custom_template.get("role")
-                        )
-                elif custom_template.get("sentiment", None) and not custom_template.get("role", None):
-                    if self.language == "CH":
-                        full_custom_template = "您是個{}的聊天機器人".format(
-                            custom_template.get("sentiment"))
-                    else:
-                        full_custom_template = "You are a {} chatbot".format(
-                            custom_template.get("sentiment"))
-
-                else:
-                    if self.language == "CH":
-                        full_custom_template = "您是個又細心又貼心的{}".format(
-                            custom_template.get("role"))
-                    else:
-                        full_custom_template = "You are a kind and thorough {}".format(
-                            custom_template.get("role"))
-
-            return full_custom_template
-        return
 
     @staticmethod
     def delete_answers(vendor_id: str):
