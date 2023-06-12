@@ -670,12 +670,22 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         # Raises error if not exists
         try:
+            template_index = "_".join(["template", vendor_id])
             if not file:
-                self.indices.exists(index="template_"+vendor_id)
+                self.indices.exists(index=template_index)
         except Exception as err:
             pass
         else:
-            indices.append("template_"+vendor_id)
+            indices.append(template_index)
+
+        # Raises error if not exists
+        try:
+            answer_index = "_".join(["answers", vendor_id])
+            self.indices.exists(index=answer_index)
+        except Exception:
+            pass
+        else:
+            indices.append(answer_index)
 
         for index in indices:
             try:
