@@ -963,7 +963,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         docs = [{"doc": doc[0].page_content, "score": doc[1]} for doc in es.similarity_search_with_score(
             gpt_obj.query)]
 
-        high_score_docs = [doc["doc"] for doc in docs if doc["score"] > 0.5]
+        high_score_docs = [doc["doc"] for doc in docs]
 
         prompt = """\
 You will be presented with up to 4 answers and a question at the very bottom, and your duty is to help decide whether any of these answers are actually the answer to that question.
@@ -998,6 +998,9 @@ Begin!"""
             return ""
         else:
             if results != '' and len(results) == 2:
+                self.logger.msg = "Current answer is: %s" % (
+                    Fore.LIGHTCYAN_EX + results + Fore.RESET)
+                self.logger.info(extra_msg="Current ")
                 num = int(results[1]) - 1
                 results = high_score_docs[num]
 
