@@ -568,6 +568,26 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
 
         return results
 
+    def answer_gpt_with_prompt(self, gpt_obj: QueryVendorSessionFile, memory: ConversationBufferWindowMemory, prompt: str) -> str:
+        """
+        Method used to the same end as the 'answer_gpt' method BUT you must provide a full prompt
+        as this method does not try to compose a full prompt for you.
+        """
+        gpt_kwargs = {"frequency_penalty": 0.5}
+
+        llm = ChatOpenAI(temperature=0, max_tokens=1000,
+                         max_retries=2, model_kwargs=gpt_kwargs)
+        all_messages = [SystemMessage(content=prompt)]
+
+        for message in memory.chat_memory.messages:
+            all_messages.append(message)
+
+        all_messages.append(HumanMessage(
+            content="Question: {}".format(gpt_obj.query)))
+        results = llm.generate([all_messages]).generations[0][0].text
+
+        return results
+
     def assemble_template(self, custom_template: dict[str, str]) -> str:
         """
         Method for actually making sure that custom templates are puzzled together into a string.
@@ -785,7 +805,9 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         qa_index = "_".join(["hist", gpt_obj.vendor_id, "*"])
         results = self._check_qa(qa_index, gpt_obj.query)
 
-        if gpt_obj.gpt:
+        if not results:
+            results = self.embed_search_answers(gpt_obj, memory)
+        if not results:
             if gpt_obj.strict:
                 try:
                     results = self.answer_agent(
@@ -801,13 +823,10 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
                     memory.chat_memory.add_user_message(gpt_obj.query)
                     memory.chat_memory.add_ai_message(results)
             else:
-                if not results:
-                    results = self.answer_gpt(gpt_obj, memory)
-                    # Only add to history manually if asking GPT directly
+                results = self.answer_gpt(gpt_obj, memory)
+                # Only add to history manually if asking GPT directly
                 memory.chat_memory.add_user_message(gpt_obj.query)
                 memory.chat_memory.add_ai_message(results)
-        else:
-            results = self.embed_search_answers(gpt_obj)
 
         if len(results) == 0:
             self.logger.msg = "Got NO answer!!!"
@@ -969,10 +988,11 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         if tokens > 50000:
             num_clusters = tokens % 10000
 
-    def embed_search_answers(self, gpt_obj: QueryVendorSessionFile) -> str:
+    def embed_search_answers(self, gpt_obj: QueryVendorSessionFile, memory: ConversationBufferWindowMemory) -> str:
         """
         Method that takes a `query` and `vendor_id` to get a best-answer from the local LLM.
         """
+        results = ""
         answer_index = "_".join(["answers", gpt_obj.vendor_id])
         es = ElasticVectorSearch(
             "http://" + self.settings.elastic_server +
@@ -981,28 +1001,48 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
             OpenAIEmbeddings()
         )
 
-        docs = [doc.page_content for doc in es.similarity_search(
+        docs = [{"doc": doc[0].page_content, "score": doc[1]} for doc in es.similarity_search_with_relevance_scores(
             gpt_obj.query)]
 
-        payload = {
-            "query": gpt_obj.query,
-            "answers": docs
-        }
+        high_score_docs = [doc["doc"] for doc in docs if doc["score"] > 0.5]
 
-        local_llm_address = os.environ.get("LOCAL_MODEL_ADDRESS", "")
+        prompt = """\
+You will be presented with up to 4 answers and a question at the very bottom, and your duty is to help decide whether any of these answers are actually the answer to that question.
 
-        if local_llm_address:
-            response = requests.post(
-                local_llm_address, data=json.dumps(payload))
-            if response.ok:
-                results = response.json()
+Please tell me which answer, if any, is the answer to the question by answering \
+with either '#N' or and empty string (''); '#1' if the first answer is indeed the answer to the question \
+or '' if you are not sure it's correct OR if you're sure none of the answers are correct. \
+In other words, there are only 4 answers: \
+'#1', '#2', '#3', '#4' or ''.
+--------------------
+ANSWERS:
+
+{ANSWERS}
+--------------------
+Begin!"""
+
+        if len(high_score_docs) > 0:
+            answers = [f"#{str(num + 1)}: {doc}" for num,
+                       doc in enumerate(high_score_docs)]
+            prompt.format(ANSWERS="\n\n".join(answers))
         else:
-            self.logger.msg = "NO address found for local LLM!"
-            self.logger.error(
-                extra_msg="Address is set to '{}'".format(local_llm_address))
-            raise self.logger
+            self.logger.msg = "No document with high enough score could be obtained!"
+            self.logger.error()
+            return ""
 
-        return str(results)
+        results = self.answer_gpt_with_prompt(gpt_obj, memory, prompt)
+
+        if results not in ['#1', '#2', '#3', '#4', '']:
+            self.logger.msg = "LLM responded with unacceptable answer!"
+            self.logger.error(extra_msg="LLM answer is '{}'".format(
+                Fore.LIGHTRED_EX + results + Fore.RESET))
+            return ""
+        else:
+            if results != '' and len(results) == 2:
+                num = int(results[1]) - 1
+                results = high_score_docs[num]
+
+        return results
 
     def embed_search_w_sources(self, query_obj: QueryVendorSession) -> tuple[str, str]:
         """
