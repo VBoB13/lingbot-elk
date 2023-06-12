@@ -971,7 +971,7 @@ You will be presented with up to 4 answers and a question at the very bottom, an
 Please tell me which answer, if any, is the answer to the question by answering \
 with either '#N' or and empty string (''); '#1' if the first answer is indeed the answer to the question \
 or '' if you are not sure it's correct OR if you're sure none of the answers are correct. \
-In other words, there are only 4 answers: \
+In other words, there are only 5 possible answers: \
 '#1', '#2', '#3', '#4' or ''.
 --------------------
 ANSWERS:
@@ -984,6 +984,9 @@ Begin!"""
             answers = [f"#{str(num + 1)}: {doc}" for num,
                        doc in enumerate(high_score_docs)]
             prompt.format(ANSWERS="\n\n".join(answers))
+            self.logger.msg = "Current answers: %s" (
+                "--------------------\n".join(answers))
+            self.logger.info()
         else:
             self.logger.msg = "No document with high enough score could be obtained!"
             self.logger.error()
