@@ -56,7 +56,6 @@ class QueryVendorSession(VendorSession):
 
 class QueryVendorSessionFile(VendorFileQuery, Session):
     strict: bool = False
-    gpt: bool = True
 
 
 class VendorFileSession(VendorSession):
