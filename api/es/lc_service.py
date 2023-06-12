@@ -984,7 +984,7 @@ Begin!"""
             answers = [f"#{str(num + 1)}: {doc}" for num,
                        doc in enumerate(high_score_docs)]
             prompt.format(ANSWERS="\n\n".join(answers))
-            self.logger.msg = "Current answers: %s" (
+            self.logger.msg = "Current answers: %s" % (
                 "--------------------\n".join(answers))
             self.logger.info()
         else:
