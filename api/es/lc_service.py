@@ -779,7 +779,7 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         client = LingtelliElastic2()
 
         if client.indices.exists(index=answer_index).body:
-            client.logger.msg = "Index [%s] does NOT exist!" % answer_index
+            client.logger.msg = "Index [%s] already exist!" % answer_index
             client.logger.warning()
             raise client.logger
 
