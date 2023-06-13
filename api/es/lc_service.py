@@ -953,6 +953,14 @@ E.g. if your answer would have been 'Yes.', it should now be '是的'.")
         """
         results = ""
         answer_index = "_".join(["answers", gpt_obj.vendor_id])
+        try:
+            self.indices.exists(inde=answer_index)
+        except Exception as err:
+            self.logger.msg = "Index probably doesn't exist: [%s]" % (
+                Fore.LIGHTRED_EX + answer_index + Fore.RESET)
+            self.logger.error(extra_msg=str(err))
+            return ""
+        
         es = ElasticVectorSearch(
             "http://" + self.settings.elastic_server +
             ":" + str(self.settings.elastic_port),
