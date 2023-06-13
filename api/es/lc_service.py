@@ -474,7 +474,7 @@ Then, your final "action_input" should be: "這是最終答案"\
         Method using GPT to directly get answers based solely on a one-shot prompt with source documents.
         """
         try:
-            source_text, final_index = self.embed_search_w_sources(gpt_obj)
+            source_text, final_index = self.embed_search_wo_sources(gpt_obj)
         except Exception as err:
             self.logger.msg = "Could NOT fetch source documents!"
             self.logger.error(extra_msg=str(err), orgErr=err)
@@ -495,7 +495,9 @@ uploaded data and it is hopefully related to the upcoming question:
 If you can't find the answer within the information \
 provided or from our conversation, respond that you simply don't know.\
 If you insist on including information from the internet, you have to provide \
-an ACTUAL URL link for that source.""".format("Traditional Chinese (繁體中文)" if self.language == "CH" else "English", source_text)
+an ACTUAL URL link for that source.""".format(
+                "Traditional Chinese (繁體中文)" if self.language == "CH" else "English",
+                source_text if not "" else "[This user does not have any uploaded data. Please answer as best you can on your own.]")
 
             try:
                 custom_template = self._load_template(final_index)
@@ -521,10 +523,8 @@ own knowledge alone! If an answer does not exist within provided context, \
 just tell the user that you don't know."
                 }
 
-            full_custom_template = custom_template["template"]
-
             instructions += "\n\n" + "-"*20 + "\n" + \
-                "USER INSTRUCTIONS:\n" + full_custom_template
+                "USER INSTRUCTIONS:\n" + custom_template["template"]
 
             last_instruction = """{}\nBegin!"""
 
@@ -1013,7 +1013,7 @@ Begin!"""
 
         return results
 
-    def embed_search_w_sources(self, query_obj: QueryVendorSession) -> tuple[str, str]:
+    def embed_search_wo_sources(self, query_obj: QueryVendorSession) -> tuple[str, str]:
         """
         Method that returns a concatinated lump of source documents as a `str`.
         """
@@ -1024,6 +1024,7 @@ Begin!"""
 
         documents = []
         non_matching_indices = set()
+        # Index changes!
         for i, index in enumerate(all_mappings):
             if all_mappings.get(index, None) and \
                     all_mappings.get(index, None).get('mappings', None) and \
@@ -1035,38 +1036,39 @@ Begin!"""
             else:
                 non_matching_indices.add(index)
 
+        final_index = None
         if len(documents) == 0:
             self.logger.msg = "Could NOT get any descriptions from indices!" + \
                 "Have you uploaded material (files) for this ChatBot: [%s]?" % query_obj.vendor_id
             self.logger.error(
                 extra_msg="Indices that did NOT match: [%s]" % ", ".join(str(Fore.LIGHTYELLOW_EX + index + Fore.RESET) for index in non_matching_indices))
             raise self.logger
+        else:
+            db = Chroma.from_texts([doc[1]
+                                for doc in documents], OpenAIEmbeddings())
 
-        db = Chroma.from_texts([doc[1]
-                               for doc in documents], OpenAIEmbeddings())
-
-        final_index_desc = db.similarity_search(query_obj.query, k=1)[
-            0].page_content
-        final_index = None
-        for doc in documents:
-            if doc[1] == final_index_desc:
-                final_index = doc[0]
-                break
+            final_index_desc = db.similarity_search(query_obj.query, k=1)[
+                0].page_content
+            for doc in documents:
+                if doc[1] == final_index_desc:
+                    final_index = doc[0]
+                    break
 
         if final_index is None:
             self.logger.msg = "Could NOT get " + Fore.LIGHTYELLOW_EX + "`final_index`" + Fore.RESET + \
                 " to look through!"
             self.logger.error()
-            raise self.logger
+            full_text = ""
+        else:
+            vectorstore = ElasticVectorSearch(
+                "http://" + self.settings.elastic_server +
+                ":" + str(self.settings.elastic_port),
+                final_index,
+                OpenAIEmbeddings()
+            )
+            full_text = "\n".join([doc.page_content for doc in vectorstore.similarity_search(query_obj.query, k=4)])
 
-        vectorstore = ElasticVectorSearch(
-            "http://" + self.settings.elastic_server +
-            ":" + str(self.settings.elastic_port),
-            final_index,
-            OpenAIEmbeddings()
-        )
-        return "\n".join([doc.page_content for doc in vectorstore.similarity_search(
-            query_obj.query, k=4)]), final_index
+        return full_text, final_index
 
     def embed_search_with_sources(self, query_obj: VendorFileQuery) -> tuple[list[str], float]:
         """
