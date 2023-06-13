@@ -1042,7 +1042,6 @@ Begin!"""
                 "Have you uploaded material (files) for this ChatBot: [%s]?" % query_obj.vendor_id
             self.logger.error(
                 extra_msg="Indices that did NOT match: [%s]" % ", ".join(str(Fore.LIGHTYELLOW_EX + index + Fore.RESET) for index in non_matching_indices))
-            raise self.logger
         else:
             db = Chroma.from_texts([doc[1]
                                 for doc in documents], OpenAIEmbeddings())
