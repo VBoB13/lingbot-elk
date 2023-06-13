@@ -976,7 +976,7 @@ In other words, there are only 5 possible answers:
 
 To give you an example, suppose the answers were as follows:
 --------------------
-ANSWERS:
+(EXAMPLE) ANSWERS:
 
 #1: She has curly hair.
 #2: Her name is Carla and she is from England.
@@ -991,7 +991,7 @@ Thus, you should simply answer with: '#2'
 
 To give you another example, suppose the answers were as follows:
 --------------------
-ANSWERS:
+(EXAMPLE) ANSWERS:
 
 #1: He is often grumpy.
 #2: The owner has 3 assistans, of which 2 are older than him.
