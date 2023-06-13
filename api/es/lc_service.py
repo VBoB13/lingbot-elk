@@ -1025,6 +1025,13 @@ ANSWERS:
 
         results = self.answer_gpt_with_prompt(gpt_obj, memory, prompt)
 
+        for doc in high_score_docs:
+            found_index = results.find(doc)
+            if found_index != -1:
+                self.logger.msg = "Found answer: '%s'" % (Fore.LIGHTCYAN_EX + doc + Fore.RESET)
+                self.logger.info()
+                return doc
+
         if results not in ['#1', '#2', '#3', '#4'] and results != '':
             self.logger.msg = "LLM responded with unacceptable answer!"
             self.logger.error(extra_msg="LLM answer is '{}'".format(
