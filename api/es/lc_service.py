@@ -1029,7 +1029,9 @@ ANSWERS:
             found_index = results.find(doc)
             if found_index != -1:
                 self.logger.msg = "Found answer: '%s'" % (Fore.LIGHTCYAN_EX + doc + Fore.RESET)
-                self.logger.info()
+                self.logger.info(extra_msg="Full answer from GPT: '{}'".format(
+                    Fore.LIGHTRED_EX + results + Fore.RESET
+                ))
                 return doc
 
         if results not in ['#1', '#2', '#3', '#4'] and results != '':
