@@ -497,7 +497,7 @@ provided or from our conversation, respond that you simply don't know.\
 If you insist on including information from the internet, you have to provide \
 an ACTUAL URL link for that source.""".format(
                 "Traditional Chinese (繁體中文)" if self.language == "CH" else "English",
-                source_text if not "" else "[This user does not have any uploaded data. Please answer as best you can on your own.]")
+                source_text if source_text else "[This user does not have any uploaded data. Please answer as best you can on your own.]")
 
             try:
                 custom_template = self._load_template(final_index)
@@ -973,20 +973,52 @@ with either '#N' or and empty string (''); '#1' if the first answer is indeed th
 If you are not sure which answer is correct (if any), simply respond with an empty string: ''
 In other words, there are only 5 possible answers: 
 '#1', '#2', '#3', '#4' or ''. You can ONLY answer using these 5 options.
+
+To give you an example, suppose the answers were as follows:
+--------------------
+ANSWERS:
+
+#1: She has curly hair.
+#2: Her name is Carla and she is from England.
+#3: Her mom says she has the best singing voice.
+#4: She has 2 siblings; one younger brother and one older sister.
+--------------------
+
+Then we suppose the question is: "Where is Carla from?"
+
+With the current context, the best answer is clearly #2: Her name is Carla and she is from England.
+Thus, you should simply answer with: '#2'
+
+To give you another example, suppose the answers were as follows:
+--------------------
+ANSWERS:
+
+#1: He is often grumpy.
+#2: The owner has 3 assistans, of which 2 are older than him.
+#3: The Barn's phone number is: 0123456789.
+#4: If any harm shall come to you during your visit, please visit our local nurse.
+--------------------
+
+Then we suppose the question is: "What's the address of The Barn?"
+As there's no mention of The Barn's address within the answers, we don't know the answer.
+Thus, you should simply reply with: ''
+
+
+Now, here comes the REAL answers for the upcoming question:
 --------------------
 ANSWERS:
 
 {ANSWERS}
 --------------------
-Begin!"""
+"""
 
         if len(high_score_docs) > 0:
             answers = [f"#{str(num + 1)}: {doc}" for num,
                        doc in enumerate(high_score_docs)]
             prompt.format(ANSWERS="\n\n".join(answers))
-            self.logger.msg = "Current answers: \n%s" % (
-                "\n\n".join(answers))
-            self.logger.info()
+            self.logger.msg = "Current answers: \n%s\n\n" % (
+                "\n".join(answers))
+            self.logger.info(extra_msg=str(Fore.LIGHTMAGENTA_EX + prompt + Fore.RESET))
         else:
             self.logger.msg = "No document with high enough score could be obtained!"
             self.logger.error()
